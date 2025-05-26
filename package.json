@@ -1,0 +1,53 @@
+{
+	"name": "@goobits/store",
+	"version": "1.0.0",
+	"description": "Reusable e-commerce store components for Goobits projects",
+	"main": "index.js",
+	"type": "module",
+	"keywords": [
+		"sveltekit",
+		"shop",
+		"store",
+		"ecommerce",
+		"checkout",
+		"components"
+	],
+	"author": "Goobits",
+	"license": "MIT",
+	"publishConfig": {
+		"access": "public"
+	},
+	"files": [
+		"index.js",
+		"ui",
+		"utils",
+		"config",
+		"i18n",
+		"README.md",
+		"LICENSE"
+	],
+	"peerDependencies": {
+		"@sveltejs/kit": "^2.0.0",
+		"formsnap": "^2.0.0",
+		"lucide-svelte": "^0.510.0",
+		"svelte": "^5.0.0",
+		"sveltekit-superforms": "^2.25.0",
+		"zod": "^3.23.0"
+	},
+	"scripts": {
+		"dev": "echo 'Run from monorepo root'",
+		"test": "echo 'No tests configured'"
+	},
+	"homepage": "https://github.com/goobits/store#readme",
+	"bugs": {
+		"url": "https://github.com/goobits/store/issues"
+	},
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/goobits/store.git"
+	},
+	"engines": {
+		"node": ">=18.0.0",
+		"npm": ">=9.0.0"
+	}
+}
