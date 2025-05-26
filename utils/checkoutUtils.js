@@ -2,9 +2,13 @@
  * Utility functions for formatting prices and calculating checkout totals
  */
 
+import { createLogger } from './logger.js'
+
+const logger = createLogger('CheckoutUtils')
+
 // Local error handling implementation
 function handleError(moduleName, error) {
-	console.error(`[${ moduleName }] Error:`, error)
+	logger.error(`Error:`, error)
 	return error
 }
 

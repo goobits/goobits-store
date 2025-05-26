@@ -41,7 +41,10 @@ export async function handleStoreI18n(event, handler) {
 			try {
 				await handler(event)
 			} catch (error) {
-				console.error('Error in store i18n handler:', error.message)
+				// Import logger inline to avoid circular dependencies
+				const { createLogger } = await import('../utils/logger.js')
+				const logger = createLogger('StoreI18n')
+				logger.error('Error in store i18n handler:', error.message)
 				// Don't rethrow to avoid breaking the request flow
 			}
 		}
