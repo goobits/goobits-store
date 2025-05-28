@@ -333,21 +333,19 @@
 		</p>
 	</div>
 	
-	<slot name="actions">
-		<button
-			type="button"
-			class="payment-form__submit-button"
-			onclick={handleSubmit}
-			disabled={isSubmitting}
-		>
-			{#if isSubmitting}
-				<Loader2 class="animate-spin" size={18} />
-				<span>Processing...</span>
-			{:else}
-				<span>Submit Payment</span>
-			{/if}
-		</button>
-	</slot>
+	<button
+		type="button"
+		class="payment-form__submit-button"
+		onclick={handleSubmit}
+		disabled={isSubmitting}
+	>
+		{#if isSubmitting}
+			<Loader2 class="animate-spin" size={18} />
+			<span>Processing...</span>
+		{:else}
+			<span>Submit Payment</span>
+		{/if}
+	</button>
 </div>
 
 <style lang="scss">

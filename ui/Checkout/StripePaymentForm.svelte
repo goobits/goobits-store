@@ -131,7 +131,7 @@
 	<div class="goo__stripe-payment">
 		{#if isLoading}
 			<div class="goo__stripe-payment-loading">
-				<Loader2 class="animate-spin" />
+				<Loader2 style="animation: spin 1s linear infinite;" />
 				<p>Loading payment form...</p>
 			</div>
 		{:else}
@@ -153,7 +153,7 @@
 					aria-label={processing ? 'Processing payment...' : submitButtonText}
 				>
 					{#if processing}
-						<Loader2 class="animate-spin" />
+						<Loader2 style="animation: spin 1s linear infinite;" />
 						<span>Processing...</span>
 					{:else}
 						<span>{submitButtonText}</span>
@@ -222,9 +222,10 @@
 		}
 	}
 
-	.animate-spin {
+	/* Using inline style instead of class */
+	/* .animate-spin {
 		animation: spin 1s linear infinite;
-	}
+	} */
 
 	@keyframes spin {
 		from {

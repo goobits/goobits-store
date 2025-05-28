@@ -180,7 +180,7 @@
 			}
 			
 			&-info,
-			&-summary,
+			// &-summary,
 			&-shipping {
 				background-color: $light-gray;
 				border-radius: $border-radius-medium;
