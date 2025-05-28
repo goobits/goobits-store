@@ -10,6 +10,12 @@ export const storeConfig = {
 	currency: 'USD',
 	currencySymbol: '$',
 
+	// Pagination configuration
+	pagination: {
+		productsPerBatch: 12,
+		productsPerPage: 24
+	},
+
 	// Checkout configuration
 	checkout: {
 		steps: [ 'customer', 'shipping', 'payment', 'review', 'confirmation' ],
@@ -20,8 +26,8 @@ export const storeConfig = {
 	ui: {
 		theme: {
 			colors: {
-				primary: '#ff6b6b',
-				secondary: '#4ecdc4'
+				primary: '#f59e0b',
+				secondary: '#16a34a'
 			}
 		},
 		classPrefix: 'goo__'
@@ -36,5 +42,22 @@ export const storeConfig = {
 		autoDetectLanguage: false,
 		languageDetectionOrder: [ 'url', 'sessionStorage', 'browser' ],
 		persistLanguageKey: 'store-lang'
+	}
+}
+
+/**
+ * Get the store configuration, merging with any custom configuration
+ * @param {Object} customConfig - Custom configuration to merge
+ * @returns {Object} Merged configuration
+ */
+export function getStoreConfig(customConfig = {}) {
+	return {
+		...storeConfig,
+		...customConfig,
+		// Deep merge nested objects
+		pagination: { ...storeConfig.pagination, ...customConfig.pagination },
+		checkout: { ...storeConfig.checkout, ...customConfig.checkout },
+		ui: { ...storeConfig.ui, ...customConfig.ui },
+		i18n: { ...storeConfig.i18n, ...customConfig.i18n }
 	}
 }

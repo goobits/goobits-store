@@ -1,5 +1,17 @@
 // UI component exports for @goobits/store package
 
+// Shop routing components
+export { default as ShopRouter } from './ShopRouter.svelte'
+export { default as ShopIndexPage } from './ShopIndexPage.svelte'
+export { default as ShopProductPage } from './ShopProductPage.svelte'
+export { default as ShopCategoryPage } from './ShopCategoryPage.svelte'
+export { default as ShopCollectionPage } from './ShopCollectionPage.svelte'
+export { default as ShopAccountPage } from './ShopAccountPage.svelte'
+export { default as ShopCartPage } from './ShopCartPage.svelte'
+export { default as ShopCheckoutPage } from './ShopCheckoutPage.svelte'
+export { default as ShopLoginPage } from './ShopLoginPage.svelte'
+export { default as ShopPlansPage } from './ShopPlansPage.svelte'
+
 // Navigation
 export { default as ShopNav } from './ShopNav.svelte'
 

@@ -18,5 +18,5 @@ export * from './i18n/index.js'
 // Services (if needed in the future)
 // export * from './services/index.js'
 
-// Route handlers (if needed in the future)
-// export * from './handlers/index.js'
+// Route handlers
+export * from './handlers/index.js'
