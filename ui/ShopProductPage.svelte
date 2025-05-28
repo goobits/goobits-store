@@ -1,18 +1,13 @@
 <script>
 	// This component contains the existing product detail functionality
 	// For now, we'll import the existing functionality
-	export let data
-</script>
-
-<!-- For now, we'll include the existing product page content inline -->
-<!-- This should be refactored to be more modular later -->
-
-<script>
 	import { run } from 'svelte/legacy'
 	import { addToCart } from '@lib/shop/cart.js'
 	import { goto } from '$app/navigation'
 	import OptimizedImage from '@components/OptimizedImage/OptimizedImage.svelte'
 	import { Logger } from '@lib/utils/Logger.js'
+
+	const { data } = $props()
 
 	const logger = new Logger('ProductDetail')
 

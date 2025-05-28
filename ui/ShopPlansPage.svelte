@@ -1,6 +1,6 @@
 <script>
 	// Reuse the existing plans page content
-	export let data
+	const { data } = $props()
 </script>
 
 <!-- 

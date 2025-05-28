@@ -1,18 +1,13 @@
 <script>
 	// We'll import the existing cart page content and eventually refactor
 	// For now, this is a wrapper around the existing cart functionality
-	export let data
-</script>
-
-<!-- For now, import the existing cart content from the original file -->
-<!-- This should be properly modularized later -->
-
-<script>
 	import { cart, updateQuantity, removeFromCart } from '@lib/shop/cart.js'
 	import { goto } from '$app/navigation'
 	import { medusaClient } from '@lib/medusa/client.js'
 	import { browser } from '$app/environment'
 	import { Logger } from '@lib/utils/Logger.js'
+
+	const { data } = $props()
 
 	const logger = new Logger('ShopCart')
 	

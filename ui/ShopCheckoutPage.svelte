@@ -1,8 +1,7 @@
 <script>
 	// This component contains the existing checkout functionality
 	// For now, we'll import and wrap the existing functionality
-	export let data
-	export let form = undefined
+	const { data, form = undefined } = $props()
 
 	// Re-export all the checkout functionality from the original file
 	import { clearCart } from '@lib/shop/cart.js'
