@@ -27,9 +27,9 @@
 		"LICENSE"
 	],
 	"peerDependencies": {
+		"@lucide/svelte": "^0.548.0",
 		"@sveltejs/kit": "^2.0.0",
 		"formsnap": "^2.0.0",
-		"lucide-svelte": "^0.510.0",
 		"svelte": "^5.0.0",
 		"sveltekit-superforms": "^2.25.0",
 		"zod": "^3.23.0"
