@@ -26,6 +26,9 @@
 		"README.md",
 		"LICENSE"
 	],
+	"dependencies": {
+		"@medusajs/medusa-js": "^6.1.10"
+	},
 	"peerDependencies": {
 		"@lucide/svelte": "^0.548.0",
 		"@sveltejs/kit": "^2.0.0",
@@ -33,6 +36,9 @@
 		"svelte": "^5.0.0",
 		"sveltekit-superforms": "^2.25.0",
 		"zod": "^3.23.0"
+	},
+	"devDependencies": {
+		"@sveltejs/kit": "^2.48.0"
 	},
 	"scripts": {
 		"dev": "echo 'Run from monorepo root'",
