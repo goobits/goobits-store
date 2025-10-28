@@ -101,6 +101,12 @@ export function createShopSlugHandler(options = {}) {
 				return await loadShopIndex(lang, config)
 			}
 
+			// Handle product pages: /shop/products/{handle}
+			if (normalizedSlug.startsWith('products/')) {
+				const productHandle = normalizedSlug.replace('products/', '')
+				return await loadProduct(productHandle, lang, config)
+			}
+
 			if (normalizedSlug === 'account') {
 				return { pageType: 'account', lang }
 			}

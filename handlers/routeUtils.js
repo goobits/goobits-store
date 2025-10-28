@@ -94,7 +94,8 @@ export async function loadProduct(productHandle, lang, config = null) {
 		// Add region context if available for pricing
 		if (defaultRegion?.id) {
 			queryParams.region_id = defaultRegion.id
-			queryParams.currency_code = defaultRegion.currency_code
+			// Note: currency_code is not a valid query param in Medusa v2
+			// Currency is determined by the region
 		}
 
 		const { products } = await medusaServerClient.products.list(queryParams)
