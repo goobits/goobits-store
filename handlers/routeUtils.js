@@ -30,7 +30,9 @@ export async function loadShopIndex(lang, config = null, options = {}) {
 			: 50
 
 		const { products, count } = await medusaServerClient.products.list({
-			limit
+			limit,
+			// Request pricing calculations for variants
+			fields: '+variants.calculated_price'
 		})
 
 		// Get regions/countries for pricing
@@ -88,7 +90,9 @@ export async function loadProduct(productHandle, lang, config = null) {
 
 		// Fetch the product by handle (slug) with pricing information
 		const queryParams = {
-			handle: productHandle
+			handle: productHandle,
+			// Request pricing calculations for variants
+			fields: '+variants.calculated_price'
 		}
 
 		// Add region context if available for pricing
