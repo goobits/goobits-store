@@ -1,7 +1,5 @@
 <script>
 	// This component contains the existing product detail functionality
-	// For now, we'll import the existing functionality
-	import { run } from 'svelte/legacy'
 	import { addToCart } from '@lib/shop/cart.js'
 	import { goto } from '$app/navigation'
 	import OptimizedImage from '@components/OptimizedImage/OptimizedImage.svelte'
@@ -27,12 +25,16 @@
 	// Reactive updates when product data changes
 	let variants = $derived(product.variants || [])
 	let options = $derived(product.options || [])
-	run(() => {
+
+	// Set initial image when product loads
+	$effect(() => {
 		if (product && product.images && product.images.length > 0 && !selectedImage) {
 			selectedImage = product.images[0] // Set initial image
 		}
 	})
-	run(() => {
+
+	// Initialize variant and options when product data changes
+	$effect(() => {
 		if (options.length === 0 && variants.length === 1) {
 			// If no options and only one variant, select it by default
 			selectedVariant = variants[0]
@@ -55,7 +57,7 @@
 	})
 
 	// Find the matching variant whenever selectedOptions changes
-	run(() => {
+	$effect(() => {
 		if (options.length > 0 && Object.keys(selectedOptions).length === options.length) {
 			selectedVariant = variants.find(variant => {
 				return options.every(option => {
