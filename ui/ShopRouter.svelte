@@ -30,13 +30,13 @@
 {:else if pageType === 'collection'}
 	<ShopCollectionPage {data} />
 {:else if pageType === 'account'}
-	<ShopAccountPage {data} />
+	<ShopAccountPage {data} auth={data.auth} isAuthenticated={data.isAuthenticated} customer={data.customer} />
 {:else if pageType === 'cart'}
 	<ShopCartPage {data} />
 {:else if pageType === 'checkout'}
 	<ShopCheckoutPage {data} form={data.form} />
 {:else if pageType === 'login'}
-	<ShopLoginPage {data} />
+	<ShopLoginPage {data} auth={data.auth} />
 {:else if pageType === 'plans'}
 	<ShopPlansPage {data} />
 {:else}

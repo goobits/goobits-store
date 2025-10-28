@@ -96,6 +96,11 @@ export function createShopSlugHandler(options = {}) {
 			}
 
 			// Handle special shop pages
+			if (normalizedSlug === 'products') {
+				// Products listing page - same as shop index
+				return await loadShopIndex(lang, config)
+			}
+
 			if (normalizedSlug === 'account') {
 				return { pageType: 'account', lang }
 			}

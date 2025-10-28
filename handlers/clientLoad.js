@@ -9,10 +9,12 @@
  * @returns {Function} Client load function
  */
 export function createShopClientLoad(_options = {}) {
-	return async ({ params, url }) => {
+	return async ({ params, url, data }) => {
 		// For client-side navigation, we can add any additional
 		// client-specific logic here if needed
+		// IMPORTANT: Merge with server data, don't override it
 		return {
+			...data, // Preserve server data (pageType, etc)
 			slug: params.slug || '',
 			searchParams: Object.fromEntries(url.searchParams.entries())
 		}

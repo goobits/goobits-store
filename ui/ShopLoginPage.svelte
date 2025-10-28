@@ -1,8 +1,10 @@
 <script>
-	import { auth } from '@lib/stores/auth.js'
 	import { goto } from '$app/navigation'
 	import { page } from '$app/stores'
-	
+
+	// Props - auth store passed from parent
+	let { auth } = $props()
+
 	let email = $state('')
 	let password = $state('')
 	let showRegister = $state(false)
@@ -10,26 +12,42 @@
 	let lastName = $state('')
 	let phone = $state('')
 	let confirmPassword = $state('')
-	
-	let authState = $derived($auth)
+
+	// Subscribe to auth store
+	let authState = $state({ customer: null, token: null, loading: false, error: null })
+
+	$effect(() => {
+		if (auth) {
+			// Subscribe to auth store updates
+			const unsubscribe = auth.subscribe((state) => {
+				authState = state
+			})
+			return unsubscribe
+		}
+	})
+
 	let returnUrl = $derived($page.url.searchParams.get('return') || '/shop/account')
-	
+
 	async function handleLogin(e) {
 		e.preventDefault()
+		if (!auth) return
+
 		const result = await auth.login(email, password)
 		if (result.success) {
 			goto(returnUrl)
 		}
 	}
-	
+
 	async function handleRegister(e) {
 		e.preventDefault()
-		
+		if (!auth) return
+
 		if (password !== confirmPassword) {
-			auth.update(state => ({ ...state, error: 'Passwords do not match' }))
+			// Set error state
+			authState = { ...authState, error: 'Passwords do not match' }
 			return
 		}
-		
+
 		const result = await auth.register({
 			first_name: firstName,
 			last_name: lastName,
@@ -37,16 +55,20 @@
 			password,
 			phone
 		})
-		
+
 		if (result.success) {
 			goto(returnUrl)
 		}
 	}
-	
+
 	function toggleMode() {
 		showRegister = !showRegister
 		// Clear error when switching modes
-		auth.update(state => ({ ...state, error: null }))
+		if (auth && auth.clearError) {
+			auth.clearError()
+		} else {
+			authState = { ...authState, error: null }
+		}
 	}
 </script>
 

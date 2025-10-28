@@ -1,45 +1,83 @@
 <script>
-	import { auth, isAuthenticated, customer } from '@lib/stores/auth.js'
 	import { goto } from '$app/navigation'
 	import { onMount } from 'svelte'
-	
+
+	// Props - auth stores passed from parent
+	let { auth, isAuthenticated, customer } = $props()
+
+	// Subscribe to stores
+	let authState = $state({ customer: null, token: null, loading: false, error: null })
+	let isAuth = $state(false)
+	let customerData = $state(null)
+
+	$effect(() => {
+		if (auth) {
+			const unsubAuth = auth.subscribe((state) => {
+				authState = state
+			})
+			return unsubAuth
+		}
+	})
+
+	$effect(() => {
+		if (isAuthenticated) {
+			const unsubIsAuth = isAuthenticated.subscribe((value) => {
+				isAuth = value
+			})
+			return unsubIsAuth
+		}
+	})
+
+	$effect(() => {
+		if (customer) {
+			const unsubCustomer = customer.subscribe((value) => {
+				customerData = value
+			})
+			return unsubCustomer
+		}
+	})
+
 	// Redirect to login if not authenticated
 	onMount(() => {
-		if (!$isAuthenticated) {
+		if (!isAuth) {
 			goto('/shop/login?return=/shop/account')
 		}
 	})
-	
+
 	let editing = $state(false)
 	let firstName = $state('')
 	let lastName = $state('')
 	let email = $state('')
 	let phone = $state('')
-	
+
 	$effect(() => {
-		if ($customer && !editing) {
-			firstName = $customer.first_name || ''
-			lastName = $customer.last_name || ''
-			email = $customer.email || ''
-			phone = $customer.phone || ''
+		if (customerData && !editing) {
+			firstName = customerData.first_name || ''
+			lastName = customerData.last_name || ''
+			email = customerData.email || ''
+			phone = customerData.phone || ''
 		}
 	})
-	
+
 	async function handleUpdate(e) {
 		e.preventDefault()
+		if (!auth) return
+
 		const result = await auth.updateCustomer({
 			first_name: firstName,
 			last_name: lastName,
 			phone
 		})
-		
+
 		if (result.success) {
 			editing = false
 		}
 	}
-	
+
 	function handleLogout() {
-		auth.logout()
+		if (auth) {
+			auth.logout()
+		}
 	}
 </script>
 
@@ -47,16 +85,16 @@
 	<title>My Account - HoneyFarmer</title>
 </svelte:head>
 
-{#if $isAuthenticated && $customer}
+{#if isAuth && customerData}
 	<div class="goo__account-page">
 		<h1>My Account</h1>
-		
+
 		<div class="goo__account-content">
 			<section class="goo__account-section">
 				<div class="goo__section-header">
 					<h2>Profile Information</h2>
 					{#if !editing}
-						<button 
+						<button
 							onclick={() => editing = true}
 							class="goo__edit-button"
 						>
@@ -64,7 +102,7 @@
 						</button>
 					{/if}
 				</div>
-				
+
 				{#if editing}
 					<form onsubmit={handleUpdate} class="goo__profile-form">
 						<div class="goo__form-row">
@@ -75,10 +113,10 @@
 									id="firstName"
 									bind:value={firstName}
 									required
-									disabled={$auth.loading}
+									disabled={authState.loading}
 								/>
 							</div>
-							
+
 							<div class="goo__form-group">
 								<label for="lastName">Last Name</label>
 								<input
@@ -86,11 +124,11 @@
 									id="lastName"
 									bind:value={lastName}
 									required
-									disabled={$auth.loading}
+									disabled={authState.loading}
 								/>
 							</div>
 						</div>
-						
+
 						<div class="goo__form-group">
 							<label for="email">Email Address</label>
 							<input
@@ -101,38 +139,38 @@
 								title="Email cannot be changed"
 							/>
 						</div>
-						
+
 						<div class="goo__form-group">
 							<label for="phone">Phone Number</label>
 							<input
 								type="tel"
 								id="phone"
 								bind:value={phone}
-								disabled={$auth.loading}
+								disabled={authState.loading}
 							/>
 						</div>
-						
-						{#if $auth.error}
+
+						{#if authState.error}
 							<div class="goo__error" role="alert">
-								{$auth.error}
+								{authState.error}
 							</div>
 						{/if}
-						
+
 						<div class="goo__form-actions">
-							<button 
+							<button
 								type="button"
 								onclick={() => editing = false}
 								class="goo__cancel-button"
-								disabled={$auth.loading}
+								disabled={authState.loading}
 							>
 								Cancel
 							</button>
-							<button 
+							<button
 								type="submit"
 								class="goo__save-button"
-								disabled={$auth.loading}
+								disabled={authState.loading}
 							>
-								{$auth.loading ? 'Saving...' : 'Save Changes'}
+								{authState.loading ? 'Saving...' : 'Save Changes'}
 							</button>
 						</div>
 					</form>
