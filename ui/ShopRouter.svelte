@@ -36,7 +36,7 @@
 {:else if pageType === 'checkout'}
 	<ShopCheckoutPage {data} form={data.form} />
 {:else if pageType === 'login'}
-	<ShopLoginPage {data} auth={data.auth} />
+	<ShopLoginPage {data} auth={data.auth} demoCredentials={data.demoCredentials} />
 {:else if pageType === 'plans'}
 	<ShopPlansPage {data} />
 {:else}
