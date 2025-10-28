@@ -1,9 +1,10 @@
 <script>
 	import { goto } from '$app/navigation'
 	import { page } from '$app/stores'
+	import { browser } from '$app/environment'
 
-	// Props - auth store passed from parent
-	let { auth } = $props()
+	// Props - auth store and optional demo credentials passed from parent
+	let { auth, demoCredentials = null } = $props()
 
 	let email = $state('')
 	let password = $state('')
@@ -12,6 +13,7 @@
 	let lastName = $state('')
 	let phone = $state('')
 	let confirmPassword = $state('')
+	let isDemoMode = $state(false)
 
 	// Subscribe to auth store
 	let authState = $state({ customer: null, token: null, loading: false, error: null })
@@ -23,6 +25,21 @@
 				authState = state
 			})
 			return unsubscribe
+		}
+	})
+
+	// Auto-fill demo credentials on localhost
+	$effect(() => {
+		if (browser && typeof window !== 'undefined' && demoCredentials) {
+			const isLocalhost = window.location.hostname === 'localhost' ||
+							   window.location.hostname === '127.0.0.1' ||
+							   window.location.hostname.startsWith('192.168.')
+
+			if (isLocalhost && !showRegister && !email && !password) {
+				email = demoCredentials.email
+				password = demoCredentials.password
+				isDemoMode = true
+			}
 		}
 	})
 
@@ -80,11 +97,11 @@
 	<div class="goo__auth-container">
 		<h1>{showRegister ? 'Create Your Account' : 'Welcome Back'}</h1>
 		<p class="goo__auth-subtitle">
-			{showRegister 
-				? 'Join our hive and start your sweet journey' 
+			{showRegister
+				? 'Join our hive and start your sweet journey'
 				: 'Sign in to access your account and orders'}
 		</p>
-		
+
 		{#if authState.error}
 			<div class="goo__auth-error" role="alert">
 				{authState.error}
@@ -251,7 +268,7 @@
 		color: $gray-600;
 		margin-bottom: $spacing-large;
 	}
-	
+
 	.goo__auth-error {
 		background-color: #fee;
 		color: #c00;
