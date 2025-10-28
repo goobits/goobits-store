@@ -82,10 +82,22 @@ export async function loadProduct(productHandle, lang, config = null) {
 	const _finalConfig = config || getStoreConfig()
 
 	try {
-		// Fetch the product by handle (slug)
-		const { products } = await medusaServerClient.products.list({
+		// Get regions first for pricing context
+		const { regions } = await medusaServerClient.regions.list()
+		const defaultRegion = regions && regions.length > 0 ? regions[0] : null
+
+		// Fetch the product by handle (slug) with pricing information
+		const queryParams = {
 			handle: productHandle
-		})
+		}
+
+		// Add region context if available for pricing
+		if (defaultRegion?.id) {
+			queryParams.region_id = defaultRegion.id
+			queryParams.currency_code = defaultRegion.currency_code
+		}
+
+		const { products } = await medusaServerClient.products.list(queryParams)
 
 		if (!products || products.length === 0) {
 			const error = new Error(`Product with handle "${ productHandle }" not found`)
@@ -94,12 +106,6 @@ export async function loadProduct(productHandle, lang, config = null) {
 		}
 
 		const product = products[0]
-
-		// Get regions for pricing
-		const { regions } = await medusaServerClient.regions.list()
-
-		// Default to first region if available
-		const defaultRegion = regions && regions.length > 0 ? regions[0] : null
 
 		// Fetch related products in the same collection or with similar tags
 		let relatedProducts = []

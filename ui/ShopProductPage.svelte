@@ -73,9 +73,31 @@
 		}
 	})
 
+	// Get price from variant
+	function getVariantPrice(variant, region = defaultRegion) {
+		if (!variant) return null
+
+		// Try calculated_price first (if available from API)
+		if (variant.calculated_price) {
+			return variant.calculated_price
+		}
+
+		// Fall back to prices array
+		if (variant.prices && variant.prices.length > 0) {
+			// Find price for current region/currency
+			const regionPrice = region
+				? variant.prices.find(p => p.currency_code === region.currency_code)
+				: variant.prices[0]
+
+			return regionPrice ? regionPrice.amount : variant.prices[0].amount
+		}
+
+		return null
+	}
+
 	// Format price
 	function formatPrice(price) {
-		if (!price) return 'N/A'
+		if (!price && price !== 0) return 'N/A'
 		return (price / 100).toFixed(2)
 	}
 
@@ -103,6 +125,7 @@
 		showOptionWarning = false // Hide warning if it was previously shown
 
 		// Construct cart item
+		const variantPrice = getVariantPrice(selectedVariant)
 		const cartItem = {
 			id: product.id, // Use product ID for grouping in cart logic if needed
 			name: product.title,
@@ -110,7 +133,7 @@
 			variant_id: selectedVariant.id,
 			variant_title: selectedVariant.title, // Use the specific variant title
 			options: selectedVariant.options || [], // Pass the selected variant's options
-			price: parseFloat(formatPrice(selectedVariant.calculated_price)),
+			price: variantPrice ? parseFloat(formatPrice(variantPrice)) : 0,
 			image: product.thumbnail || (product.images && product.images.length > 0 ? product.images[0].url : ''),
 			quantity: quantity
 		}
@@ -198,7 +221,7 @@
 				<h1>{product.title}</h1>
 
 				{#if selectedVariant}
-					<p class="goo__product-price">${formatPrice(selectedVariant.calculated_price)}</p>
+					<p class="goo__product-price">${formatPrice(getVariantPrice(selectedVariant))}</p>
 				{/if}
 
 				{#if product.description}
