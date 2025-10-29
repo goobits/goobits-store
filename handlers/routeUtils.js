@@ -24,22 +24,27 @@ export async function loadShopIndex(lang, config = null, options = {}) {
 	const { initialLoad = false } = options
 
 	try {
+		// Get regions first for pricing context
+		const { regions } = await medusaServerClient.regions.list()
+		const defaultRegion = regions && regions.length > 0 ? regions[0] : null
+
 		// Fetch products from Medusa
 		const limit = initialLoad
 			? _finalConfig.pagination?.productsPerBatch || 12
 			: 50
 
-		const { products, count } = await medusaServerClient.products.list({
+		const queryParams = {
 			limit,
 			// Request pricing calculations for variants
 			fields: '+variants.calculated_price'
-		})
+		}
 
-		// Get regions/countries for pricing
-		const { regions } = await medusaServerClient.regions.list()
+		// Add region context if available for pricing
+		if (defaultRegion?.id) {
+			queryParams.region_id = defaultRegion.id
+		}
 
-		// Default to first region if available
-		const defaultRegion = regions && regions.length > 0 ? regions[0] : null
+		const { products, count } = await medusaServerClient.products.list(queryParams)
 
 		// Get product categories for filtering
 		const { product_categories } = await medusaServerClient.productCategories.list({
@@ -105,9 +110,7 @@ export async function loadProduct(productHandle, lang, config = null) {
 		const { products } = await medusaServerClient.products.list(queryParams)
 
 		if (!products || products.length === 0) {
-			const error = new Error(`Product with handle "${ productHandle }" not found`)
-			error.status = 404
-			throw error
+			throw error(404, `Product with handle "${ productHandle }" not found`)
 		}
 
 		const product = products[0]
@@ -133,15 +136,14 @@ export async function loadProduct(productHandle, lang, config = null) {
 			lang
 		}
 	} catch (err) {
-		logger.error('Error loading product:', err)
-		if (err.status === 404) {
+		// Re-throw SvelteKit errors (like 404) directly
+		if (err.status) {
 			throw err
 		}
 
-		const error = new Error('Error loading product from Medusa')
-		error.status = 500
-		error.details = err.message
-		throw error
+		// Log and wrap other errors
+		logger.error('Error loading product:', err)
+		throw error(500, 'Error loading product from Medusa')
 	}
 }
 
@@ -163,9 +165,7 @@ export async function loadCategory(categoryHandle, lang, config = null) {
 		})
 
 		if (!product_categories || product_categories.length === 0) {
-			const error = new Error(`Category with handle "${ categoryHandle }" not found`)
-			error.status = 404
-			throw error
+			throw error(404, `Category with handle "${ categoryHandle }" not found`)
 		}
 
 		const category = product_categories[0]
@@ -192,15 +192,14 @@ export async function loadCategory(categoryHandle, lang, config = null) {
 			lang
 		}
 	} catch (err) {
-		logger.error('Error loading category:', err)
-		if (err.status === 404) {
+		// Re-throw SvelteKit errors (like 404) directly
+		if (err.status) {
 			throw err
 		}
 
-		const error = new Error('Error loading category from Medusa')
-		error.status = 500
-		error.details = err.message
-		throw error
+		// Log and wrap other errors
+		logger.error('Error loading category:', err)
+		throw error(500, 'Error loading category from Medusa')
 	}
 }
 
@@ -222,9 +221,7 @@ export async function loadCollection(collectionHandle, lang, config = null) {
 		})
 
 		if (!collections || collections.length === 0) {
-			const error = new Error(`Collection with handle "${ collectionHandle }" not found`)
-			error.status = 404
-			throw error
+			throw error(404, `Collection with handle "${ collectionHandle }" not found`)
 		}
 
 		const collection = collections[0]
@@ -251,15 +248,14 @@ export async function loadCollection(collectionHandle, lang, config = null) {
 			lang
 		}
 	} catch (err) {
-		logger.error('Error loading collection:', err)
-		if (err.status === 404) {
+		// Re-throw SvelteKit errors (like 404) directly
+		if (err.status) {
 			throw err
 		}
 
-		const error = new Error('Error loading collection from Medusa')
-		error.status = 500
-		error.details = err.message
-		throw error
+		// Log and wrap other errors
+		logger.error('Error loading collection:', err)
+		throw error(500, 'Error loading collection from Medusa')
 	}
 }
 

@@ -79,7 +79,8 @@
 
 		// Try calculated_price first (if available from API)
 		if (variant.calculated_price) {
-			return variant.calculated_price
+			// Return the calculated_amount from the calculated_price object
+			return variant.calculated_price.calculated_amount
 		}
 
 		// Fall back to prices array
@@ -98,7 +99,8 @@
 	// Format price
 	function formatPrice(price) {
 		if (!price && price !== 0) return 'N/A'
-		return (price / 100).toFixed(2)
+		// Don't divide by 100 - Medusa v2 stores amounts as actual currency values, not cents
+		return parseFloat(price).toFixed(2)
 	}
 
 	// Handle image selection
@@ -222,6 +224,8 @@
 
 				{#if selectedVariant}
 					<p class="goo__product-price">${formatPrice(getVariantPrice(selectedVariant))}</p>
+				{:else if variants.length > 0 && variants[0].calculated_price}
+					<p class="goo__product-price">From ${formatPrice(variants[0].calculated_price.calculated_amount)}</p>
 				{/if}
 
 				{#if product.description}

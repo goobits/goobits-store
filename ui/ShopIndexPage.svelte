@@ -22,8 +22,12 @@
 	 */
 	function getProductPrice(product) {
 		if (!product.variants?.length) return 'N/A'
-		const price = product.variants[0].calculated_price || 0
-		return (price / 100).toFixed(2)
+		// Get calculated_amount from the calculated_price object
+		const calculatedPrice = product.variants[0].calculated_price
+		if (!calculatedPrice) return 'N/A'
+		const price = calculatedPrice.calculated_amount || 0
+		// Don't divide by 100 - Medusa v2 stores amounts as actual currency values, not cents
+		return parseFloat(price).toFixed(2)
 	}
 
 	/**
