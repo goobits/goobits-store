@@ -6,10 +6,29 @@
 	import { medusaClient } from '@lib/medusa/client.js'
 	import { browser } from '$app/environment'
 	import { Logger } from '@lib/utils/Logger.js'
+	import { onMount } from 'svelte'
 
 	const { data } = $props()
 
 	const logger = new Logger('ShopCart')
+
+	// Force cart to reload from storage on component mount
+	// This ensures cart persists across page reloads
+	onMount(() => {
+		if (browser) {
+			const storedCart = sessionStorage.getItem('cart') || localStorage.getItem('cart')
+			if (storedCart) {
+				try {
+					const parsedCart = JSON.parse(storedCart)
+					if (parsedCart && parsedCart.length > 0) {
+						cart.set(parsedCart)
+					}
+				} catch (e) {
+					logger.error('Error reloading cart from storage:', e)
+				}
+			}
+		}
+	})
 	
 	// Utility function to get product ID consistently
 	function getProductId(product) {
@@ -20,14 +39,14 @@
 	let errorMessage = $state('')
 
 	// Derived state for subtotal - automatically updates when cart changes
-	let subtotal = $derived(() => {
-		if (!$cart || $cart.length === 0) return 0
-		return $cart.reduce((total, item) => {
+	let subtotal = $derived(
+		!$cart || $cart.length === 0 ? 0 :
+		$cart.reduce((total, item) => {
 			const price = typeof item.price === 'number' ? item.price : 0
 			const quantity = typeof item.quantity === 'number' ? item.quantity : 0
 			return total + (price * quantity)
 		}, 0)
-	})
+	)
 	
 	// Derived state for cleaner template logic
 	let hasItems = $derived($cart && $cart.length > 0)
