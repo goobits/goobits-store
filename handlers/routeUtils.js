@@ -4,12 +4,12 @@
  * Helper functions for loading shop content in different contexts
  */
 
-import { medusaServerClient } from '@lib/medusa/server-client.js'
-import { Logger } from '@lib/utils/Logger.js'
+import { medusaServerClient } from '../utils/medusaServerClient.js'
+import { createLogger } from '../utils/logger.js'
 import { getStoreConfig } from '../config/index.js'
 import { redirect, error } from '@sveltejs/kit'
 
-const logger = new Logger('StoreRouteUtils')
+const logger = createLogger('StoreRouteUtils')
 
 /**
  * Loads data for the main shop index page
