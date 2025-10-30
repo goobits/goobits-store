@@ -29,3 +29,4 @@ export { default as StripePaymentForm } from './Checkout/StripePaymentForm.svelt
 
 // Subscription components
 export { default as SubscribeAndSave } from './SubscribeAndSave.svelte'
+export { default as SubscriptionList } from './SubscriptionList.svelte'
