@@ -26,3 +26,6 @@ export { default as CheckoutShipping } from './Checkout/CheckoutShipping.svelte'
 export { default as PaymentForm } from './Checkout/PaymentForm.svelte'
 export { default as StripeElements } from './Checkout/StripeElements.svelte'
 export { default as StripePaymentForm } from './Checkout/StripePaymentForm.svelte'
+
+// Subscription components
+export { default as SubscribeAndSave } from './SubscribeAndSave.svelte'
