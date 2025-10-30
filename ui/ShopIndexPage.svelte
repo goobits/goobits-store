@@ -1,5 +1,5 @@
 <script>
-	import { addToCart, getCartCount } from '@lib/shop/cart.js'
+	import { addToCart, getCartCount } from '@goobits/store'
 	import { goto } from '$app/navigation'
 
 	/**

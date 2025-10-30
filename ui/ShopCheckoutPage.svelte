@@ -4,7 +4,7 @@
 	const { data, form = undefined } = $props()
 
 	// Re-export all the checkout functionality from the original file
-	import { clearCart } from '@lib/shop/cart.js'
+	import { clearCart } from '@goobits/store'
 	import { goto } from '$app/navigation'
 	import { onMount, onDestroy } from 'svelte'
 	import { browser } from '$app/environment'

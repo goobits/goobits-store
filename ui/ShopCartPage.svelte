@@ -1,9 +1,9 @@
 <script>
 	// We'll import the existing cart page content and eventually refactor
 	// For now, this is a wrapper around the existing cart functionality
-	import { cart, updateQuantity, removeFromCart } from '@lib/shop/cart.js'
+	import { cart, updateQuantity, removeFromCart } from '@goobits/store'
 	import { goto } from '$app/navigation'
-	import { medusaClient } from '@lib/medusa/client.js'
+	import { medusaClient } from '@goobits/store'
 	import { browser } from '$app/environment'
 	import { Logger } from '@lib/utils/Logger.js'
 	import { onMount } from 'svelte'

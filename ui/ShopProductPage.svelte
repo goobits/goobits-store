@@ -1,6 +1,6 @@
 <script>
 	// This component contains the existing product detail functionality
-	import { addToCart } from '@lib/shop/cart.js'
+	import { addToCart } from '@goobits/store'
 	import { goto } from '$app/navigation'
 	import OptimizedImage from '@components/OptimizedImage/OptimizedImage.svelte'
 	import { Logger } from '@lib/utils/Logger.js'
