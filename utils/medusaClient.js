@@ -1,8 +1,8 @@
 import Medusa from '@medusajs/medusa-js'
 import { browser } from '$app/environment'
-import { Logger } from './logger.js'
+import { createLogger } from './logger.js'
 
-const logger = new Logger('MedusaClient')
+const logger = createLogger('MedusaClient')
 
 // Client-side only Medusa client
 // This is used for browser-only operations

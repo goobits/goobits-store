@@ -5,9 +5,9 @@
  */
 
 import { browser } from '$app/environment'
-import { Logger } from './logger.js'
+import { createLogger } from './logger.js'
 
-const logger = new Logger('PaymentService')
+const logger = createLogger('PaymentService')
 
 /**
  * Process a credit card payment

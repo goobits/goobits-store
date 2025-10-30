@@ -1,11 +1,11 @@
 import Medusa from '@medusajs/medusa-js'
-import { Logger } from './logger.js'
+import { createLogger } from './logger.js'
 import {
 	PUBLIC_MEDUSA_BACKEND_URL,
 	PUBLIC_MEDUSA_PUBLISHABLE_KEY
 } from '$env/static/public'
 
-const logger = new Logger('MedusaServer')
+const logger = createLogger('MedusaServer')
 
 // Use SvelteKit public environment variables
 const backendUrl = PUBLIC_MEDUSA_BACKEND_URL || 'http://localhost:3282'
