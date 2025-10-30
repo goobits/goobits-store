@@ -11,6 +11,7 @@ import {
 	loadCategory,
 	loadCollection,
 	loadCheckout,
+	loadCart,
 	generateShopEntries
 } from './routeUtils.js'
 
@@ -112,7 +113,7 @@ export function createShopSlugHandler(options = {}) {
 			}
 
 			if (normalizedSlug === 'cart') {
-				return { pageType: 'cart', lang }
+				return await loadCart(lang, config)
 			}
 
 			if (normalizedSlug === 'login') {

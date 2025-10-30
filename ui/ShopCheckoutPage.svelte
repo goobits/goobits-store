@@ -11,25 +11,42 @@
 	import { Logger } from '@lib/utils/Logger.js'
 	import { customer } from '@lib/stores/auth.js'
 
+	// Import checkout components from store package
+	import CheckoutCustomerInfo from './Checkout/CheckoutCustomerInfo.svelte'
+	import CheckoutShipping from './Checkout/CheckoutShipping.svelte'
+	import CheckoutPayment from './Checkout/CheckoutPayment.svelte'
+	import CheckoutReview from './Checkout/CheckoutReview.svelte'
+	import CheckoutConfirmation from './Checkout/CheckoutConfirmation.svelte'
+
+	// Import checkout utilities directly to avoid circular dependency
+	import * as CheckoutUtils from '../utils/checkoutUtils.js'
+
 	const logger = new Logger('Checkout')
 
-	// Import checkout components from store package
-	import {
-		CheckoutCustomerInfo,
-		CheckoutShipping,
-		CheckoutPayment,
-		CheckoutReview,
-		CheckoutConfirmation
-	} from '@goobits/store'
-
-	// Import checkout utilities from store package
-	import * as CheckoutUtils from '@goobits/store'
+	// Debug: log when component loads
+	logger.info('ShopCheckoutPage loading...')
+	logger.info('Data cart:', data?.cart?.id)
+	logger.info('Data regions:', data?.regions?.length)
 
 	// Setup lifecycle hooks
 	onMount(() => {
 		// Initialize session storage for checkout
 		if (browser && typeof window !== 'undefined') {
-			// Do any initial setup here
+			// Populate customer data from store if available and not already loaded from session
+			const unsubscribe = customer.subscribe(value => {
+				if (value && !savedState?.customerInfo) {
+					// Only populate if we don't have saved state
+					customerInfo.email = value.email || ''
+					customerInfo.first_name = value.first_name || ''
+					customerInfo.last_name = value.last_name || ''
+
+					shippingAddress.first_name = value.first_name || ''
+					shippingAddress.last_name = value.last_name || ''
+					shippingAddress.phone = value.phone || ''
+				}
+			})
+
+			return unsubscribe
 		}
 	})
 
@@ -99,10 +116,11 @@
 	}
 
 	// Form data for each step (using saved state if available, or from authenticated user)
+	// Initialize with empty values - we'll populate from customer store in onMount
 	let customerInfo = $state(savedState?.customerInfo || {
-		email: $customer?.email || '',
-		first_name: $customer?.first_name || '',
-		last_name: $customer?.last_name || ''
+		email: '',
+		first_name: '',
+		last_name: ''
 	})
 
 	// Get default country code separately to avoid reactivity issues
@@ -116,15 +134,15 @@
 	})
 
 	let shippingAddress = $state(savedState?.shippingAddress || {
-		first_name: $customer?.first_name || '',
-		last_name: $customer?.last_name || '',
+		first_name: '',
+		last_name: '',
 		address_1: '',
 		address_2: '',
 		city: '',
 		province: '',
 		postal_code: '',
 		country_code: defaultCountry,
-		phone: $customer?.phone || ''
+		phone: ''
 	})
 
 	// Initialize shipping option (defaulted if available)
@@ -144,6 +162,8 @@
 			selectedShippingOption = defaultShippingOption
 		}
 	})
+
+	logger.info('State initialization complete')
 
 	// Save form state whenever critical values change
 	$effect(() => {
@@ -317,6 +337,9 @@
 	function continueShopping() {
 		goto('/shop')
 	}
+
+	logger.info('About to render template, currentStep:', currentStep)
+	logger.info('medusaCart id:', medusaCart?.id)
 </script>
 
 <div class="goo__checkout-page">

@@ -1,7 +1,4 @@
 <script>
-	import { enhance } from '$app/forms'
-	import { preventDefault } from 'svelte/legacy'
-
 	/**
 	 * @typedef {Object} Props
 	 * @property {Object} medusaCart - The Medusa cart object
@@ -161,7 +158,7 @@
 			</div>
 		{/if}
 		
-		<form method="POST" action="?/completeCart" use:enhance onsubmit={preventDefault(handlePlaceOrder)}>
+		<form method="POST" action="?/completeCart" onsubmit={(e) => { e.preventDefault(); handlePlaceOrder(e); }}>
 			<input type="hidden" name="cart_id" value={medusaCart.id} />
 			
 			<div class="goo__form-actions">

@@ -1,7 +1,4 @@
 <script>
-	import { enhance } from '$app/forms'
-	import { preventDefault } from 'svelte/legacy'
-
 	/**
 	 * @typedef {Object} Props
 	 * @property {Object} customerInfo - The current customer information
@@ -13,20 +10,25 @@
 	 */
 
 	/** @type {Props} */
-	let { 
-		customerInfo, 
-		cartId, 
-		form, 
-		formSubmitting, 
-		handleCustomerInfoSubmit, 
-		continueShopping 
+	let {
+		customerInfo,
+		cartId,
+		form,
+		formSubmitting,
+		handleCustomerInfoSubmit,
+		continueShopping
 	} = $props()
+
+	function handleSubmit(event) {
+		event.preventDefault()
+		handleCustomerInfoSubmit(event)
+	}
 </script>
 
 <div class="goo__checkout-section">
 	<h2>Contact Information</h2>
-	
-	<form method="POST" action="?/updateCustomer" use:enhance onsubmit={preventDefault(handleCustomerInfoSubmit)}>
+
+	<form method="POST" action="?/updateCustomer" onsubmit={handleSubmit}>
 		<input type="hidden" name="cart_id" value={cartId} />
 		
 		<div class="goo__form-group">
@@ -62,3 +64,105 @@
 		</div>
 	</form>
 </div>
+
+<style>
+	.goo__checkout-section {
+		max-width: 600px;
+		margin: 0 auto;
+		padding: 2rem;
+	}
+
+	.goo__checkout-section h2 {
+		font-size: 1.5rem;
+		margin-bottom: 1.5rem;
+		color: #333;
+	}
+
+	.goo__form-group {
+		margin-bottom: 1rem;
+	}
+
+	.goo__form-group label {
+		display: block;
+		margin-bottom: 0.5rem;
+		font-weight: 500;
+		color: #555;
+	}
+
+	.goo__form-group .required {
+		color: #e53e3e;
+	}
+
+	.goo__form-group input,
+	.goo__form-group select {
+		width: 100%;
+		padding: 0.75rem;
+		border: 1px solid #ddd;
+		border-radius: 4px;
+		font-size: 1rem;
+	}
+
+	.goo__form-group input:focus,
+	.goo__form-group select:focus {
+		outline: none;
+		border-color: #f59e0b;
+		box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.1);
+	}
+
+	.goo__form-row {
+		display: grid;
+		grid-template-columns: 1fr 1fr;
+		gap: 1rem;
+	}
+
+	.goo__form-error {
+		background-color: #fee2e2;
+		color: #991b1b;
+		padding: 0.75rem;
+		border-radius: 4px;
+		margin-bottom: 1rem;
+	}
+
+	.goo__form-actions {
+		display: flex;
+		justify-content: space-between;
+		gap: 1rem;
+		margin-top: 2rem;
+	}
+
+	.goo__back-button,
+	.goo__continue-button {
+		padding: 0.75rem 1.5rem;
+		border-radius: 4px;
+		font-size: 1rem;
+		font-weight: 500;
+		cursor: pointer;
+		transition: all 0.2s;
+	}
+
+	.goo__back-button {
+		background: #f3f4f6;
+		border: 1px solid #d1d5db;
+		color: #374151;
+	}
+
+	.goo__back-button:hover {
+		background: #e5e7eb;
+	}
+
+	.goo__continue-button {
+		background: #f59e0b;
+		border: none;
+		color: white;
+		flex: 1;
+	}
+
+	.goo__continue-button:hover:not(:disabled) {
+		background: #d97706;
+	}
+
+	.goo__continue-button:disabled {
+		opacity: 0.5;
+		cursor: not-allowed;
+	}
+</style>

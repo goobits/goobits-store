@@ -419,3 +419,33 @@ export async function loadCheckout(lang, config = null, url) {
 		})
 	}
 }
+
+/**
+ * Loads data for the cart page
+ * @param {string} lang - The language code
+ * @param {Object} config - Shop configuration
+ * @returns {Promise<object>} An object containing page data for the cart
+ */
+export async function loadCart(lang, config = null) {
+	try {
+		// Get regions for cart creation
+		const { regions } = await medusaServerClient.regions.list()
+
+		// Default to first region if available
+		const defaultRegion = regions && regions.length > 0 ? regions[0] : null
+
+		return {
+			pageType: 'cart',
+			regions,
+			defaultRegion,
+			lang
+		}
+	} catch (err) {
+		logger.error('Error loading cart page:', err)
+
+		throw error(500, {
+			message: 'Error loading cart information',
+			details: err.message
+		})
+	}
+}

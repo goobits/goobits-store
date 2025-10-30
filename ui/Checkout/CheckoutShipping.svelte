@@ -1,7 +1,4 @@
 <script>
-	import { enhance } from '$app/forms'
-	import { preventDefault } from 'svelte/legacy'
-
 	/**
 	 * @typedef {Object} Props
 	 * @property {Object} shippingAddress - The current shipping address
@@ -30,7 +27,7 @@
 <div class="goo__checkout-section">
 	<h2>Shipping Address</h2>
 	
-	<form method="POST" action="?/addShippingAddress" use:enhance onsubmit={preventDefault(handleShippingAddressSubmit)}>
+	<form method="POST" action="?/addShippingAddress" onsubmit={(e) => { e.preventDefault(); handleShippingAddressSubmit(e); }}>
 		<input type="hidden" name="cart_id" value={cartId} />
 		
 		<div class="goo__form-row">

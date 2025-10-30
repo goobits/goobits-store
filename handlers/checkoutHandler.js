@@ -37,31 +37,47 @@ export function createCheckoutHandler(options = {}) {
 			}
 
 			try {
+				logger.info('Loading checkout for cart:', cartId)
 				// Get the cart from Medusa
 				const { cart } = await medusaServerClient.carts.retrieve(cartId)
+				logger.info('Retrieved cart successfully:', cart.id)
 
 				if (!cart) {
 					throw redirect(302, cartRedirectPath)
 				}
 
 				// Get regions for shipping
+				logger.info('Fetching regions...')
 				const { regions } = await medusaServerClient.regions.list()
+				logger.info('Fetched regions:', regions?.length)
 
 				// Default to first region
 				const defaultRegion = regions && regions.length > 0 ? regions[0] : null
 
-				// Get shipping options for the region
+				// Get shipping options for the cart
+				logger.info('Fetching shipping options...')
 				let shippingOptions = []
-				if (defaultRegion) {
-					const { shipping_options } = await medusaServerClient.shippingOptions.list({
-						region_id: defaultRegion.id
-					})
-
-					shippingOptions = shipping_options || []
+				if (defaultRegion && cart.id) {
+					try {
+						// Use query parameter to filter shipping options by cart_id
+						const { shipping_options } = await medusaServerClient.shippingOptions.list({
+							cart_id: cart.id
+						})
+						shippingOptions = shipping_options || []
+						logger.info('Fetched shipping options:', shippingOptions.length)
+					} catch (err) {
+						logger.warn('Could not fetch shipping options:', err.message)
+						// Continue without shipping options - they may not be configured yet
+						shippingOptions = []
+					}
 				}
 
+				logger.info('About to check payment sessions...')
+				logger.info('Cart payment_sessions:', cart.payment_sessions)
+				logger.info('Cart shipping_methods:', cart.shipping_methods?.length || 0)
 				// Check if payment sessions exist, initialize if needed
 				if (cart.payment_sessions === null && cart.shipping_methods && cart.shipping_methods.length > 0) {
+					logger.info('Creating payment sessions...')
 					try {
 						// Create payment sessions
 						await medusaServerClient.carts.createPaymentSessions(cartId)
@@ -97,6 +113,7 @@ export function createCheckoutHandler(options = {}) {
 					}
 				}
 
+				logger.info('Returning checkout data...')
 				return {
 					cart,
 					regions,
@@ -105,6 +122,8 @@ export function createCheckoutHandler(options = {}) {
 				}
 			} catch (err) {
 				logger.error('Error loading cart:', err)
+				logger.error('Error stack:', err.stack)
+				logger.error('Error response:', err.response?.data)
 
 				throw error(500, {
 					message: 'Error loading checkout information',

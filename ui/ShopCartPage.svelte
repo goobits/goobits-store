@@ -12,6 +12,9 @@
 
 	const logger = new Logger('ShopCart')
 
+	// Extract region data from server
+	let defaultRegion = $derived(data?.defaultRegion)
+
 	// Force cart to reload from storage on component mount
 	// This ensures cart persists across page reloads
 	onMount(() => {
@@ -91,8 +94,13 @@
 			}
 
 			try {
-				// Create a cart in Medusa
-				const { cart: medusaCart } = await medusaClient.carts.create({})
+			// Create a cart in Medusa with region
+			const cartParams = {}
+			if (defaultRegion?.id) {
+				cartParams.region_id = defaultRegion.id
+			}
+			logger.info("Creating cart with params:", cartParams)
+			const { cart: medusaCart } = await medusaClient.carts.create(cartParams)
 
 				// Add line items to the cart
 				const itemsToAdd = $cart.map(item => {
@@ -102,15 +110,57 @@
 					}
 				})
 
+				// Track failed items
+				const failedItems = []
+
 				for (const item of itemsToAdd) {
-					await medusaClient.carts.lineItems.create(medusaCart.id, {
-						variant_id: item.variant_id,
-						quantity: item.quantity
-					})
+					logger.info('Adding line item:', { variant_id: item.variant_id, quantity: item.quantity })
+					try {
+						await medusaClient.carts.lineItems.create(medusaCart.id, {
+							variant_id: item.variant_id,
+							quantity: item.quantity
+						})
+					} catch (lineItemError) {
+						logger.error('Failed to add line item:', lineItemError)
+						logger.error('Error response:', lineItemError.response?.data)
+
+						// Check if it's a variant not found error
+						const errorMsg = lineItemError.response?.data?.message || ''
+						if (errorMsg.includes('do not exist') || errorMsg.includes('not published')) {
+							logger.warn('Variant no longer exists or is unpublished, skipping:', item.variant_id)
+							failedItems.push(item)
+							// Continue with other items instead of throwing
+							continue
+						}
+
+						// For other errors, throw to stop the process
+						throw lineItemError
+					}
 				}
 
-				// Redirect to the checkout page with the cart ID
-				goto(`/shop/checkout?cart_id=${ medusaCart.id }`)
+				// Remove failed items from local cart
+				if (failedItems.length > 0) {
+					logger.info('Removing invalid items from cart:', failedItems.length)
+					for (const failedItem of failedItems) {
+						const cartItems = $cart.filter(item => item.variant_id !== failedItem.variant_id)
+						cart.set(cartItems)
+					}
+
+					// Show warning to user
+					const itemWord = failedItems.length === 1 ? 'item' : 'items'
+					errorMessage = `${failedItems.length} ${itemWord} in your cart are no longer available and have been removed.`
+				}
+
+				// Only redirect if we have items in the cart
+				if ($cart.length > 0 || itemsToAdd.length > failedItems.length) {
+					// Redirect to the checkout page with the cart ID
+					goto(`/shop/checkout?cart_id=${ medusaCart.id }`)
+				} else {
+					// All items were invalid, stay on cart page
+					errorMessage = 'All items in your cart are no longer available. Please add new items to continue.'
+					isSubmitting = false
+					return
+				}
 			} catch (apiError) {
 				logger.error('API Error:', apiError)
 
@@ -150,7 +200,7 @@
 					<span class="goo__cart-header-actions"></span>
 				</div>
 
-				{#each $cart as item}
+				{#each $cart as item (getProductId(item))}
 					<div class="goo__cart-item">
 						<div class="goo__cart-item-product">
 							<a href="/shop/{item.handle || getProductHandle(item)}" class="goo__cart-item-image-link">

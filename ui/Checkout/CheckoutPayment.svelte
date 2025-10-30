@@ -1,6 +1,4 @@
 <script>
-	import { enhance } from '$app/forms'
-	import { preventDefault } from 'svelte/legacy'
 	import { browser } from '$app/environment'
 	import StripePaymentForm from './StripePaymentForm.svelte'
 
@@ -47,7 +45,7 @@
 	<h2>Payment Method</h2>
 	
 	<!-- Shipping Method Selection -->
-	<form method="POST" action="?/addShippingMethod" use:enhance onsubmit={preventDefault(handleShippingMethodSubmit)}>
+	<form method="POST" action="?/addShippingMethod" onsubmit={(e) => { e.preventDefault(); handleShippingMethodSubmit(e); }}>
 		<input type="hidden" name="cart_id" value={medusaCart.id} />
 		
 		<div class="goo__shipping-options">
@@ -117,7 +115,7 @@
 		<div class="goo__payment-section">
 			<h3>Payment Details</h3>
 			
-			<form method="POST" action="?/updatePayment" use:enhance onsubmit={preventDefault(handlePaymentUpdate)}>
+			<form method="POST" action="?/updatePayment" onsubmit={(e) => { e.preventDefault(); handlePaymentUpdate(e); }}>
 				<input type="hidden" name="cart_id" value={medusaCart.id} />
 				<input type="hidden" name="provider_id" value="stripe" />
 				
