@@ -1,8 +1,8 @@
 import { writable, derived } from 'svelte/store'
 import { browser } from '$app/environment'
-import { medusaClient } from '$lib/medusa/client.js'
+import { medusaClient } from '../utils/medusaClient.js'
 import { goto } from '$app/navigation'
-import { cartStore } from '$lib/shop/cart.js'
+import { cartStore } from './cart.js'
 
 // Auth token key
 const AUTH_TOKEN_KEY = 'medusa_auth_token'
