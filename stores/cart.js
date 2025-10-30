@@ -1,9 +1,9 @@
 import { writable, get } from 'svelte/store'
 import { browser } from '$app/environment'
-import { Logger } from '../utils/logger.js'
+import { createLogger } from '../utils/logger.js'
 import { medusaClient } from '../utils/medusaClient.js'
 
-const logger = new Logger('Cart')
+const logger = createLogger('Cart')
 const CART_ID_KEY = 'medusa_cart_id'
 
 /**
