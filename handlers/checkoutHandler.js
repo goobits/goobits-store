@@ -6,10 +6,10 @@
  */
 
 import { redirect, error } from '@sveltejs/kit'
-import { medusaServerClient } from '@lib/medusa/server-client.js'
-import { Logger } from '@lib/utils/Logger.js'
+import { medusaServerClient } from '../utils/medusaServerClient.js'
+import { createLogger } from '../utils/logger.js'
 
-const logger = new Logger('CheckoutHandler')
+const logger = createLogger('CheckoutHandler')
 
 /**
  * Creates a checkout page handler for +page.server.js
