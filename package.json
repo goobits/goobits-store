@@ -1,7 +1,7 @@
 {
 	"name": "@goobits/store",
-	"version": "1.0.0",
-	"description": "Reusable e-commerce store components for Goobits projects",
+	"version": "1.6.0",
+	"description": "Reusable e-commerce store components and utilities for Goobits projects built on Medusa v2",
 	"main": "index.js",
 	"type": "module",
 	"keywords": [
@@ -30,6 +30,7 @@
 		"LICENSE"
 	],
 	"dependencies": {
+		"@goobits/logger": "workspace:*",
 		"@medusajs/medusa-js": "^6.1.10"
 	},
 	"peerDependencies": {

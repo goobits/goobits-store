@@ -1,8 +1,10 @@
 # @goobits/store
 
-⚠️ **EXPERIMENTAL PACKAGE - v0.0.1-alpha**
+**Version 1.6.0** - Stable
 
-Reusable e-commerce store components for Goobits projects.
+Reusable e-commerce store components and utilities for Goobits projects built on Medusa v2.
+
+Part of the Goobits monorepo ecosystem with shared `@goobits/logger`, `@goobits/security`, and `@goobits/ui` packages.
 
 ## 🔒 Security Notice
 
@@ -17,12 +19,15 @@ Using this package for real payment processing violates PCI compliance and could
 
 ## ✨ Features
 
-- 🛒 Full shopping cart functionality
-- 💳 Checkout flow with Stripe integration
-- 📱 Responsive design
+- 🛒 Full shopping cart functionality with Medusa v2 integration
+- 💳 Checkout flow with Stripe integration and payment service abstraction
+- 🔄 Subscription management components (Subscribe & Save, Subscription Detail)
+- 📱 Responsive design with Svelte 5 runes mode
 - 🌐 Built-in internationalization (i18n) support
-- ♿ Accessibility compliant
-- 🎨 Customizable styling with BEM naming
+- ♿ Accessibility compliant (WCAG)
+- 🎨 Customizable styling with BEM naming and SCSS variables
+- 📊 Structured logging with `@goobits/logger` integration
+- 🔐 Integrates with `@goobits/security` for CSRF and validation
 
 ## 📦 Installation
 
@@ -157,6 +162,13 @@ const getMessage = createMessageGetter({
 - `PaymentForm` - Generic payment form
 - `StripeElements` - Stripe Elements wrapper
 - `StripePaymentForm` - Stripe-specific payment form
+- `medusaPaymentService` - Abstracted payment service for Medusa
+- `stripeService` - Reusable Stripe integration service
+
+### Subscription Components
+- `SubscribeAndSave` - Product page subscription option component
+- `SubscriptionDetail` - Display subscription information and management
+- Subscription utilities for managing recurring orders
 
 ### Navigation
 - `ShopNav` - Store navigation with cart indicator

@@ -1,59 +1,26 @@
 /**
  * Logger utility for @goobits/store
+ * Re-exports from @goobits/logger with @goobits/store defaults
  */
 
-// Log levels
-export const LogLevels = {
-	ERROR: 0,
-	WARN: 1,
-	INFO: 2,
-	DEBUG: 3
-}
+import { createLogger as createBaseLogger, LogLevels, LoggerConfig } from '@goobits/logger'
 
-// Global logger configuration
-let globalConfig = {
-	enabled: true,
-	level: LogLevels.INFO,
-	prefix: '@goobits/store'
-}
+// Set default prefix for @goobits/store
+LoggerConfig.setGlobalPrefix('@goobits/store')
 
-/**
- * Configure the global logger
- *
- * @param {Object} config - Logger configuration
- * @param {boolean} [config.enabled] - Enable/disable logging
- * @param {number} [config.level] - Log level (use LogLevels)
- * @param {string} [config.prefix] - Global prefix for all logs
- */
-export function configureLogger(config) {
-	globalConfig = { ...globalConfig, ...config }
-}
+// Re-export everything from @goobits/logger
+export { LogLevels, LoggerConfig }
+
+// Re-export configureLogger as alias
+export const configureLogger = LoggerConfig.configure
 
 /**
  * Create a logger instance for a specific module
+ * Wrapper around @goobits/logger's createLogger with store defaults
  *
  * @param {string} module - Module name
  * @returns {Object} Logger instance with error, warn, info, and debug methods
  */
 export function createLogger(module) {
-	const prefix = `[${ globalConfig.prefix }:${ module }]`
-
-	const shouldLog = (level) => {
-		return globalConfig.enabled && level <= globalConfig.level
-	}
-
-	const log = (level, method, message, ...args) => {
-		if (!shouldLog(level)) return
-
-		const timestamp = new Date().toISOString()
-		const logMethod = console[method] || console.log
-		logMethod(`${ timestamp } ${ prefix } ${ message }`, ...args)
-	}
-
-	return {
-		error: (message, ...args) => log(LogLevels.ERROR, 'error', message, ...args),
-		warn: (message, ...args) => log(LogLevels.WARN, 'warn', message, ...args),
-		info: (message, ...args) => log(LogLevels.INFO, 'info', message, ...args),
-		debug: (message, ...args) => log(LogLevels.DEBUG, 'debug', message, ...args)
-	}
+	return createBaseLogger(module)
 }
