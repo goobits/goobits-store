@@ -3,8 +3,20 @@
 	import { page } from '$app/stores'
 	import { browser } from '$app/environment'
 
-	// Props - auth store, optional demo credentials, and initial mode passed from parent
-	let { auth, demoCredentials = null, initialMode = 'login' } = $props()
+	/**
+	 * ShopLoginPage - Generic authentication page
+	 *
+	 * @prop {Object} auth - Auth store instance
+	 * @prop {Object} [demoCredentials] - Optional demo credentials for dev
+	 * @prop {string} [initialMode] - 'login' or 'register'
+	 * @prop {Object} [branding] - Site branding configuration
+	 */
+	let {
+		auth,
+		demoCredentials = null,
+		initialMode = 'login',
+		branding = { siteName: 'Store' }
+	} = $props()
 
 	let email = $state('')
 	let password = $state('')
@@ -96,16 +108,16 @@
 </script>
 
 <svelte:head>
-	<title>{showRegister ? 'Create Account' : 'Sign In'} - HoneyFarmer</title>
+	<title>{showRegister ? 'Create Account' : 'Sign In'} - {branding.siteName}</title>
 </svelte:head>
 
 <div class="goo__auth-page">
 	<div class="goo__auth-container">
-		<h1>{showRegister ? 'Create Your Account' : 'Welcome Back'}</h1>
+		<h1>{showRegister ? (branding.registerTitle || 'Create Your Account') : (branding.loginTitle || 'Welcome Back')}</h1>
 		<p class="goo__auth-subtitle">
 			{showRegister
-				? 'Join our hive and start your sweet journey'
-				: 'Sign in to access your account and orders'}
+				? (branding.registerSubtitle || 'Create an account to get started')
+				: (branding.loginSubtitle || 'Sign in to access your account and orders')}
 		</p>
 
 		{#if authState.error}

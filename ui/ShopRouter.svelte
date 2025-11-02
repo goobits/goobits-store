@@ -10,12 +10,20 @@
 	import ShopPlansPage from './ShopPlansPage.svelte'
 
 	/**
+	 * ShopRouter - Routes to appropriate shop page component
+	 *
 	 * @typedef {Object} Props
 	 * @property {Object} data - Route data from load function
+	 * @property {Object} [content] - Page-specific content (hero, branding, etc.)
+	 * @property {Object} [config] - UI configuration
 	 */
 
 	/** @type {Props} */
-	let { data } = $props()
+	let {
+		data,
+		content = {},
+		config = {}
+	} = $props()
 
 	// Extract page type and route data
 	let pageType = $derived(data.pageType || 'index')
@@ -23,7 +31,13 @@
 
 <div class="shop-router">
 	{#if pageType === 'index'}
-		<ShopIndexPage {data} />
+		<ShopIndexPage
+			{data}
+			hero={content.hero}
+			features={content.features}
+			footer={content.footer}
+			{config}
+		/>
 	{:else if pageType === 'product'}
 		<ShopProductPage {data} />
 	{:else if pageType === 'category'}
@@ -31,17 +45,38 @@
 	{:else if pageType === 'collection'}
 		<ShopCollectionPage {data} />
 	{:else if pageType === 'account'}
-		<ShopAccountPage {data} auth={data.auth} isAuthenticated={data.isAuthenticated} customer={data.customer} />
+		<ShopAccountPage
+			{data}
+			auth={data.auth}
+			isAuthenticated={data.isAuthenticated}
+			customer={data.customer}
+			branding={content.branding}
+		/>
 	{:else if pageType === 'cart'}
 		<ShopCartPage {data} />
 	{:else if pageType === 'checkout'}
 		<ShopCheckoutPage {data} form={data.form} />
 	{:else if pageType === 'login'}
-		<ShopLoginPage {data} auth={data.auth} demoCredentials={data.demoCredentials} initialMode="login" />
+		<ShopLoginPage
+			{data}
+			auth={data.auth}
+			demoCredentials={data.demoCredentials}
+			initialMode="login"
+			branding={content.branding}
+		/>
 	{:else if pageType === 'register'}
-		<ShopLoginPage {data} auth={data.auth} demoCredentials={null} initialMode="register" />
+		<ShopLoginPage
+			{data}
+			auth={data.auth}
+			demoCredentials={null}
+			initialMode="register"
+			branding={content.branding}
+		/>
 	{:else if pageType === 'plans'}
-		<ShopPlansPage {data} />
+		<ShopPlansPage
+			{data}
+			content={content.plans}
+		/>
 	{:else}
 		<div class="shop-error">
 			<h1>Page Not Found</h1>

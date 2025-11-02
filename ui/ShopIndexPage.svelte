@@ -3,17 +3,33 @@
 	import { goto } from '$app/navigation'
 
 	/**
+	 * ShopIndexPage - Generic shop homepage layout
+	 *
+	 * Accepts all content via props for maximum reusability
+	 *
 	 * @typedef {Object} Props
 	 * @property {Object} data - Route data containing products and other shop data
+	 * @property {Object} [hero] - Hero section content
+	 * @property {Object} [features] - Feature highlight content
+	 * @property {Object} [footer] - Contact/footer content
+	 * @property {Object} [config] - UI configuration
 	 */
 
 	/** @type {Props} */
-	let { data } = $props()
+	let {
+		data,
+		hero = null,
+		features = null,
+		footer = null,
+		config = {}
+	} = $props()
 
 	let products = $derived(data.products || [])
 	let addedProductId = $state(null)
 
-	const fallbackImage = 'https://placehold.co/250x200/FFF3E0/A1887F?text=Honey+Product'
+	// Get fallback image from config or use generic placeholder
+	const fallbackImage = config?.ui?.placeholders?.product ||
+		'https://placehold.co/250x200/E5E5E5/999?text=Product'
 
 	/**
 	 * Calculates and formats the price for a product
@@ -50,7 +66,7 @@
 		if (product.description) {
 			return `${ product.title } - ${ product.description.slice(0, 60) }${ product.description.length > 60 ? '...' : '' }`
 		}
-		return `${ product.title } - ${ product.collection?.title || 'Honey product' }`
+		return `${ product.title } - ${ product.collection?.title || 'Product' }`
 	}
 
 	/**
@@ -95,20 +111,28 @@
 </script>
 
 <!-- Hero Section -->
-<section class="hero-section full-width">
-	<div class="hero-content">
-		<div class="badge">✨ Magical Honey Collection</div>
-		<h1 class="hero-title">Taste the Pure Magic of Columbia Gorge Honey</h1>
-		<p class="hero-subtitle">Small-batch, locally harvested honey from the heart of the Columbia Gorge—crafted with
-			love (and maybe a dash of local legend).</p>
-	</div>
-</section>
+{#if hero}
+	<section class="hero-section full-width">
+		<div class="hero-content">
+			{#if hero.badge}
+				<div class="badge">{hero.badge}</div>
+			{/if}
+			{#if hero.title}
+				<h1 class="hero-title">{hero.title}</h1>
+			{/if}
+			{#if hero.subtitle}
+				<p class="hero-subtitle">{hero.subtitle}</p>
+			{/if}
+		</div>
+	</section>
+{/if}
 
 <!-- Product Section -->
 <section>
-	<h2 class="section-title">Our Products</h2>
-	<p class="section-description">Pure Pacific Northwest sweetness in every jar, crafted by bees and loved by
-		locals.</p>
+	<h2 class="section-title">{hero?.productsTitle || 'Our Products'}</h2>
+	{#if hero?.productsDescription}
+		<p class="section-description">{hero.productsDescription}</p>
+	{/if}
 
 	<div class="product-grid">
 		{#if products.length === 0}
@@ -163,53 +187,71 @@
 </section>
 
 <!-- Feature Highlight -->
-<section class="feature-highlight full-width">
-	<div class="feature-content">
-		<h2>Every Spoonful Protects Pollinators</h2>
-		<p>Your purchase directly supports local pollinator habitats and educational initiatives.</p>
-		<div class="services-container">
-			<div class="services">
-				<h3>Services</h3>
-				<ul>
-					<li><a href="/tiny-bee-homes">Bee Homes</a></li>
-					<li><a href="/pollination-services">Pollination Services</a></li>
-					<li><a href="/educational-programs">Educational Workshops</a></li>
-				</ul>
-			</div>
-			<div class="explore">
-				<h3>Explore</h3>
-				<ul>
-					<li><a href="/beekeeping">Beekeeping Tips</a></li>
-					<li><a href="/mythology">Local Legends</a></li>
-					<li><a href="/recipes">Recipes & More</a></li>
-				</ul>
-			</div>
+{#if features}
+	<section class="feature-highlight full-width">
+		<div class="feature-content">
+			{#if features.title}
+				<h2>{features.title}</h2>
+			{/if}
+			{#if features.description}
+				<p>{features.description}</p>
+			{/if}
+			{#if features.links && features.links.length > 0}
+				<div class="services-container">
+					{#each features.links as linkGroup}
+						<div class="services">
+							{#if linkGroup.title}
+								<h3>{linkGroup.title}</h3>
+							{/if}
+							{#if linkGroup.items && linkGroup.items.length > 0}
+								<ul>
+									{#each linkGroup.items as link}
+										<li><a href={link.url}>{link.label}</a></li>
+									{/each}
+								</ul>
+							{/if}
+						</div>
+					{/each}
+				</div>
+			{/if}
 		</div>
-	</div>
-</section>
+	</section>
+{/if}
 
 <!-- Contact CTA -->
-<section class="contact-cta">
-	<div class="contact-content">
-		<h2>Let's Talk Honey!</h2>
-		<p>Questions or just buzzing to chat?</p>
-		<div class="contact-links">
-			<a href="mailto:hello@honeyfarmer.com" class="contact-link">
-				<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-					<path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path>
-					<polyline points="22,6 12,13 2,6"></polyline>
-				</svg>
-				hello@honeyfarmer.com
-			</a>
-			<a href="tel:+15551234567" class="contact-link">
-				<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-					<path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path>
-				</svg>
-				(555) 123-4567
-			</a>
+{#if footer}
+	<section class="contact-cta">
+		<div class="contact-content">
+			{#if footer.title}
+				<h2>{footer.title}</h2>
+			{/if}
+			{#if footer.subtitle}
+				<p>{footer.subtitle}</p>
+			{/if}
+			{#if footer.contact}
+				<div class="contact-links">
+					{#if footer.contact.email}
+						<a href="mailto:{footer.contact.email}" class="contact-link">
+							<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+								<path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path>
+								<polyline points="22,6 12,13 2,6"></polyline>
+							</svg>
+							{footer.contact.email}
+						</a>
+					{/if}
+					{#if footer.contact.phone}
+						<a href="tel:{footer.contact.phone}" class="contact-link">
+							<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+								<path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path>
+							</svg>
+							{footer.contact.phoneDisplay || footer.contact.phone}
+						</a>
+					{/if}
+				</div>
+			{/if}
 		</div>
-	</div>
-</section>
+	</section>
+{/if}
 
 <style>
 	/* Modern shop page using theme-aware design tokens */

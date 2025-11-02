@@ -1,17 +1,24 @@
 <script>
-	// Reuse the existing plans page content
-	const { data } = $props()
+	/**
+	 * ShopPlansPage - Generic plans/subscriptions redirect page
+	 *
+	 * @prop {Object} data - Route data
+	 * @prop {Object} [content] - Page content (title, description, links)
+	 */
+	const {
+		data,
+		content = {
+			title: 'Service Plans & Subscriptions',
+			description: 'Our service plans and subscription options have moved to make them easier to find!',
+			links: []
+		}
+	} = $props()
 </script>
 
-<!-- 
-For now, this will be a simplified version pointing back to the original plans content.
-In a full implementation, this would be broken down into reusable components.
--->
-
 <section class="plans-redirect">
-	<h1>Service Plans & Subscriptions</h1>
-	<p>Our service plans and subscription options have moved to make them easier to find!</p>
-	
+	<h1>{content.title}</h1>
+	<p>{content.description}</p>
+
 	<div class="redirect-options">
 		<a href="/plans" class="redirect-button">
 			View All Plans & Subscriptions
@@ -20,15 +27,17 @@ In a full implementation, this would be broken down into reusable components.
 			← Back to Shop
 		</a>
 	</div>
-	
-	<div class="quick-links">
-		<h3>Quick Links:</h3>
-		<ul>
-			<li><a href="/tiny-bee-homes">Tiny Bee Homes</a></li>
-			<li><a href="/pollination-services">Pollination Services</a></li>
-			<li><a href="/shop">Honey Products</a></li>
-		</ul>
-	</div>
+
+	{#if content.links && content.links.length > 0}
+		<div class="quick-links">
+			<h3>Quick Links:</h3>
+			<ul>
+				{#each content.links as link}
+					<li><a href={link.url}>{link.label}</a></li>
+				{/each}
+			</ul>
+		</div>
+	{/if}
 </section>
 
 <style>

@@ -2,8 +2,20 @@
 	import { goto } from '$app/navigation'
 	import { onMount } from 'svelte'
 
-	// Props - auth stores passed from parent
-	let { auth, isAuthenticated, customer } = $props()
+	/**
+	 * ShopAccountPage - Customer account management
+	 *
+	 * @prop {Object} auth - Auth store instance
+	 * @prop {Object} isAuthenticated - Auth status store
+	 * @prop {Object} customer - Customer data store
+	 * @prop {Object} [branding] - Site branding
+	 */
+	let {
+		auth,
+		isAuthenticated,
+		customer,
+		branding = { siteName: 'Store' }
+	} = $props()
 
 	// Subscribe to stores
 	let authState = $state({ customer: null, token: null, loading: false, error: null })
@@ -82,7 +94,7 @@
 </script>
 
 <svelte:head>
-	<title>My Account - HoneyFarmer</title>
+	<title>My Account - {branding.siteName}</title>
 </svelte:head>
 
 {#if isAuth && customerData}
