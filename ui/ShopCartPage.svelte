@@ -8,7 +8,11 @@
 	import { Logger } from '@lib/utils/Logger.js'
 	import { onMount } from 'svelte'
 
-	const { data } = $props()
+	const { data, config = {} } = $props()
+
+	// Get placeholder image from config or use generic fallback
+	const fallbackImage = config?.ui?.placeholders?.product ||
+		'https://placehold.co/100x100/E5E5E5/999?text=Product'
 
 	const logger = new Logger('ShopCart')
 
@@ -205,7 +209,7 @@
 						<div class="goo__cart-item-product">
 							<a href="/shop/{item.handle || getProductHandle(item)}" class="goo__cart-item-image-link">
 								<img
-									src={item.image || 'https://placehold.co/100x100/FFF3E0/A1887F?text=Honey'}
+									src={item.image || fallbackImage}
 									alt={item.name}
 									class="goo__cart-item-image"
 								/>

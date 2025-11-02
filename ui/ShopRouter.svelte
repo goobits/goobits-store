@@ -53,7 +53,7 @@
 			branding={content.branding}
 		/>
 	{:else if pageType === 'cart'}
-		<ShopCartPage {data} />
+		<ShopCartPage {data} {config} />
 	{:else if pageType === 'checkout'}
 		<ShopCheckoutPage {data} form={data.form} />
 	{:else if pageType === 'login'}

@@ -61,10 +61,10 @@ npm install @sveltejs/kit formsnap svelte
 ```js
 // src/lib/store-config.js
 export const storeConfig = {
-  shopName: 'Honey Farmer',
+  shopName: 'My Store',
   currencySymbol: '$',
   currencyCode: 'USD',
-  
+
   stripe: {
     publicKey: 'YOUR_STRIPE_PUBLIC_KEY'
   }
