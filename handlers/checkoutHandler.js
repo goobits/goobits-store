@@ -12,6 +12,147 @@ import { createLogger } from '../utils/logger.js'
 const logger = createLogger('CheckoutHandler')
 
 /**
+ * Creates a subscription record for an order containing subscription items
+ *
+ * @param {Object} order - The completed Medusa order
+ * @param {Object} cart - The original cart with subscription metadata
+ */
+async function createSubscriptionForOrder(order, cart) {
+	logger.info('Creating subscription for order:', order.id)
+
+	// Extract subscription items from cart
+	const subscriptionItems = cart.items.filter(item => item.metadata?.subscription === true)
+
+	if (subscriptionItems.length === 0) {
+		logger.warn('No subscription items found in cart')
+		return
+	}
+
+	// Extract variant IDs, product IDs, and quantities
+	const variant_ids = subscriptionItems.map(item => item.variant_id)
+	const product_ids = subscriptionItems.map(item => item.product_id || item.variant?.product_id)
+	const quantities = {}
+	subscriptionItems.forEach(item => {
+		quantities[item.variant_id] = item.quantity
+	})
+
+	// Get subscription details from first item (assumes all items have same period)
+	const subscriptionMetadata = subscriptionItems[0].metadata
+	const interval = subscriptionMetadata.period || 'month'
+	const interval_count = subscriptionMetadata.interval_count || 1
+	const trial_period_days = subscriptionMetadata.trial_period_days || 0
+
+	// Calculate dates
+	const now = new Date()
+	const start_date = now
+
+	// Calculate trial end date if applicable
+	let trial_end_date = null
+	if (trial_period_days > 0) {
+		trial_end_date = new Date(start_date)
+		trial_end_date.setDate(trial_end_date.getDate() + trial_period_days)
+	}
+
+	// Calculate next billing date
+	const billing_start = trial_end_date || start_date
+	const next_billing_date = calculateNextBillingDate(billing_start, interval, interval_count)
+	const current_period_end = next_billing_date
+
+	// Extract payment method from order's payment collection
+	let payment_method_id = null
+	if (order.payment_collection?.payments && order.payment_collection.payments.length > 0) {
+		const payment = order.payment_collection.payments[0]
+		// Extract Stripe payment method ID if available
+		if (payment.provider_id === 'stripe' && payment.data?.payment_method) {
+			payment_method_id = payment.data.payment_method
+		}
+	}
+
+	// Calculate subscription amount (total order amount)
+	const amount = order.total
+
+	// Prepare subscription data
+	const subscriptionData = {
+		customer_id: order.customer_id,
+		interval,
+		interval_count,
+		amount,
+		currency_code: order.currency_code,
+		product_ids,
+		variant_ids,
+		quantities,
+		region_id: order.region_id,
+		shipping_address_id: order.shipping_address?.id || null,
+		payment_method_id,
+		trial_period_days,
+		metadata: {
+			initial_order_id: order.id,
+			customer_email: order.email,
+			created_via: 'checkout',
+			billing_cycle_count: 0
+		}
+	}
+
+	// Create subscription via backend API
+	try {
+		// Get backend URL from environment
+		const backendUrl = process.env.PUBLIC_MEDUSA_BACKEND_URL || 'http://localhost:3282'
+
+		const response = await fetch(`${backendUrl}/store/subscriptions`, {
+			method: 'POST',
+			headers: {
+				'Content-Type': 'application/json'
+			},
+			body: JSON.stringify(subscriptionData)
+		})
+
+		if (!response.ok) {
+			const errorData = await response.json()
+			throw new Error(`Failed to create subscription: ${errorData.message || response.statusText}`)
+		}
+
+		const result = await response.json()
+		logger.info('Successfully created subscription:', result.subscription.id)
+		return result.subscription
+	} catch (error) {
+		logger.error('Failed to create subscription via API:', error)
+		throw error
+	}
+}
+
+/**
+ * Calculate next billing date based on interval
+ *
+ * @param {Date} fromDate - Starting date
+ * @param {string} interval - 'day', 'week', 'month', or 'year'
+ * @param {number} count - Interval multiplier
+ * @returns {Date}
+ */
+function calculateNextBillingDate(fromDate, interval, count = 1) {
+	const nextDate = new Date(fromDate)
+
+	switch (interval.toLowerCase()) {
+		case 'day':
+			nextDate.setDate(nextDate.getDate() + count)
+			break
+		case 'week':
+			nextDate.setDate(nextDate.getDate() + (count * 7))
+			break
+		case 'month':
+			nextDate.setMonth(nextDate.getMonth() + count)
+			break
+		case 'year':
+			nextDate.setFullYear(nextDate.getFullYear() + count)
+			break
+		default:
+			// Default to monthly if invalid interval
+			nextDate.setMonth(nextDate.getMonth() + count)
+	}
+
+	return nextDate
+}
+
+/**
  * Creates a checkout page handler for +page.server.js
  *
  * @example
@@ -283,10 +424,25 @@ export function createCheckoutHandler(options = {}) {
 				}
 
 				try {
+					// Get cart details before completion to check for subscription metadata
+					const { cart } = await medusaServerClient.carts.retrieve(cartId)
+					const hasSubscription = cart?.items?.some(item => item.metadata?.subscription === true)
+
 					// Complete the cart and create an order
 					const { type, data } = await medusaServerClient.carts.complete(cartId)
 
 					if (type === 'order' && data) {
+						// If order contains subscription items, create subscription record
+						if (hasSubscription) {
+							try {
+								await createSubscriptionForOrder(data, cart)
+							} catch (subscriptionError) {
+								// Log error but don't fail the order
+								logger.error('Failed to create subscription for order:', subscriptionError)
+								// TODO: Queue for retry or manual intervention
+							}
+						}
+
 						return {
 							success: true,
 							order: data
