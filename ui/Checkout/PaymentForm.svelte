@@ -2,6 +2,14 @@
 	import { Loader2 } from '@lucide/svelte'
 	import { createEventDispatcher } from 'svelte'
 
+	/**
+	 * @deprecated DO NOT USE IN PRODUCTION - This is a demo component showing insecure patterns.
+	 * Use StripePaymentForm.svelte instead, which properly integrates with Stripe Elements.
+	 *
+	 * This component is exported for documentation/learning purposes only to demonstrate
+	 * what NOT to do with payment card data. See CheckoutPayment.svelte for proper usage.
+	 */
+
 	// Props
 	let {
 		formData = {
