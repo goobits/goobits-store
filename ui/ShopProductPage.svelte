@@ -363,7 +363,6 @@
 
 <!-- Import existing SCSS styles -->
 <style lang="scss">
-	@use 'sass:color';
 	@use '../../../sveltekit/src/styles/variables' as *;
 	@use '../../../sveltekit/src/styles/mixins' as *;
 
@@ -598,17 +597,26 @@
 		}
 
 		&__add-to-cart-button {
-			@include button($color-accent, color.adjust($color-accent, $lightness: -10%), $white);
+			background-color: $color-accent;
+			color: $white;
+			font-weight: bold;
+			border: none;
+			cursor: pointer;
+			border-radius: 9999px;
 			width: 100%;
 			padding: $spacing-medium;
 			margin-bottom: $spacing-large;
 			font-size: $font-size-medium;
 			min-width: 150px;
 			text-align: center;
+			transition: background-color 0.2s ease;
+
+			&:hover {
+				background-color: var(--color-primary-hover);
+			}
 
 			&.added {
 				background-color: $color-success;
-				border-color: color.adjust($color-success, $lightness: -10%);
 				animation: cartBounce 0.5s ease;
 			}
 

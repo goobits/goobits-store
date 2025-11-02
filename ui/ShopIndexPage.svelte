@@ -212,32 +212,11 @@
 </section>
 
 <style>
-	/* Import existing styles from the original shop page */
-	/* Modern CSS Variables */
-	:root {
-		--primary-amber: #f59e0b;
-		--dark-amber: #b45309;
-		--warm-amber: #fef3c7;
-		--accent-green: #16a34a;
-		--dark-green: #15803d;
-		--neutral-50: #fafaf9;
-		--neutral-100: #f5f5f4;
-		--neutral-200: #e7e5e4;
-		--neutral-300: #d6d3d1;
-		--neutral-400: #a8a29e;
-		--neutral-500: #78716c;
-		--neutral-600: #57534e;
-		--neutral-700: #44403c;
-		--neutral-800: #292524;
-		--neutral-900: #1c1917;
-		--shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
-		--shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-		--shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
-	}
+	/* Modern shop page using theme-aware design tokens */
 
 	/* Hero Section */
 	.hero-section {
-		background: linear-gradient(135deg, var(--warm-amber), #ffffff);
+		background: linear-gradient(135deg, var(--bg-secondary), var(--bg-tertiary));
 		padding: 4rem 1rem;
 		margin-bottom: 4rem;
 		box-shadow: var(--shadow-md);
@@ -252,7 +231,7 @@
 	.hero-title {
 		font-size: 2.5rem;
 		font-weight: 800;
-		color: var(--dark-amber);
+		color: var(--text-primary);
 		margin-bottom: 1rem;
 		letter-spacing: -0.025em;
 	}
@@ -265,7 +244,7 @@
 
 	.hero-subtitle {
 		font-size: 1.125rem;
-		color: var(--neutral-600);
+		color: var(--text-secondary);
 		margin-bottom: 2rem;
 		max-width: 600px;
 		margin-left: auto;
@@ -299,12 +278,12 @@
 	}
 
 	.product-card {
-		background: white;
+		background: var(--bg-card);
 		border-radius: 1rem;
 		box-shadow: var(--shadow-sm);
 		overflow: hidden;
 		transition: all 0.3s ease;
-		border: 1px solid var(--neutral-200);
+		border: 1px solid var(--color-border);
 	}
 
 	.product-card:hover {
@@ -316,7 +295,7 @@
 		width: 100%;
 		height: 260px;
 		overflow: hidden;
-		background-color: var(--neutral-100);
+		background-color: var(--color-background-alt);
 		position: relative;
 	}
 
@@ -345,14 +324,14 @@
 	.product-title {
 		font-size: 1.25rem;
 		font-weight: 600;
-		color: var(--neutral-900);
+		color: var(--text-primary);
 		margin-bottom: 0.5rem;
 	}
 
 	.product-price {
 		font-size: 1.125rem;
 		font-weight: 700;
-		color: var(--primary-amber);
+		color: var(--accent-primary);
 		margin-bottom: 1rem;
 	}
 
@@ -370,12 +349,18 @@
 	}
 
 	.btn-primary {
-		background-color: var(--accent-green);
-		color: white;
+		background-color: var(--success);
+		color: var(--white);
+	}
+
+	/* Dark mode: use dark text on light green buttons */
+	:global(html.theme-dark) .btn-primary,
+	:global(html.theme-system-dark) .btn-primary {
+		color: var(--black);
 	}
 
 	.btn-primary:hover {
-		background-color: var(--dark-green);
+		background-color: var(--color-success-dark);
 	}
 
 	.btn-primary.added {
@@ -399,8 +384,8 @@
 	}
 
 	.checkout-button {
-		background-color: var(--accent-green);
-		color: white;
+		background-color: var(--success);
+		color: var(--white);
 		padding: 1rem 2.5rem;
 		border-radius: 0.75rem;
 		font-size: 1.125rem;
@@ -414,8 +399,14 @@
 		box-shadow: var(--shadow-md);
 	}
 
+	/* Dark mode: use dark text on light green buttons */
+	:global(html.theme-dark) .checkout-button,
+	:global(html.theme-system-dark) .checkout-button {
+		color: var(--black);
+	}
+
 	.checkout-button:hover {
-		background-color: var(--dark-green);
+		background-color: var(--color-success-dark);
 		transform: translateY(-2px);
 		box-shadow: var(--shadow-lg);
 	}
@@ -435,7 +426,7 @@
 	.section-title {
 		font-size: 1.875rem;
 		font-weight: 700;
-		color: var(--neutral-900);
+		color: var(--text-primary);
 		margin-bottom: 1.5rem;
 		text-align: center;
 	}
@@ -444,11 +435,11 @@
 		max-width: 800px;
 		margin: 0 auto 2rem;
 		text-align: center;
-		color: var(--neutral-600);
+		color: var(--text-secondary);
 	}
 
 	.feature-highlight {
-		background: linear-gradient(135deg, var(--warm-amber), white);
+		background: linear-gradient(135deg, var(--bg-secondary), var(--bg-tertiary));
 		padding: 3rem 2rem;
 		margin-top: 2rem;
 		margin-bottom: 2rem;
@@ -463,7 +454,7 @@
 	.feature-highlight h2 {
 		font-size: 2rem;
 		font-weight: 700;
-		color: var(--dark-amber);
+		color: var(--text-primary);
 		margin-bottom: 1rem;
 	}
 
@@ -481,7 +472,7 @@
 
 	.services h3, .explore h3 {
 		font-size: 1.25rem;
-		color: var(--dark-amber);
+		color: var(--text-primary);
 		margin-bottom: 1rem;
 		font-weight: 600;
 	}
@@ -496,20 +487,20 @@
 	}
 
 	.services a, .explore a {
-		color: var(--accent-green);
+		color: var(--color-link);
 		text-decoration: none;
 		transition: color 0.2s ease;
 	}
 
 	.services a:hover, .explore a:hover {
-		color: var(--dark-green);
+		color: var(--color-link-hover);
 		text-decoration: underline;
 	}
 
 	.contact-cta {
 		text-align: center;
 		padding: 3rem 2rem;
-		background-color: var(--neutral-50);
+		background-color: var(--bg-secondary);
 		border-radius: 1rem;
 		margin-bottom: 4rem;
 	}
@@ -522,12 +513,12 @@
 	.contact-content h2 {
 		font-size: 1.875rem;
 		font-weight: 700;
-		color: var(--primary-amber);
+		color: var(--accent-primary);
 		margin-bottom: 0.5rem;
 	}
 
 	.contact-content p {
-		color: var(--neutral-600);
+		color: var(--text-secondary);
 		margin-bottom: 1.5rem;
 	}
 
@@ -542,20 +533,20 @@
 		display: flex;
 		align-items: center;
 		gap: 0.5rem;
-		color: var(--accent-green);
+		color: var(--color-link);
 		text-decoration: none;
 		font-weight: 500;
 		transition: color 0.2s ease;
 	}
 
 	.contact-link:hover {
-		color: var(--dark-green);
+		color: var(--color-link-hover);
 	}
 
 	.badge {
 		display: inline-block;
-		background-color: var(--primary-amber);
-		color: white;
+		background-color: var(--accent-primary);
+		color: var(--white);
 		padding: 0.25rem 0.75rem;
 		border-radius: 9999px;
 		font-size: 0.875rem;
@@ -563,13 +554,19 @@
 		margin-bottom: 1rem;
 	}
 
+	/* Dark mode: use dark text on light amber badge */
+	:global(html.theme-dark) .badge,
+	:global(html.theme-system-dark) .badge {
+		color: var(--black);
+	}
+
 	.empty-products {
 		grid-column: 1 / -1;
 		text-align: center;
 		padding: 2rem;
-		background: white;
+		background: var(--bg-card);
 		border-radius: 1rem;
-		border: 1px solid var(--neutral-200);
+		border: 1px solid var(--color-border);
 	}
 
 	.full-width {
