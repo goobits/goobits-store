@@ -3,12 +3,12 @@
 	import { page } from '$app/stores'
 	import { browser } from '$app/environment'
 
-	// Props - auth store and optional demo credentials passed from parent
-	let { auth, demoCredentials = null } = $props()
+	// Props - auth store, optional demo credentials, and initial mode passed from parent
+	let { auth, demoCredentials = null, initialMode = 'login' } = $props()
 
 	let email = $state('')
 	let password = $state('')
-	let showRegister = $state(false)
+	let showRegister = $state(initialMode === 'register')
 	let firstName = $state('')
 	let lastName = $state('')
 	let phone = $state('')
@@ -79,12 +79,18 @@
 	}
 
 	function toggleMode() {
-		showRegister = !showRegister
 		// Clear error when switching modes
 		if (auth && auth.clearError) {
 			auth.clearError()
 		} else {
 			authState = { ...authState, error: null }
+		}
+
+		// Navigate to the appropriate route
+		if (showRegister) {
+			goto('/shop/login')
+		} else {
+			goto('/shop/register')
 		}
 	}
 </script>
@@ -241,37 +247,38 @@
 	@use '../../../sveltekit/src/styles/variables.scss' as *;
 	
 	.goo__auth-page {
-		min-height: calc(100vh - 200px);
+		flex: 1;
 		display: flex;
 		align-items: center;
 		justify-content: center;
-		padding: $spacing-xlarge $spacing-medium;
+		padding: 2rem $spacing-medium;
+		min-height: 0; // Allow flex shrinking if needed
 	}
 	
 	.goo__auth-container {
-		background: white;
+		background: var(--color-surface);
 		border-radius: $border-radius-large;
-		box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+		box-shadow: var(--shadow-md);
 		padding: $spacing-xlarge;
 		width: 100%;
 		max-width: 480px;
-		
+
 		h1 {
-			color: $amber-800;
+			color: var(--text-primary);
 			margin-bottom: $spacing-small;
 			text-align: center;
 		}
 	}
-	
+
 	.goo__auth-subtitle {
 		text-align: center;
-		color: $gray-600;
+		color: var(--text-secondary);
 		margin-bottom: $spacing-large;
 	}
 
 	.goo__auth-error {
-		background-color: #fee;
-		color: #c00;
+		background-color: var(--error-bg);
+		color: var(--error-text);
 		padding: $spacing-medium;
 		border-radius: $border-radius-medium;
 		margin-bottom: $spacing-medium;
@@ -294,29 +301,31 @@
 	
 	.goo__form-group {
 		margin-bottom: $spacing-medium;
-		
+
 		label {
 			display: block;
 			margin-bottom: $spacing-small;
 			font-weight: 500;
-			color: $gray-600;
+			color: var(--text-secondary);
 		}
-		
+
 		input {
 			width: 100%;
 			padding: $spacing-small $spacing-medium;
-			border: 1px solid $gray-200;
+			border: 1px solid var(--color-border);
 			border-radius: $border-radius-medium;
 			font-size: 1rem;
-			
+			background-color: var(--bg-primary);
+			color: var(--text-primary);
+
 			&:focus {
 				outline: none;
-				border-color: $amber-500;
-				box-shadow: 0 0 0 3px rgba($amber-500, 0.1);
+				border-color: var(--accent-primary);
+				box-shadow: 0 0 0 3px var(--accent-shadow);
 			}
-			
+
 			&:disabled {
-				background-color: $gray-100;
+				background-color: var(--bg-secondary);
 				cursor: not-allowed;
 			}
 		}
@@ -325,48 +334,49 @@
 	.goo__auth-submit {
 		width: 100%;
 		padding: $spacing-medium;
-		background-color: $amber-600;
-		color: white;
+		background-color: var(--accent-primary);
+		color: var(--color-text-on-primary);
 		border: none;
 		border-radius: $border-radius-medium;
 		font-size: 1.1rem;
 		font-weight: 600;
 		cursor: pointer;
 		transition: all 0.2s ease;
-		
+
 		&:hover:not(:disabled) {
-			background-color: $amber-700;
+			background-color: var(--accent-light);
 			transform: translateY(-1px);
-			box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+			box-shadow: var(--shadow-md);
 		}
-		
+
 		&:disabled {
-			background-color: $gray-500;
+			background-color: var(--bg-tertiary);
 			cursor: not-allowed;
+			opacity: 0.6;
 		}
 	}
-	
+
 	.goo__auth-toggle {
 		text-align: center;
 		padding-top: $spacing-medium;
-		border-top: 1px solid $gray-200;
-		
+		border-top: 1px solid var(--color-border);
+
 		p {
 			margin-bottom: $spacing-small;
-			color: $gray-600;
+			color: var(--text-secondary);
 		}
 	}
-	
+
 	.goo__auth-link {
 		background: none;
 		border: none;
-		color: $amber-600;
+		color: var(--accent-primary);
 		font-weight: 500;
 		cursor: pointer;
 		text-decoration: underline;
-		
+
 		&:hover {
-			color: $amber-700;
+			color: var(--accent-light);
 		}
 	}
 </style>

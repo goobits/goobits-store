@@ -312,29 +312,9 @@
 
 <!-- Import the existing cart styles -->
 <style>
-	:root {
-		--amber-50: #fffbeb;
-		--amber-100: #fef3c7;
-		--amber-200: #fde68a;
-		--amber-300: #fcd34d;
-		--amber-400: #fbbf24;
-		--amber-500: #f59e0b;
-		--amber-600: #d97706;
-		--amber-700: #b45309;
-		--amber-800: #92400e;
-		--green-500: #16a34a;
-		--green-600: #15803d;
-		--gray-300: #d1d5db;
-		--gray-400: #9ca3af;
-		--gray-500: #6b7280;
-		--gray-600: #4b5563;
-		--gray-700: #374151;
-		--gray-800: #1f2937;
-		--red-500: #ef4444;
-	}
-
 	.goo__shop-page {
-		color: var(--gray-800);
+		flex: 1;
+		color: var(--text-primary);
 		line-height: 1.5;
 		margin-top: 2rem;
 		padding-top: 1rem;
@@ -350,15 +330,15 @@
 	.goo__empty-cart {
 		text-align: center;
 		padding: 3rem;
-		background-color: white;
+		background-color: var(--color-surface);
 		border-radius: 1rem;
-		box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+		box-shadow: var(--shadow-md);
 	}
 
 	.goo__cart-table {
-		background-color: white;
+		background-color: var(--color-surface);
 		border-radius: 1rem;
-		box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+		box-shadow: var(--shadow-md);
 		overflow: hidden;
 		margin-bottom: 3rem;
 	}
@@ -367,17 +347,17 @@
 		display: grid;
 		grid-template-columns: 3fr 1fr 1.5fr 1fr 0.5fr;
 		padding: 1.5rem;
-		background-color: var(--amber-100);
+		background-color: var(--bg-secondary);
 		font-weight: 600;
-		color: var(--gray-700);
-		border-bottom: 1px solid var(--amber-200);
+		color: var(--text-primary);
+		border-bottom: 1px solid var(--color-border);
 	}
 
 	.goo__cart-item {
 		display: grid;
 		grid-template-columns: 3fr 1fr 1.5fr 1fr 0.5fr;
 		padding: 1.5rem;
-		border-bottom: 1px solid var(--amber-100);
+		border-bottom: 1px solid var(--color-border);
 		align-items: center;
 	}
 
@@ -416,7 +396,7 @@
 
 	.goo__cart-item-name {
 		font-weight: 600;
-		color: var(--amber-700);
+		color: var(--accent-primary);
 		text-decoration: none;
 		font-size: 1.1rem;
 		margin-bottom: 0.5rem;
@@ -428,8 +408,8 @@
 
 	.goo__cart-item-option, .goo__cart-item-variant {
 		font-size: 0.875rem;
-		color: var(--gray-600);
-		background-color: var(--amber-50);
+		color: var(--text-secondary);
+		background-color: var(--bg-secondary);
 		padding: 0.25rem 0.5rem;
 		border-radius: 0.25rem;
 		display: inline-block;
@@ -440,7 +420,7 @@
 		display: inline-block;
 		width: 12px;
 		height: 12px;
-		border: 1px solid var(--gray-300);
+		border: 1px solid var(--color-border);
 		border-radius: 2px;
 		margin-right: 5px;
 		vertical-align: middle;
@@ -448,7 +428,7 @@
 
 	.goo__cart-item-price {
 		font-weight: 500;
-		color: var(--gray-700);
+		color: var(--text-primary);
 	}
 
 	.goo__cart-item-quantity {
@@ -459,8 +439,9 @@
 	.goo__quantity-btn {
 		width: 32px;
 		height: 32px;
-		border: 1px solid var(--gray-300);
-		background-color: white;
+		border: 1px solid var(--color-border);
+		background-color: var(--color-surface);
+		color: var(--text-primary);
 		display: flex;
 		align-items: center;
 		justify-content: center;
@@ -477,14 +458,16 @@
 	}
 
 	.goo__quantity-btn:hover {
-		background-color: var(--amber-50);
+		background-color: var(--bg-secondary);
 	}
 
 	.goo__quantity-value {
 		width: 40px;
 		height: 32px;
-		border-top: 1px solid var(--gray-300);
-		border-bottom: 1px solid var(--gray-300);
+		border-top: 1px solid var(--color-border);
+		border-bottom: 1px solid var(--color-border);
+		background-color: var(--color-surface);
+		color: var(--text-primary);
 		display: flex;
 		align-items: center;
 		justify-content: center;
@@ -493,27 +476,27 @@
 
 	.goo__cart-item-total {
 		font-weight: 700;
-		color: var(--amber-700);
+		color: var(--accent-primary);
 	}
 
 	.goo__remove-btn {
 		width: 32px;
 		height: 32px;
-		border: 1px solid var(--gray-300);
+		border: 1px solid var(--color-border);
 		border-radius: 0.375rem;
-		background-color: white;
+		background-color: var(--color-surface);
 		display: flex;
 		align-items: center;
 		justify-content: center;
 		cursor: pointer;
-		color: var(--red-500);
+		color: var(--error-text);
 		font-size: 0.875rem;
 	}
 
 	.goo__remove-btn:hover {
-		background-color: var(--red-500);
-		color: white;
-		border-color: var(--red-500);
+		background-color: var(--error-bg);
+		color: var(--error-text);
+		border-color: var(--error-text);
 	}
 
 	.goo__cart-footer {
@@ -521,24 +504,24 @@
 	}
 
 	.goo__cart-subtotal {
-		background-color: white;
+		background-color: var(--color-surface);
 		border-radius: 0.75rem;
 		padding: 1.5rem;
 		display: flex;
 		justify-content: space-between;
 		font-size: 1.25rem;
 		margin-bottom: 2rem;
-		box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+		box-shadow: var(--shadow-md);
 	}
 
 	.goo__cart-subtotal span:first-child {
 		font-weight: 600;
-		color: var(--gray-700);
+		color: var(--text-primary);
 	}
 
 	.goo__cart-subtotal span:last-child {
 		font-weight: 700;
-		color: var(--amber-700);
+		color: var(--accent-primary);
 	}
 
 	.goo__cart-actions {
@@ -562,12 +545,12 @@
 	}
 
 	.btn-primary {
-		background-color: var(--green-500);
-		color: white;
+		background-color: var(--accent-primary);
+		color: var(--color-text-on-primary);
 	}
 
 	.btn-primary:hover {
-		background-color: var(--green-600);
+		background-color: var(--accent-light);
 	}
 
 	.btn-primary:disabled {
@@ -576,21 +559,21 @@
 	}
 
 	.btn-secondary {
-		background-color: white;
-		color: var(--gray-700);
-		border: 1px solid var(--gray-300);
+		background-color: var(--color-surface);
+		color: var(--text-primary);
+		border: 1px solid var(--color-border);
 	}
 
 	.btn-secondary:hover {
-		background-color: var(--amber-50);
-		border-color: var(--amber-200);
+		background-color: var(--bg-secondary);
+		border-color: var(--color-border);
 	}
 
 	.goo__cart-error {
 		margin-top: 1rem;
 		padding: 1rem;
-		background-color: #fee2e2;
-		color: var(--red-500);
+		background-color: var(--error-bg);
+		color: var(--error-text);
 		border-radius: 0.5rem;
 		text-align: center;
 		font-weight: 500;

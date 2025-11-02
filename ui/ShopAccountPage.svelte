@@ -221,30 +221,31 @@
 	@use '../../../sveltekit/src/styles/variables.scss' as *;
 	
 	.goo__account-page {
+		flex: 1;
 		max-width: 800px;
 		margin: 0 auto;
 		padding: $spacing-xlarge $spacing-medium;
-		
+
 		h1 {
-			color: $amber-800;
+			color: var(--text-primary);
 			margin-bottom: $spacing-xlarge;
 		}
 	}
-	
+
 	.goo__account-content {
 		display: flex;
 		flex-direction: column;
 		gap: $spacing-xlarge;
 	}
-	
+
 	.goo__account-section {
-		background: white;
+		background: var(--color-surface);
 		border-radius: $border-radius-large;
-		box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+		box-shadow: var(--shadow-md);
 		padding: $spacing-large;
-		
+
 		h2 {
-			color: $gray-800;
+			color: var(--text-primary);
 			font-size: 1.25rem;
 			margin-bottom: $spacing-medium;
 		}
@@ -263,55 +264,57 @@
 	
 	.goo__edit-button {
 		padding: $spacing-small $spacing-medium;
-		background-color: white;
-		color: $amber-600;
-		border: 1px solid $amber-600;
+		background-color: var(--color-surface);
+		color: var(--accent-primary);
+		border: 1px solid var(--accent-primary);
 		border-radius: $border-radius-medium;
 		font-weight: 500;
 		cursor: pointer;
 		transition: all 0.2s ease;
-		
+
 		&:hover {
-			background-color: $amber-50;
+			background-color: var(--bg-secondary);
 		}
 	}
-	
+
 	.goo__profile-form {
 		.goo__form-row {
 			display: grid;
 			grid-template-columns: 1fr 1fr;
 			gap: $spacing-medium;
-			
+
 			@media (max-width: 480px) {
 				grid-template-columns: 1fr;
 			}
 		}
-		
+
 		.goo__form-group {
 			margin-bottom: $spacing-medium;
-			
+
 			label {
 				display: block;
 				margin-bottom: $spacing-small;
 				font-weight: 500;
-				color: $gray-600;
+				color: var(--text-secondary);
 			}
-			
+
 			input {
 				width: 100%;
 				padding: $spacing-small $spacing-medium;
-				border: 1px solid $gray-200;
+				border: 1px solid var(--color-border);
 				border-radius: $border-radius-medium;
 				font-size: 1rem;
-				
+				background-color: var(--bg-primary);
+				color: var(--text-primary);
+
 				&:focus {
 					outline: none;
-					border-color: $amber-500;
-					box-shadow: 0 0 0 3px rgba($amber-500, 0.1);
+					border-color: var(--accent-primary);
+					box-shadow: 0 0 0 3px var(--accent-shadow);
 				}
-				
+
 				&:disabled {
-					background-color: $gray-100;
+					background-color: var(--bg-secondary);
 					cursor: not-allowed;
 				}
 			}
@@ -319,58 +322,59 @@
 	}
 	
 	.goo__error {
-		background-color: #fee;
-		color: #c00;
+		background-color: var(--error-bg);
+		color: var(--error-text);
 		padding: $spacing-medium;
 		border-radius: $border-radius-medium;
 		margin-bottom: $spacing-medium;
 		text-align: center;
 	}
-	
+
 	.goo__form-actions {
 		display: flex;
 		gap: $spacing-medium;
 		justify-content: flex-end;
 		margin-top: $spacing-large;
 	}
-	
+
 	.goo__cancel-button {
 		padding: $spacing-small $spacing-large;
-		background-color: white;
-		color: $gray-600;
-		border: 1px solid $gray-200;
+		background-color: var(--color-surface);
+		color: var(--text-secondary);
+		border: 1px solid var(--color-border);
 		border-radius: $border-radius-medium;
 		font-weight: 500;
 		cursor: pointer;
 		transition: all 0.2s ease;
-		
+
 		&:hover:not(:disabled) {
-			background-color: $gray-100;
+			background-color: var(--bg-secondary);
 		}
-		
+
 		&:disabled {
 			opacity: 0.5;
 			cursor: not-allowed;
 		}
 	}
-	
+
 	.goo__save-button {
 		padding: $spacing-small $spacing-large;
-		background-color: $amber-600;
-		color: white;
+		background-color: var(--accent-primary);
+		color: var(--color-text-on-primary);
 		border: none;
 		border-radius: $border-radius-medium;
 		font-weight: 500;
 		cursor: pointer;
 		transition: all 0.2s ease;
-		
+
 		&:hover:not(:disabled) {
-			background-color: $amber-700;
+			background-color: var(--accent-light);
 		}
-		
+
 		&:disabled {
-			background-color: $gray-500;
+			background-color: var(--bg-tertiary);
 			cursor: not-allowed;
+			opacity: 0.6;
 		}
 	}
 	
@@ -378,59 +382,59 @@
 		.goo__info-row {
 			display: flex;
 			padding: $spacing-medium 0;
-			border-bottom: 1px solid $gray-200;
-			
+			border-bottom: 1px solid var(--color-border);
+
 			&:last-child {
 				border-bottom: none;
 			}
 		}
-		
+
 		.goo__info-label {
 			font-weight: 500;
-			color: $gray-600;
+			color: var(--text-secondary);
 			width: 120px;
 			flex-shrink: 0;
 		}
-		
+
 		.goo__info-value {
-			color: $gray-800;
+			color: var(--text-primary);
 		}
 	}
-	
+
 	.goo__empty-state {
-		color: $gray-600;
+		color: var(--text-secondary);
 		text-align: center;
 		padding: $spacing-xlarge;
-		
+
 		a {
-			color: $amber-600;
+			color: var(--accent-primary);
 			text-decoration: none;
 			font-weight: 500;
-			
+
 			&:hover {
 				text-decoration: underline;
 			}
 		}
 	}
-	
+
 	.goo__logout-button {
 		padding: $spacing-medium $spacing-large;
-		background-color: white;
-		color: #dc2626;
-		border: 1px solid #dc2626;
+		background-color: var(--color-surface);
+		color: var(--error-text);
+		border: 1px solid var(--error-text);
 		border-radius: $border-radius-medium;
 		font-weight: 500;
 		cursor: pointer;
 		transition: all 0.2s ease;
-		
+
 		&:hover {
-			background-color: #fef2f2;
+			background-color: var(--error-bg);
 		}
 	}
-	
+
 	.goo__loading {
 		text-align: center;
 		padding: $spacing-xlarge;
-		color: $gray-600;
+		color: var(--text-secondary);
 	}
 </style>

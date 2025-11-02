@@ -21,33 +21,44 @@
 	let pageType = $derived(data.pageType || 'index')
 </script>
 
-{#if pageType === 'index'}
-	<ShopIndexPage {data} />
-{:else if pageType === 'product'}
-	<ShopProductPage {data} />
-{:else if pageType === 'category'}
-	<ShopCategoryPage {data} />
-{:else if pageType === 'collection'}
-	<ShopCollectionPage {data} />
-{:else if pageType === 'account'}
-	<ShopAccountPage {data} auth={data.auth} isAuthenticated={data.isAuthenticated} customer={data.customer} />
-{:else if pageType === 'cart'}
-	<ShopCartPage {data} />
-{:else if pageType === 'checkout'}
-	<ShopCheckoutPage {data} form={data.form} />
-{:else if pageType === 'login'}
-	<ShopLoginPage {data} auth={data.auth} demoCredentials={data.demoCredentials} />
-{:else if pageType === 'plans'}
-	<ShopPlansPage {data} />
-{:else}
-	<div class="shop-error">
-		<h1>Page Not Found</h1>
-		<p>The requested shop page could not be found.</p>
-		<a href="/shop">← Back to Shop</a>
-	</div>
-{/if}
+<div class="shop-router">
+	{#if pageType === 'index'}
+		<ShopIndexPage {data} />
+	{:else if pageType === 'product'}
+		<ShopProductPage {data} />
+	{:else if pageType === 'category'}
+		<ShopCategoryPage {data} />
+	{:else if pageType === 'collection'}
+		<ShopCollectionPage {data} />
+	{:else if pageType === 'account'}
+		<ShopAccountPage {data} auth={data.auth} isAuthenticated={data.isAuthenticated} customer={data.customer} />
+	{:else if pageType === 'cart'}
+		<ShopCartPage {data} />
+	{:else if pageType === 'checkout'}
+		<ShopCheckoutPage {data} form={data.form} />
+	{:else if pageType === 'login'}
+		<ShopLoginPage {data} auth={data.auth} demoCredentials={data.demoCredentials} initialMode="login" />
+	{:else if pageType === 'register'}
+		<ShopLoginPage {data} auth={data.auth} demoCredentials={null} initialMode="register" />
+	{:else if pageType === 'plans'}
+		<ShopPlansPage {data} />
+	{:else}
+		<div class="shop-error">
+			<h1>Page Not Found</h1>
+			<p>The requested shop page could not be found.</p>
+			<a href="/shop">← Back to Shop</a>
+		</div>
+	{/if}
+</div>
 
 <style>
+	.shop-router {
+		display: flex;
+		flex-direction: column;
+		flex: 1;
+		width: 100%;
+	}
+
 	.shop-error {
 		text-align: center;
 		padding: 2rem;

@@ -120,6 +120,10 @@ export function createShopSlugHandler(options = {}) {
 				return { pageType: 'login', lang }
 			}
 
+			if (normalizedSlug === 'register' || normalizedSlug === 'signup') {
+				return { pageType: 'register', lang }
+			}
+
 			if (normalizedSlug === 'plans') {
 				return { pageType: 'plans', lang }
 			}
