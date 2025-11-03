@@ -1,6 +1,7 @@
 <script>
 	import { goto } from '$app/navigation'
 	import { onMount } from 'svelte'
+	import MFASettingsPanel from './MFASettingsPanel.svelte'
 
 	/**
 	 * ShopAccountPage - Customer account management
@@ -203,18 +204,26 @@
 					</div>
 				{/if}
 			</section>
-			
+
+			<section class="goo__account-section">
+				<h2>Security</h2>
+				<p class="goo__section-description">
+					Manage your account security settings and two-factor authentication.
+				</p>
+				<MFASettingsPanel {auth} />
+			</section>
+
 			<section class="goo__account-section">
 				<h2>Order History</h2>
 				<p class="goo__empty-state">
-					You haven't placed any orders yet. 
+					You haven't placed any orders yet.
 					<a href="/shop">Start shopping</a> to see your order history here.
 				</p>
 			</section>
-			
+
 			<section class="goo__account-section">
 				<h2>Account Actions</h2>
-				<button 
+				<button
 					onclick={handleLogout}
 					class="goo__logout-button"
 				>
@@ -261,6 +270,13 @@
 			font-size: 1.25rem;
 			margin-bottom: $spacing-medium;
 		}
+	}
+
+	.goo__section-description {
+		color: var(--text-secondary);
+		margin-bottom: $spacing-medium;
+		font-size: 0.9375rem;
+		line-height: 1.5;
 	}
 	
 	.goo__section-header {
