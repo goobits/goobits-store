@@ -2,6 +2,8 @@
 	import { goto } from '$app/navigation'
 	import { page } from '$app/stores'
 	import { browser } from '$app/environment'
+	import MFAVerificationInput from './MFAVerificationInput.svelte'
+	import MFABackupCodeInput from './MFABackupCodeInput.svelte'
 
 	/**
 	 * ShopLoginPage - Generic authentication page
@@ -26,6 +28,13 @@
 	let phone = $state('')
 	let confirmPassword = $state('')
 	let isDemoMode = $state(false)
+
+	// MFA state
+	let mfaRequired = $state(false)
+	let mfaUserId = $state(null)
+	let mfaError = $state('')
+	let mfaLoading = $state(false)
+	let useBackupCode = $state(false)
 
 	// Subscribe to auth store
 	let authState = $state({ customer: null, token: null, loading: false, error: null })
@@ -62,9 +71,112 @@
 		if (!auth) return
 
 		const result = await auth.login(email, password)
-		if (result.success) {
+
+		// Check if MFA is required
+		if (result.mfaRequired) {
+			mfaRequired = true
+			mfaUserId = result.userId
+			mfaError = ''
+		} else if (result.success) {
 			goto(returnUrl)
 		}
+	}
+
+	async function handleMFAVerify(code, rememberDevice) {
+		mfaLoading = true
+		mfaError = ''
+
+		try {
+			const response = await fetch('/store/auth/mfa/verify', {
+				method: 'POST',
+				headers: {
+					'Content-Type': 'application/json'
+				},
+				body: JSON.stringify({
+					userId: mfaUserId,
+					token: code,
+					rememberDevice
+				})
+			})
+
+			const data = await response.json()
+
+			if (!response.ok) {
+				mfaError = data.message || 'Verification failed'
+				mfaLoading = false
+				return
+			}
+
+			// MFA verified, complete the login
+			if (auth && auth.completeMFALogin) {
+				const result = await auth.completeMFALogin(mfaUserId)
+				if (result.success) {
+					goto(returnUrl)
+				} else {
+					mfaError = result.error || 'Login failed'
+				}
+			} else {
+				// Fallback: just navigate
+				goto(returnUrl)
+			}
+		} catch (error) {
+			mfaError = error.message || 'Verification failed'
+		} finally {
+			mfaLoading = false
+		}
+	}
+
+	async function handleBackupCodeVerify(code) {
+		mfaLoading = true
+		mfaError = ''
+
+		try {
+			const response = await fetch('/store/auth/mfa/verify-backup-code', {
+				method: 'POST',
+				headers: {
+					'Content-Type': 'application/json'
+				},
+				body: JSON.stringify({
+					userId: mfaUserId,
+					code
+				})
+			})
+
+			const data = await response.json()
+
+			if (!response.ok) {
+				mfaError = data.message || 'Verification failed'
+				mfaLoading = false
+				return
+			}
+
+			// Backup code verified, complete the login
+			if (auth && auth.completeMFALogin) {
+				const result = await auth.completeMFALogin(mfaUserId)
+				if (result.success) {
+					goto(returnUrl)
+				} else {
+					mfaError = result.error || 'Login failed'
+				}
+			} else {
+				// Fallback: just navigate
+				goto(returnUrl)
+			}
+		} catch (error) {
+			mfaError = error.message || 'Verification failed'
+		} finally {
+			mfaLoading = false
+		}
+	}
+
+	function handleUseBackupCode() {
+		useBackupCode = true
+		mfaError = ''
+	}
+
+	function handleBackToTOTP() {
+		useBackupCode = false
+		mfaError = ''
 	}
 
 	async function handleRegister(e) {
@@ -113,20 +225,39 @@
 
 <div class="goo__auth-page">
 	<div class="goo__auth-container">
-		<h1>{showRegister ? (branding.registerTitle || 'Create Your Account') : (branding.loginTitle || 'Welcome Back')}</h1>
-		<p class="goo__auth-subtitle">
-			{showRegister
-				? (branding.registerSubtitle || 'Create an account to get started')
-				: (branding.loginSubtitle || 'Sign in to access your account and orders')}
-		</p>
+		{#if mfaRequired}
+			<!-- MFA Verification Step -->
+			{#if useBackupCode}
+				<MFABackupCodeInput
+					onVerify={handleBackupCodeVerify}
+					onBackToTOTP={handleBackToTOTP}
+					error={mfaError}
+					loading={mfaLoading}
+				/>
+			{:else}
+				<MFAVerificationInput
+					onVerify={handleMFAVerify}
+					onUseBackupCode={handleUseBackupCode}
+					error={mfaError}
+					loading={mfaLoading}
+				/>
+			{/if}
+		{:else}
+			<!-- Normal Login/Register Flow -->
+			<h1>{showRegister ? (branding.registerTitle || 'Create Your Account') : (branding.loginTitle || 'Welcome Back')}</h1>
+			<p class="goo__auth-subtitle">
+				{showRegister
+					? (branding.registerSubtitle || 'Create an account to get started')
+					: (branding.loginSubtitle || 'Sign in to access your account and orders')}
+			</p>
 
-		{#if authState.error}
-			<div class="goo__auth-error" role="alert">
-				{authState.error}
-			</div>
-		{/if}
-		
-		{#if showRegister}
+			{#if authState.error}
+				<div class="goo__auth-error" role="alert">
+					{authState.error}
+				</div>
+			{/if}
+
+			{#if showRegister}
 			<form onsubmit={handleRegister} class="goo__auth-form">
 				<div class="goo__form-row">
 					<div class="goo__form-group">
@@ -239,19 +370,20 @@
 			</form>
 		{/if}
 		
-		<div class="goo__auth-toggle">
-			{#if showRegister}
-				<p>Already have an account?</p>
-				<button onclick={toggleMode} class="goo__auth-link">
-					Sign In
-				</button>
-			{:else}
-				<p>Don't have an account?</p>
-				<button onclick={toggleMode} class="goo__auth-link">
-					Create Account
-				</button>
-			{/if}
-		</div>
+			<div class="goo__auth-toggle">
+				{#if showRegister}
+					<p>Already have an account?</p>
+					<button onclick={toggleMode} class="goo__auth-link">
+						Sign In
+					</button>
+				{:else}
+					<p>Don't have an account?</p>
+					<button onclick={toggleMode} class="goo__auth-link">
+						Create Account
+					</button>
+				{/if}
+			</div>
+		{/if}
 	</div>
 </div>
 

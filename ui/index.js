@@ -31,3 +31,14 @@ export { default as StripePaymentForm } from './Checkout/StripePaymentForm.svelt
 export { default as SubscribeAndSave } from './SubscribeAndSave.svelte'
 export { default as SubscriptionList } from './SubscriptionList.svelte'
 export { default as SubscriptionDetail } from './SubscriptionDetail.svelte'
+
+// MFA components
+export { default as MFAEnrollmentWizard } from './MFAEnrollmentWizard.svelte'
+export { default as MFAGracePeriodBanner } from './MFAGracePeriodBanner.svelte'
+export { default as MFAGracePeriodWrapper } from './MFAGracePeriodWrapper.svelte'
+export { default as MFAVerificationInput } from './MFAVerificationInput.svelte'
+export { default as MFABackupCodeInput } from './MFABackupCodeInput.svelte'
+export { default as MFAAdminResetModal } from './MFAAdminResetModal.svelte'
+
+// MFA utilities
+export * as mfaStatus from './mfaStatus.js'
