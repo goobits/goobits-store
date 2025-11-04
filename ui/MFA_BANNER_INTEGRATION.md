@@ -64,7 +64,7 @@ A wrapper component that automatically fetches MFA status and manages the banner
 ```svelte
 <script>
 	import { MFAGracePeriodWrapper } from '@goobits/store/ui'
-	import { auth } from '@goobits/store/stores/auth.js'
+	import { auth } from '$lib/stores/auth.js'
 	import { PUBLIC_MEDUSA_BACKEND_URL } from '$env/static/public'
 
 	function handleMFASetup() {
