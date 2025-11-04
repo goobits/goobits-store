@@ -27,12 +27,13 @@ export async function fetchMFAStatus(backendUrl, token) {
 
 		if (!response.ok) {
 			// If not authenticated or endpoint doesn't exist, return default
-			if (response.status === 401 || response.status === 404) {
+			// 400 = Bad Request (invalid/missing auth), 401 = Unauthorized, 404 = Not Found
+			if (response.status === 400 || response.status === 401 || response.status === 404) {
 				return {
 					required: false,
 					enabled: false,
 					inGracePeriod: false,
-					error: true
+					error: false // Not really an error, just means MFA not available/required
 				}
 			}
 			throw new Error(`HTTP error! status: ${ response.status }`)
