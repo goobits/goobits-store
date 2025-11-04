@@ -37,6 +37,15 @@ if (browser) {
 		maxRetries: 3,
 		publishableApiKey: PUBLISHABLE_API_KEY
 	})
+
+	// Store config on the client for easy access
+	// The Medusa SDK doesn't expose these values, so we add them manually
+	if (client) {
+		client.config = {
+			baseUrl: MEDUSA_BACKEND_URL,
+			publishableApiKey: PUBLISHABLE_API_KEY
+		}
+	}
 }
 
 // Export the client - will be null on the server
