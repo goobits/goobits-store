@@ -159,6 +159,7 @@
 {/if}
 
 <style lang="scss">
+	@use 'sass:color';
 	@use './variables.scss' as *;
 
 	.goo__mfa-banner {
@@ -218,16 +219,16 @@
 
 		// Critical level (<3 days) - Red
 		&--critical {
-			background-color: lighten($red-500, 40%);
+			background-color: color.adjust($red-500, $lightness: 40%);
 			border-bottom-color: $red-500;
-			color: darken($red-500, 20%);
+			color: color.adjust($red-500, $lightness: -20%);
 
 			.goo__mfa-banner__button--primary {
 				background-color: $red-500;
 				color: $white;
 
 				&:hover {
-					background-color: darken($red-500, 10%);
+					background-color: color.adjust($red-500, $lightness: -10%);
 				}
 			}
 		}

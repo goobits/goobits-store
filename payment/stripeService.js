@@ -17,7 +17,11 @@ const STRIPE_PUBLIC_KEY = import.meta.env.VITE_STRIPE_PUBLIC_KEY
 
 // Validate Stripe key is set
 if (browser && !STRIPE_PUBLIC_KEY) {
-	logger.error('VITE_STRIPE_PUBLIC_KEY is not set in environment variables')
+	logger.error(
+		'VITE_STRIPE_PUBLIC_KEY is not set in environment variables',
+		'\n💡 Solution: This variable is in .env but Vite needs restart to load it.',
+		'\n   Run: Ctrl+C and restart with `pnpm dev`'
+	)
 }
 
 // Store to track loading state

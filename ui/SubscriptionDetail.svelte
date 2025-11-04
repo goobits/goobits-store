@@ -278,8 +278,23 @@
 
 <!-- Cancel Confirmation Modal -->
 {#if showCancelConfirm}
-	<div class="modal-overlay" onclick={() => showCancelConfirm = false}>
-		<div class="modal" onclick={(e) => e.stopPropagation()}>
+	<!-- svelte-ignore a11y_no_static_element_interactions -->
+	<div
+		class="modal-overlay"
+		role="button"
+		tabindex="0"
+		onclick={() => showCancelConfirm = false}
+		onkeydown={(e) => (e.key === 'Escape' || e.key === 'Enter') && (showCancelConfirm = false)}
+	>
+		<!-- svelte-ignore a11y_no_static_element_interactions -->
+		<div
+			class="modal"
+			role="dialog"
+			aria-modal="true"
+			tabindex="-1"
+			onclick={(e) => e.stopPropagation()}
+			onkeydown={(e) => e.stopPropagation()}
+		>
 			<h2>Cancel Subscription</h2>
 			<p>Are you sure you want to cancel this subscription?</p>
 

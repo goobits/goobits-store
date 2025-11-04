@@ -16,7 +16,7 @@
  */
 export async function fetchMFAStatus(backendUrl, token) {
 	try {
-		const response = await fetch(`${ backendUrl }/admin/mfa/status`, {
+		const response = await fetch(`${ backendUrl }/store/auth/mfa/status`, {
 			method: 'GET',
 			headers: {
 				'Content-Type': 'application/json',

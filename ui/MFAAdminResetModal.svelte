@@ -82,7 +82,14 @@
 </script>
 
 {#if show}
-	<div class="goo__modal-overlay" onclick={(e) => e.target === e.currentTarget && handleClose()}>
+	<!-- svelte-ignore a11y_no_static_element_interactions -->
+	<div
+		class="goo__modal-overlay"
+		role="button"
+		tabindex="0"
+		onclick={(e) => e.target === e.currentTarget && handleClose()}
+		onkeydown={(e) => (e.key === 'Escape' || e.key === 'Enter') && e.target === e.currentTarget && handleClose()}
+	>
 		<div class="goo__modal goo__mfa-reset-modal">
 			<header class="goo__modal-header">
 				<h2>Reset User MFA</h2>
@@ -101,22 +108,22 @@
 					<h3>User Information</h3>
 					<div class="goo__info-grid">
 						<div class="goo__info-item">
-							<label>Email:</label>
+							<span class="goo__info-label">Email:</span>
 							<span>{user.email}</span>
 						</div>
 						<div class="goo__info-item">
-							<label>User ID:</label>
+							<span class="goo__info-label">User ID:</span>
 							<span class="goo__user-id">{user.id}</span>
 						</div>
 						{#if user.enrolled_at}
 							<div class="goo__info-item">
-								<label>MFA Enrolled:</label>
+								<span class="goo__info-label">MFA Enrolled:</span>
 								<span>{new Date(user.enrolled_at).toLocaleDateString()}</span>
 							</div>
 						{/if}
 						{#if user.last_verified_at}
 							<div class="goo__info-item">
-								<label>Last Verified:</label>
+								<span class="goo__info-label">Last Verified:</span>
 								<span>{new Date(user.last_verified_at).toLocaleDateString()}</span>
 							</div>
 						{/if}
@@ -293,7 +300,7 @@
 		}
 
 		.goo__info-item {
-			label {
+			.goo__info-label {
 				display: block;
 				font-weight: 600;
 				color: var(--color-text-secondary, #666);

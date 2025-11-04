@@ -54,7 +54,7 @@
 		error = null
 
 		try {
-			const response = await fetch(`${ backendUrl }/admin/mfa/enroll/initialize`, {
+			const response = await fetch(`${ backendUrl }/store/auth/mfa/enroll/initialize`, {
 				method: 'POST',
 				headers: {
 					'Authorization': `Bearer ${ authToken }`,
@@ -101,7 +101,7 @@
 		error = null
 
 		try {
-			const response = await fetch(`${ backendUrl }/admin/mfa/enroll/complete`, {
+			const response = await fetch(`${ backendUrl }/store/auth/mfa/enroll/complete`, {
 				method: 'POST',
 				headers: {
 					'Authorization': `Bearer ${ authToken }`,
@@ -369,7 +369,6 @@
 								inputmode="numeric"
 								autocomplete="off"
 								disabled={loading}
-								autofocus
 							/>
 						</div>
 					</form>

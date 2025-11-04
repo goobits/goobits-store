@@ -102,22 +102,21 @@
 		<div class="subscribe-save__options">
 			<label class="subscribe-save__label">
 				Delivery frequency:
+				<select
+					class="subscribe-save__select"
+					value={selectedInterval}
+					onchange={handleIntervalChange}
+				>
+					{#each intervals as interval}
+						<option value={interval.value}>
+							{interval.label}
+							{#if interval.discount > 0}
+								- Save {interval.discount}%
+							{/if}
+						</option>
+					{/each}
+				</select>
 			</label>
-
-			<select
-				class="subscribe-save__select"
-				value={selectedInterval}
-				onchange={handleIntervalChange}
-			>
-				{#each intervals as interval}
-					<option value={interval.value}>
-						{interval.label}
-						{#if interval.discount > 0}
-							- Save {interval.discount}%
-						{/if}
-					</option>
-				{/each}
-			</select>
 
 			<div class="subscribe-save__pricing">
 				<div class="subscribe-save__price">

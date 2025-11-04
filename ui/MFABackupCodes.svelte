@@ -1,4 +1,6 @@
 <script>
+	import { get } from 'svelte/store'
+
 	/**
 	 * MFABackupCodes - Display and manage MFA backup codes
 	 *
@@ -31,6 +33,7 @@
 	let confirmChecked = $state(false)
 
 	const backendUrl = import.meta.env.PUBLIC_MEDUSA_BACKEND_URL || 'http://localhost:3282'
+	const publishableKey = import.meta.env.PUBLIC_MEDUSA_PUBLISHABLE_KEY
 
 	// Update codes when prop changes
 	$effect(() => {
@@ -43,7 +46,7 @@
 		error = null
 
 		try {
-			const authState = auth ? auth.get() : null
+			const authState = auth ? get(auth) : null
 			const token = authState?.token
 
 			if (!token) {
@@ -93,7 +96,7 @@
 	function downloadCodes() {
 		if (!codes || codes.length === 0) return
 
-		const authState = auth ? auth.get() : null
+		const authState = auth ? get(auth) : null
 		const email = authState?.customer?.email || 'user'
 		const timestamp = new Date().toISOString().split('T')[0]
 
@@ -131,18 +134,19 @@
 		error = null
 
 		try {
-			const authState = auth ? auth.get() : null
+			const authState = auth ? get(auth) : null
 			const token = authState?.token
 
 			if (!token) {
 				throw new Error('Not authenticated')
 			}
 
-			const response = await fetch(`${ backendUrl }/admin/mfa/backup-codes/regenerate`, {
+			const response = await fetch(`${ backendUrl }/store/auth/mfa/backup-codes/regenerate`, {
 				method: 'POST',
 				headers: {
 					'Authorization': `Bearer ${ token }`,
-					'Content-Type': 'application/json'
+					'Content-Type': 'application/json',
+					'x-publishable-api-key': publishableKey
 				},
 				body: JSON.stringify({
 					verificationCode
@@ -320,8 +324,23 @@
 
 <!-- Regenerate Confirmation Modal -->
 {#if showRegenerateConfirm}
-	<div class="goo__modal-overlay" onclick={() => showRegenerateConfirm = false}>
-		<div class="goo__modal small" onclick={(e) => e.stopPropagation()}>
+	<!-- svelte-ignore a11y_no_static_element_interactions -->
+	<div
+		class="goo__modal-overlay"
+		role="button"
+		tabindex="0"
+		onclick={() => showRegenerateConfirm = false}
+		onkeydown={(e) => (e.key === 'Escape' || e.key === 'Enter') && (showRegenerateConfirm = false)}
+	>
+		<!-- svelte-ignore a11y_no_static_element_interactions -->
+		<div
+			class="goo__modal small"
+			role="dialog"
+			aria-modal="true"
+			tabindex="-1"
+			onclick={(e) => e.stopPropagation()}
+			onkeydown={(e) => e.stopPropagation()}
+		>
 			<div class="goo__modal-header">
 				<h3>Regenerate Backup Codes</h3>
 				<button onclick={() => showRegenerateConfirm = false} class="goo__modal-close" aria-label="Close">
