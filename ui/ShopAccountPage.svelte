@@ -51,9 +51,16 @@
 	})
 
 	// Redirect to login if not authenticated
-	onMount(() => {
+	// Fetch customer data if authenticated but missing
+	onMount(async () => {
 		if (!isAuth) {
 			goto('/shop/login?return=/shop/account')
+		} else if (isAuth && !customerData && auth) {
+			// User is authenticated but customer data is missing
+			// This happens after login because we don't fetch customer data immediately
+			// to avoid 401 errors. Now that we're on the account page, the session
+			// cookie should be valid and we can fetch it.
+			await auth.refreshSession()
 		}
 	})
 
