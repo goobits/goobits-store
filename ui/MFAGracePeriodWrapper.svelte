@@ -46,9 +46,16 @@
 	)
 
 	// Load MFA status when component mounts or auth changes
+	// Only fetch when we have customer data (confirmed authentication)
 	$effect(() => {
-		if (authState.token && backendUrl) {
+		if (authState.customer && authState.token && backendUrl) {
 			loadMFAStatus()
+		} else {
+			// Reset MFA status if user logs out
+			if (!authState.customer) {
+				mfaStatus = null
+				loading = false
+			}
 		}
 	})
 
