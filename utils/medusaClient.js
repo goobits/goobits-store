@@ -1,6 +1,10 @@
 import Medusa from '@medusajs/medusa-js'
 import { browser } from '$app/environment'
 import { createLogger } from './logger.js'
+import {
+	PUBLIC_MEDUSA_BACKEND_URL,
+	PUBLIC_MEDUSA_PUBLISHABLE_KEY
+} from '$env/static/public'
 
 const logger = createLogger('MedusaClient')
 
@@ -10,9 +14,9 @@ let client = null
 
 // Initialize the client only in the browser
 if (browser) {
-	// Use environment variables for backend URL and API key
-	const MEDUSA_BACKEND_URL = import.meta.env.PUBLIC_MEDUSA_BACKEND_URL
-	const PUBLISHABLE_API_KEY = import.meta.env.PUBLIC_MEDUSA_PUBLISHABLE_KEY
+	// Use SvelteKit public environment variables
+	const MEDUSA_BACKEND_URL = PUBLIC_MEDUSA_BACKEND_URL
+	const PUBLISHABLE_API_KEY = PUBLIC_MEDUSA_PUBLISHABLE_KEY
 
 	// Validate required environment variables
 	if (!MEDUSA_BACKEND_URL || !PUBLISHABLE_API_KEY) {
