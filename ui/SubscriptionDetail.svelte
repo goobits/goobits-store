@@ -5,6 +5,7 @@
 	 * Displays detailed subscription information with management actions
 	 * Reusable across different storefronts
 	 */
+	import Modal from '@goobits/forms/ui/modals/Modal.svelte'
 	import { formatCurrency, formatDate, getStatusClass } from '../utils/subscription-helpers.js'
 
 	let {
@@ -277,54 +278,39 @@
 </div>
 
 <!-- Cancel Confirmation Modal -->
-{#if showCancelConfirm}
-	<!-- svelte-ignore a11y_no_static_element_interactions -->
-	<div
-		class="modal-overlay"
-		role="button"
-		tabindex="0"
-		onclick={() => showCancelConfirm = false}
-		onkeydown={(e) => (e.key === 'Escape' || e.key === 'Enter') && (showCancelConfirm = false)}
-	>
-		<!-- svelte-ignore a11y_no_static_element_interactions -->
-		<div
-			class="modal"
-			role="dialog"
-			aria-modal="true"
-			tabindex="-1"
-			onclick={(e) => e.stopPropagation()}
-			onkeydown={(e) => e.stopPropagation()}
+<Modal
+	isVisible={showCancelConfirm}
+	onClose={() => showCancelConfirm = false}
+	title="Cancel Subscription"
+	size="sm"
+>
+	<p>Are you sure you want to cancel this subscription?</p>
+
+	<div class="modal-actions">
+		<button
+			class="btn btn--secondary"
+			onclick={() => showCancelConfirm = false}
 		>
-			<h2>Cancel Subscription</h2>
-			<p>Are you sure you want to cancel this subscription?</p>
+			Keep Subscription
+		</button>
 
-			<div class="modal-actions">
-				<button
-					class="btn btn--secondary"
-					onclick={() => showCancelConfirm = false}
-				>
-					Keep Subscription
-				</button>
+		<button
+			class="btn btn--danger"
+			onclick={() => cancelSubscription(false)}
+			disabled={isCancelling}
+		>
+			{isCancelling ? 'Cancelling...' : 'Cancel at Period End'}
+		</button>
 
-				<button
-					class="btn btn--danger"
-					onclick={() => cancelSubscription(false)}
-					disabled={isCancelling}
-				>
-					{isCancelling ? 'Cancelling...' : 'Cancel at Period End'}
-				</button>
-
-				<button
-					class="btn btn--danger"
-					onclick={() => cancelSubscription(true)}
-					disabled={isCancelling}
-				>
-					{isCancelling ? 'Cancelling...' : 'Cancel Immediately'}
-				</button>
-			</div>
-		</div>
+		<button
+			class="btn btn--danger"
+			onclick={() => cancelSubscription(true)}
+			disabled={isCancelling}
+		>
+			{isCancelling ? 'Cancelling...' : 'Cancel Immediately'}
+		</button>
 	</div>
-{/if}
+</Modal>
 
 <style>
 	.subscription-detail {
@@ -528,44 +514,12 @@
 		background: #dc2626;
 	}
 
-	/* Modal */
-	.modal-overlay {
-		position: fixed;
-		top: 0;
-		left: 0;
-		right: 0;
-		bottom: 0;
-		background: rgba(0, 0, 0, 0.5);
-		display: flex;
-		align-items: center;
-		justify-content: center;
-		z-index: 1000;
-	}
-
-	.modal {
-		background: white;
-		border-radius: 0.5rem;
-		padding: 2rem;
-		max-width: 500px;
-		width: 90%;
-		box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
-	}
-
-	.modal h2 {
-		margin-top: 0;
-		margin-bottom: 1rem;
-		font-size: 1.5rem;
-	}
-
-	.modal p {
-		margin-bottom: 1.5rem;
-		color: #6b7280;
-	}
-
+	/* Modal Actions (modal container handled by forms package) */
 	.modal-actions {
 		display: flex;
 		gap: 0.75rem;
 		flex-direction: column;
+		margin-top: 1.5rem;
 	}
 
 	@media (min-width: 640px) {
