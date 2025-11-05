@@ -11,15 +11,13 @@
 	 * @prop {Function} onCancel - Callback when user cancels
 	 * @prop {boolean} allowSkip - Whether user can skip enrollment
 	 * @prop {string} backendUrl - Backend API URL
-	 * @prop {string} authToken - Authentication token for API calls
 	 */
 	let {
 		userId,
 		onComplete,
 		onCancel,
 		allowSkip = true,
-		backendUrl = 'http://localhost:3282',
-		authToken = ''
+		backendUrl = 'http://localhost:3282'
 	} = $props()
 
 	// State management
@@ -54,12 +52,12 @@
 		error = null
 
 		try {
-			const response = await fetch(`${ backendUrl }/store/auth/mfa/enroll/initialize`, {
+			const response = await fetch(`${ backendUrl }/auth/customer/mfa/enroll/initialize`, {
 				method: 'POST',
 				headers: {
-					'Authorization': `Bearer ${ authToken }`,
 					'Content-Type': 'application/json'
-				}
+				},
+				credentials: 'include'
 			})
 
 			const data = await response.json()
@@ -101,12 +99,12 @@
 		error = null
 
 		try {
-			const response = await fetch(`${ backendUrl }/store/auth/mfa/enroll/complete`, {
+			const response = await fetch(`${ backendUrl }/auth/customer/mfa/enroll/complete`, {
 				method: 'POST',
 				headers: {
-					'Authorization': `Bearer ${ authToken }`,
 					'Content-Type': 'application/json'
 				},
+				credentials: 'include',
 				body: JSON.stringify({ code: verificationCode })
 			})
 

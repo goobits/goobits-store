@@ -47,9 +47,9 @@
 
 		try {
 			const authState = auth ? get(auth) : null
-			const token = authState?.token
+			const customer = authState?.customer
 
-			if (!token) {
+			if (!customer) {
 				throw new Error('Not authenticated')
 			}
 
@@ -135,19 +135,18 @@
 
 		try {
 			const authState = auth ? get(auth) : null
-			const token = authState?.token
+			const customer = authState?.customer
 
-			if (!token) {
+			if (!customer) {
 				throw new Error('Not authenticated')
 			}
 
-			const response = await fetch(`${ backendUrl }/store/auth/mfa/backup-codes/regenerate`, {
+			const response = await fetch(`${ backendUrl }/auth/customer/mfa/backup-codes/regenerate`, {
 				method: 'POST',
 				headers: {
-					'Authorization': `Bearer ${ token }`,
-					'Content-Type': 'application/json',
-					'x-publishable-api-key': publishableKey
+					'Content-Type': 'application/json'
 				},
+				credentials: 'include',
 				body: JSON.stringify({
 					verificationCode
 				})

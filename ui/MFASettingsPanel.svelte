@@ -38,29 +38,18 @@
 
 		try {
 			const authState = auth ? get(auth) : null
-			const token = authState?.token
+			const customer = authState?.customer
 
-			if (!token) {
+			if (!customer) {
 				throw new Error('Not authenticated')
 			}
 
-			// Customer accounts don't require MFA - set status directly
-			// MFA is only required for admin users
-			mfaStatus = {
-				required: false,
-				enabled: false
-			}
-			loading = false
-			return
-
-			// Legacy code kept for reference (not executed)
-			const response = await fetch(`${ backendUrl }/store/auth/mfa/status`, {
+			const response = await fetch(`${ backendUrl }/auth/customer/mfa/status`, {
 				method: 'GET',
 				headers: {
-					'Authorization': `Bearer ${ token }`,
-					'Content-Type': 'application/json',
-					'x-publishable-api-key': publishableKey
-				}
+					'Content-Type': 'application/json'
+				},
+				credentials: 'include'
 			})
 
 			if (!response.ok) {
@@ -110,19 +99,18 @@
 
 		try {
 			const authState = auth ? get(auth) : null
-			const token = authState?.token
+			const customer = authState?.customer
 
-			if (!token) {
+			if (!customer) {
 				throw new Error('Not authenticated')
 			}
 
-			const response = await fetch(`${ backendUrl }/store/auth/mfa/disable`, {
+			const response = await fetch(`${ backendUrl }/auth/customer/mfa/disable`, {
 				method: 'POST',
 				headers: {
-					'Authorization': `Bearer ${ token }`,
-					'Content-Type': 'application/json',
-					'x-publishable-api-key': publishableKey
+					'Content-Type': 'application/json'
 				},
+				credentials: 'include',
 				body: JSON.stringify({
 					verificationCode
 				})
@@ -377,10 +365,9 @@
 		>
 			{#if auth}
 				{@const authState = get(auth)}
-				{#if authState?.token && authState?.customer?.id}
+				{#if authState?.customer?.id}
 					<MFAEnrollmentWizard
 						userId={authState.customer.id}
-						authToken={authState.token}
 						{backendUrl}
 						onComplete={handleEnrollmentComplete}
 						onCancel={closeEnrollmentWizard}
