@@ -1,5 +1,6 @@
 <script>
 	import { get } from 'svelte/store'
+	import Modal from '@goobits/forms/ui/modals/Modal.svelte'
 
 	/**
 	 * MFABackupCodes - Display and manage MFA backup codes
@@ -322,90 +323,65 @@
 </div>
 
 <!-- Regenerate Confirmation Modal -->
-{#if showRegenerateConfirm}
-	<!-- svelte-ignore a11y_no_static_element_interactions -->
-	<div
-		class="goo__modal-overlay"
-		role="button"
-		tabindex="0"
-		onclick={() => showRegenerateConfirm = false}
-		onkeydown={(e) => (e.key === 'Escape' || e.key === 'Enter') && (showRegenerateConfirm = false)}
-	>
-		<!-- svelte-ignore a11y_no_static_element_interactions -->
-		<div
-			class="goo__modal small"
-			role="dialog"
-			aria-modal="true"
-			tabindex="-1"
-			onclick={(e) => e.stopPropagation()}
-			onkeydown={(e) => e.stopPropagation()}
-		>
-			<div class="goo__modal-header">
-				<h3>Regenerate Backup Codes</h3>
-				<button onclick={() => showRegenerateConfirm = false} class="goo__modal-close" aria-label="Close">
-					<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-						<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-					</svg>
-				</button>
-			</div>
-
-			<div class="goo__modal-content">
-				<div class="goo__warning-box">
-					<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-						<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-					</svg>
-					<div>
-						<strong>Warning:</strong>
-						<p>Regenerating backup codes will invalidate all existing codes. Make sure to save the new codes.</p>
-					</div>
-				</div>
-
-				<form onsubmit={(e) => { e.preventDefault(); handleRegenerate(); }}>
-					<div class="goo__form-group">
-						<label for="regenerate-code">
-							Enter your current MFA code to confirm:
-						</label>
-						<input
-							type="text"
-							id="regenerate-code"
-							bind:value={verificationCode}
-							placeholder="000000"
-							pattern="[0-9]{6}"
-							maxlength="6"
-							required
-							disabled={isRegenerating}
-							autocomplete="off"
-						/>
-					</div>
-
-					{#if error}
-						<div class="goo__modal-error" role="alert">
-							{error}
-						</div>
-					{/if}
-
-					<div class="goo__modal-actions">
-						<button
-							type="button"
-							onclick={() => showRegenerateConfirm = false}
-							class="goo__modal-button secondary"
-							disabled={isRegenerating}
-						>
-							Cancel
-						</button>
-						<button
-							type="submit"
-							class="goo__modal-button warning"
-							disabled={isRegenerating || !verificationCode}
-						>
-							{isRegenerating ? 'Regenerating...' : 'Regenerate Codes'}
-						</button>
-					</div>
-				</form>
-			</div>
+<Modal
+	isVisible={showRegenerateConfirm}
+	onClose={() => showRegenerateConfirm = false}
+	title="Regenerate Backup Codes"
+	size="sm"
+>
+	<div class="goo__warning-box">
+		<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+			<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+		</svg>
+		<div>
+			<strong>Warning:</strong>
+			<p>Regenerating backup codes will invalidate all existing codes. Make sure to save the new codes.</p>
 		</div>
 	</div>
-{/if}
+
+	<form onsubmit={(e) => { e.preventDefault(); handleRegenerate(); }}>
+		<div class="goo__form-group">
+			<label for="regenerate-code">
+				Enter your current MFA code to confirm:
+			</label>
+			<input
+				type="text"
+				id="regenerate-code"
+				bind:value={verificationCode}
+				placeholder="000000"
+				pattern="[0-9]{6}"
+				maxlength="6"
+				required
+				disabled={isRegenerating}
+				autocomplete="off"
+			/>
+		</div>
+
+		{#if error}
+			<div class="goo__modal-error" role="alert">
+				{error}
+			</div>
+		{/if}
+
+		<div class="goo__modal-actions">
+			<button
+				type="button"
+				onclick={() => showRegenerateConfirm = false}
+				class="goo__modal-button secondary"
+				disabled={isRegenerating}
+			>
+				Cancel
+			</button>
+			<button
+				type="submit"
+				class="goo__modal-button warning"
+				disabled={isRegenerating || !verificationCode}
+			>
+				{isRegenerating ? 'Regenerating...' : 'Regenerate Codes'}
+			</button>
+		</div>
+	</form>
+</Modal>
 
 <style lang="scss">
 	@use '../../../sveltekit/src/styles/variables.scss' as *;
@@ -670,49 +646,7 @@
 		}
 	}
 
-	/* Nested Modal Styles */
-	.goo__modal-overlay {
-		position: fixed;
-		inset: 0;
-		background-color: rgba(0, 0, 0, 0.6);
-		display: flex;
-		align-items: center;
-		justify-content: center;
-		padding: $spacing-large;
-		z-index: 1001;
-		animation: fadeIn 0.2s ease;
-	}
-
-	.goo__modal {
-		background-color: var(--color-surface);
-		border-radius: $border-radius-large;
-		box-shadow: var(--shadow-2xl);
-		max-width: 500px;
-		width: 100%;
-		max-height: 90vh;
-		overflow: hidden;
-		animation: slideIn 0.3s ease;
-
-		&.small {
-			max-width: 400px;
-		}
-	}
-
-	@keyframes fadeIn {
-		from { opacity: 0; }
-		to { opacity: 1; }
-	}
-
-	@keyframes slideIn {
-		from {
-			opacity: 0;
-			transform: scale(0.95) translateY(20px);
-		}
-		to {
-			opacity: 1;
-			transform: scale(1) translateY(0);
-		}
-	}
+	/* Modal content styles (modal container handled by forms package) */
 
 	.goo__warning-box {
 		display: flex;

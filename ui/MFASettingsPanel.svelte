@@ -1,5 +1,6 @@
 <script>
 	import { get } from 'svelte/store'
+	import Modal from '@goobits/forms/ui/modals/Modal.svelte'
 	import MFABackupCodes from './MFABackupCodes.svelte'
 	import MFAEnrollmentWizard from './MFAEnrollmentWizard.svelte'
 
@@ -229,162 +230,109 @@
 </div>
 
 <!-- Disable MFA Confirmation Modal -->
-{#if showDisableModal}
-	<!-- svelte-ignore a11y_no_static_element_interactions -->
-	<div
-		class="goo__modal-overlay"
-		role="button"
-		tabindex="0"
-		onclick={closeDisableModal}
-		onkeydown={(e) => (e.key === 'Escape' || e.key === 'Enter') && closeDisableModal()}
-	>
-		<!-- svelte-ignore a11y_no_static_element_interactions -->
-		<div
-			class="goo__modal"
-			role="dialog"
-			aria-modal="true"
-			tabindex="-1"
-			onclick={(e) => e.stopPropagation()}
-			onkeydown={(e) => e.stopPropagation()}
-		>
-			<div class="goo__modal-header">
-				<h3>Disable Two-Factor Authentication</h3>
-				<button onclick={closeDisableModal} class="goo__modal-close" aria-label="Close">
-					<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-						<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-					</svg>
-				</button>
-			</div>
-
-			<div class="goo__modal-content">
-				<div class="goo__warning-box">
-					<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-						<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-					</svg>
-					<p>Disabling two-factor authentication will make your account less secure.</p>
-				</div>
-
-				<form onsubmit={(e) => { e.preventDefault(); handleDisableMFA(); }}>
-					<div class="goo__form-group">
-						<label for="verification-code">
-							Enter your current MFA code to confirm:
-						</label>
-						<input
-							type="text"
-							id="verification-code"
-							bind:value={verificationCode}
-							placeholder="000000"
-							pattern="[0-9]{6}"
-							maxlength="6"
-							required
-							disabled={isDisabling}
-							autocomplete="off"
-						/>
-					</div>
-
-					{#if error}
-						<div class="goo__modal-error" role="alert">
-							{error}
-						</div>
-					{/if}
-
-					<div class="goo__modal-actions">
-						<button
-							type="button"
-							onclick={closeDisableModal}
-							class="goo__modal-button secondary"
-							disabled={isDisabling}
-						>
-							Cancel
-						</button>
-						<button
-							type="submit"
-							class="goo__modal-button danger"
-							disabled={isDisabling || !verificationCode}
-						>
-							{isDisabling ? 'Disabling...' : 'Disable MFA'}
-						</button>
-					</div>
-				</form>
-			</div>
-		</div>
+<Modal
+	isVisible={showDisableModal}
+	onClose={closeDisableModal}
+	title="Disable Two-Factor Authentication"
+	size="sm"
+>
+	<div class="goo__warning-box">
+		<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+			<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+		</svg>
+		<p>Disabling two-factor authentication will make your account less secure.</p>
 	</div>
-{/if}
 
-<!-- Backup Codes Modal -->
-{#if showBackupCodesModal}
-	<!-- svelte-ignore a11y_no_static_element_interactions -->
-	<div
-		class="goo__modal-overlay"
-		role="button"
-		tabindex="0"
-		onclick={closeBackupCodesModal}
-		onkeydown={(e) => (e.key === 'Escape' || e.key === 'Enter') && closeBackupCodesModal()}
-	>
-		<!-- svelte-ignore a11y_no_static_element_interactions -->
-		<div
-			class="goo__modal large"
-			role="dialog"
-			aria-modal="true"
-			tabindex="-1"
-			onclick={(e) => e.stopPropagation()}
-			onkeydown={(e) => e.stopPropagation()}
-		>
-			<MFABackupCodes
-				{auth}
-				backupCodes={backupCodes}
-				onClose={closeBackupCodesModal}
-				onRegenerate={(newCodes) => {
-					backupCodes = newCodes
-					fetchMFAStatus()
-				}}
-				isNewEnrollment={!!backupCodes}
+	<form onsubmit={(e) => { e.preventDefault(); handleDisableMFA(); }}>
+		<div class="goo__form-group">
+			<label for="verification-code">
+				Enter your current MFA code to confirm:
+			</label>
+			<input
+				type="text"
+				id="verification-code"
+				bind:value={verificationCode}
+				placeholder="000000"
+				pattern="[0-9]{6}"
+				maxlength="6"
+				required
+				disabled={isDisabling}
+				autocomplete="off"
 			/>
 		</div>
-	</div>
-{/if}
+
+		{#if error}
+			<div class="goo__modal-error" role="alert">
+				{error}
+			</div>
+		{/if}
+
+		<div class="goo__modal-actions">
+			<button
+				type="button"
+				onclick={closeDisableModal}
+				class="goo__modal-button secondary"
+				disabled={isDisabling}
+			>
+				Cancel
+			</button>
+			<button
+				type="submit"
+				class="goo__modal-button danger"
+				disabled={isDisabling || !verificationCode}
+			>
+				{isDisabling ? 'Disabling...' : 'Disable MFA'}
+			</button>
+		</div>
+	</form>
+</Modal>
+
+<!-- Backup Codes Modal -->
+<Modal
+	isVisible={showBackupCodesModal}
+	onClose={closeBackupCodesModal}
+	size="lg"
+	showCloseButton={false}
+>
+	<MFABackupCodes
+		{auth}
+		backupCodes={backupCodes}
+		onClose={closeBackupCodesModal}
+		onRegenerate={(newCodes) => {
+			backupCodes = newCodes
+			fetchMFAStatus()
+		}}
+		isNewEnrollment={!!backupCodes}
+	/>
+</Modal>
 
 <!-- Enrollment Wizard Modal -->
-{#if showEnrollmentWizard}
-	<!-- svelte-ignore a11y_no_static_element_interactions -->
-	<div
-		class="goo__modal-overlay"
-		role="button"
-		tabindex="0"
-		onclick={closeEnrollmentWizard}
-		onkeydown={(e) => (e.key === 'Escape' || e.key === 'Enter') && closeEnrollmentWizard()}
-	>
-		<!-- svelte-ignore a11y_no_static_element_interactions -->
-		<div
-			class="goo__modal large"
-			role="dialog"
-			aria-modal="true"
-			tabindex="-1"
-			onclick={(e) => e.stopPropagation()}
-			onkeydown={(e) => e.stopPropagation()}
-		>
-			{#if auth}
-				{@const authState = get(auth)}
-				{#if authState?.customer?.id}
-					<MFAEnrollmentWizard
-						userId={authState.customer.id}
-						{backendUrl}
-						onComplete={handleEnrollmentComplete}
-						onCancel={closeEnrollmentWizard}
-						allowSkip={false}
-					/>
-				{:else}
-					<div class="goo__modal-placeholder">
-						<p>Unable to load enrollment wizard - authentication required</p>
-						<button onclick={closeEnrollmentWizard} class="goo__modal-button secondary">
-							Close
-						</button>
-					</div>
-				{/if}
-			{/if}
-		</div>
-	</div>
-{/if}
+<Modal
+	isVisible={showEnrollmentWizard}
+	onClose={closeEnrollmentWizard}
+	size="lg"
+	showCloseButton={false}
+>
+	{#if auth}
+		{@const authState = get(auth)}
+		{#if authState?.customer?.id}
+			<MFAEnrollmentWizard
+				userId={authState.customer.id}
+				{backendUrl}
+				onComplete={handleEnrollmentComplete}
+				onCancel={closeEnrollmentWizard}
+				allowSkip={false}
+			/>
+		{:else}
+			<div class="goo__modal-placeholder">
+				<p>Unable to load enrollment wizard - authentication required</p>
+				<button onclick={closeEnrollmentWizard} class="goo__modal-button secondary">
+					Close
+				</button>
+			</div>
+		{/if}
+	{/if}
+</Modal>
 
 <style lang="scss">
 	@use '../../../sveltekit/src/styles/variables.scss' as *;
@@ -508,87 +456,7 @@
 		}
 	}
 
-	/* Modal Styles */
-	.goo__modal-overlay {
-		position: fixed;
-		inset: 0;
-		background-color: rgba(0, 0, 0, 0.5);
-		display: flex;
-		align-items: center;
-		justify-content: center;
-		padding: $spacing-large;
-		z-index: 1000;
-		animation: fadeIn 0.2s ease;
-	}
-
-	@keyframes fadeIn {
-		from { opacity: 0; }
-		to { opacity: 1; }
-	}
-
-	.goo__modal {
-		background-color: var(--color-surface);
-		border-radius: $border-radius-large;
-		box-shadow: var(--shadow-2xl);
-		max-width: 500px;
-		width: 100%;
-		max-height: 90vh;
-		overflow: hidden;
-		animation: slideIn 0.3s ease;
-
-		&.large {
-			max-width: 700px;
-		}
-	}
-
-	@keyframes slideIn {
-		from {
-			opacity: 0;
-			transform: scale(0.95) translateY(20px);
-		}
-		to {
-			opacity: 1;
-			transform: scale(1) translateY(0);
-		}
-	}
-
-	.goo__modal-header {
-		display: flex;
-		justify-content: space-between;
-		align-items: center;
-		padding: $spacing-large;
-		border-bottom: 1px solid var(--color-border);
-
-		h3 {
-			margin: 0;
-			color: var(--text-primary);
-			font-size: 1.25rem;
-		}
-	}
-
-	.goo__modal-close {
-		background: none;
-		border: none;
-		cursor: pointer;
-		color: var(--text-secondary);
-		padding: $spacing-small;
-		border-radius: $border-radius-medium;
-		transition: all 0.2s ease;
-		display: flex;
-		align-items: center;
-		justify-content: center;
-
-		&:hover {
-			background-color: var(--bg-secondary);
-			color: var(--text-primary);
-		}
-	}
-
-	.goo__modal-content {
-		padding: $spacing-large;
-		overflow-y: auto;
-		max-height: calc(90vh - 100px);
-	}
+	/* Modal Content Styles (modal container handled by forms package) */
 
 	.goo__warning-box {
 		display: flex;
