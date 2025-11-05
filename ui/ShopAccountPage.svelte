@@ -56,10 +56,8 @@
 		if (!isAuth) {
 			goto('/shop/login?return=/shop/account')
 		} else if (isAuth && !customerData && auth) {
-			// User is authenticated but customer data is missing
-			// This happens after login because we don't fetch customer data immediately
-			// to avoid 401 errors. Now that we're on the account page, the session
-			// cookie should be valid and we can fetch it.
+			// User is authenticated but customer data is missing.
+			// Now that the backend is reliable, a single refresh should suffice.
 			await auth.refreshSession()
 		}
 	})
