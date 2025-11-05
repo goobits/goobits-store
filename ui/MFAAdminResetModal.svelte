@@ -1,4 +1,7 @@
 <script>
+	import Alert from '@goobits/forms/ui/modals/Alert.svelte'
+	import Button from '@goobits/forms/ui/modals/Button.svelte'
+
 	/**
 	 * MFAAdminResetModal - Super-admin MFA reset confirmation modal
 	 *
@@ -184,28 +187,32 @@
 					<span>I understand the impact and want to proceed with the MFA reset</span>
 				</label>
 
-				{#if error}
-					<div class="goo__error-message">
-						{error}
-					</div>
-				{/if}
+				<Alert
+					isVisible={!!error}
+					onClose={() => error = null}
+					variant="danger"
+					title="Reset Failed"
+					message={error || ''}
+					size="sm"
+				/>
 			</div>
 
 			<footer class="goo__modal-footer">
-				<button
-					class="goo__btn goo__btn-danger"
+				<Button
+					variant="danger"
 					onclick={handleSubmit}
-					disabled={!reason || !confirmed || submitting}
+					disabled={!reason || !confirmed}
+					loading={submitting}
 				>
-					{submitting ? 'Resetting...' : 'Reset MFA'}
-				</button>
-				<button
-					class="goo__btn goo__btn-ghost"
+					Reset MFA
+				</Button>
+				<Button
+					variant="ghost"
 					onclick={handleClose}
 					disabled={submitting}
 				>
 					Cancel
-				</button>
+				</Button>
 			</footer>
 		</div>
 	</div>
@@ -431,59 +438,12 @@
 		}
 	}
 
-	.goo__error-message {
-		background: #f8d7da;
-		border: 1px solid #f5c2c7;
-		border-radius: var(--radius-sm, 4px);
-		padding: 0.75rem;
-		color: #842029;
-		font-weight: 500;
-		margin-top: 1rem;
-	}
-
 	.goo__modal-footer {
 		display: flex;
 		gap: 1rem;
 		padding: 1.5rem;
 		border-top: 1px solid var(--color-border, #e0e0e0);
 		justify-content: flex-end;
-	}
-
-	.goo__btn {
-		padding: 0.625rem 1.25rem;
-		border: none;
-		border-radius: var(--radius-sm, 4px);
-		cursor: pointer;
-		font-weight: 600;
-		font-size: 1rem;
-		text-decoration: none;
-		display: inline-block;
-		transition: all 0.2s ease;
-
-		&:disabled {
-			opacity: 0.6;
-			cursor: not-allowed;
-		}
-
-		&.goo__btn-danger {
-			background: var(--color-danger, #dc3545);
-			color: white;
-
-			&:hover:not(:disabled) {
-				background: var(--color-danger-dark, #bb2d3b);
-			}
-		}
-
-		&.goo__btn-ghost {
-			background: transparent;
-			color: var(--color-text-secondary, #666);
-			border: 1px solid var(--color-border, #e0e0e0);
-
-			&:hover:not(:disabled) {
-				background: var(--color-background-secondary, #f5f5f5);
-				color: var(--color-text-primary, #333);
-			}
-		}
 	}
 
 	@media (max-width: 768px) {
@@ -499,7 +459,7 @@
 		.goo__modal-footer {
 			flex-direction: column-reverse;
 
-			.goo__btn {
+			:global(.modal-button) {
 				width: 100%;
 			}
 		}

@@ -1,6 +1,8 @@
 <script>
 	import { get } from 'svelte/store'
 	import Modal from '@goobits/forms/ui/modals/Modal.svelte'
+	import Alert from '@goobits/forms/ui/modals/Alert.svelte'
+	import Button from '@goobits/forms/ui/modals/Button.svelte'
 	import MFABackupCodes from './MFABackupCodes.svelte'
 	import MFAEnrollmentWizard from './MFAEnrollmentWizard.svelte'
 
@@ -156,13 +158,18 @@
 </script>
 
 <div class="goo__mfa-settings">
+	<Alert
+		isVisible={!!error && !loading}
+		onClose={() => error = null}
+		variant="danger"
+		title="Error Loading MFA Settings"
+		message={error || ''}
+		size="sm"
+	/>
+
 	{#if loading}
 		<div class="goo__loading">
 			<p>Loading MFA settings...</p>
-		</div>
-	{:else if error}
-		<div class="goo__error" role="alert">
-			{error}
 		</div>
 	{:else if mfaStatus}
 		<div class="goo__mfa-status">
@@ -204,25 +211,25 @@
 
 			<div class="goo__actions">
 				{#if mfaStatus.enabled}
-					<button
+					<Button
+						variant="secondary"
 						onclick={handleRegenerateBackupCodes}
-						class="goo__action-button secondary"
 					>
 						Regenerate Backup Codes
-					</button>
-					<button
+					</Button>
+					<Button
+						variant="danger"
 						onclick={() => showDisableModal = true}
-						class="goo__action-button danger"
 					>
 						Disable MFA
-					</button>
+					</Button>
 				{:else}
-					<button
+					<Button
+						variant="primary"
 						onclick={handleEnableMFA}
-						class="goo__action-button primary"
 					>
 						Enable MFA
-					</button>
+					</Button>
 				{/if}
 			</div>
 		</div>
@@ -261,28 +268,32 @@
 			/>
 		</div>
 
-		{#if error}
-			<div class="goo__modal-error" role="alert">
-				{error}
-			</div>
-		{/if}
+		<Alert
+			isVisible={!!error}
+			onClose={() => error = null}
+			variant="danger"
+			title="Verification Failed"
+			message={error || ''}
+			size="sm"
+		/>
 
 		<div class="goo__modal-actions">
-			<button
+			<Button
 				type="button"
+				variant="secondary"
 				onclick={closeDisableModal}
-				class="goo__modal-button secondary"
 				disabled={isDisabling}
 			>
 				Cancel
-			</button>
-			<button
+			</Button>
+			<Button
 				type="submit"
-				class="goo__modal-button danger"
-				disabled={isDisabling || !verificationCode}
+				variant="danger"
+				loading={isDisabling}
+				disabled={!verificationCode}
 			>
-				{isDisabling ? 'Disabling...' : 'Disable MFA'}
-			</button>
+				Disable MFA
+			</Button>
 		</div>
 	</form>
 </Modal>
@@ -326,9 +337,9 @@
 		{:else}
 			<div class="goo__modal-placeholder">
 				<p>Unable to load enrollment wizard - authentication required</p>
-				<button onclick={closeEnrollmentWizard} class="goo__modal-button secondary">
+				<Button variant="secondary" onclick={closeEnrollmentWizard}>
 					Close
-				</button>
+				</Button>
 			</div>
 		{/if}
 	{/if}
@@ -345,14 +356,6 @@
 		text-align: center;
 		padding: $spacing-large;
 		color: var(--text-secondary);
-	}
-
-	.goo__error {
-		background-color: var(--error-bg);
-		color: var(--error-text);
-		padding: $spacing-medium;
-		border-radius: $border-radius-medium;
-		margin-bottom: $spacing-medium;
 	}
 
 	.goo__mfa-status {
@@ -418,44 +421,6 @@
 		margin-top: $spacing-medium;
 	}
 
-	.goo__action-button {
-		padding: $spacing-small $spacing-large;
-		border-radius: $border-radius-medium;
-		font-weight: 500;
-		cursor: pointer;
-		transition: all 0.2s ease;
-		border: none;
-
-		&.primary {
-			background-color: var(--accent-primary);
-			color: var(--color-text-on-primary);
-
-			&:hover {
-				background-color: var(--accent-light);
-			}
-		}
-
-		&.secondary {
-			background-color: var(--color-surface);
-			color: var(--accent-primary);
-			border: 1px solid var(--accent-primary);
-
-			&:hover {
-				background-color: var(--bg-secondary);
-			}
-		}
-
-		&.danger {
-			background-color: var(--color-surface);
-			color: var(--error-text);
-			border: 1px solid var(--error-text);
-
-			&:hover {
-				background-color: var(--error-bg);
-			}
-		}
-	}
-
 	/* Modal Content Styles (modal container handled by forms package) */
 
 	.goo__warning-box {
@@ -512,62 +477,11 @@
 		}
 	}
 
-	.goo__modal-error {
-		background-color: var(--error-bg);
-		color: var(--error-text);
-		padding: $spacing-medium;
-		border-radius: $border-radius-medium;
-		margin-bottom: $spacing-medium;
-		text-align: center;
-	}
-
 	.goo__modal-actions {
 		display: flex;
 		gap: $spacing-medium;
 		justify-content: flex-end;
 		margin-top: $spacing-large;
-	}
-
-	.goo__modal-button {
-		padding: $spacing-small $spacing-large;
-		border-radius: $border-radius-medium;
-		font-weight: 500;
-		cursor: pointer;
-		transition: all 0.2s ease;
-		border: none;
-
-		&.primary {
-			background-color: var(--accent-primary);
-			color: var(--color-text-on-primary);
-
-			&:hover:not(:disabled) {
-				background-color: var(--accent-light);
-			}
-		}
-
-		&.secondary {
-			background-color: var(--color-surface);
-			color: var(--text-secondary);
-			border: 1px solid var(--color-border);
-
-			&:hover:not(:disabled) {
-				background-color: var(--bg-secondary);
-			}
-		}
-
-		&.danger {
-			background-color: var(--error-text);
-			color: white;
-
-			&:hover:not(:disabled) {
-				background-color: var(--error-hover);
-			}
-		}
-
-		&:disabled {
-			opacity: 0.5;
-			cursor: not-allowed;
-		}
 	}
 
 	.goo__modal-placeholder {
@@ -605,7 +519,7 @@
 		.goo__actions {
 			flex-direction: column;
 
-			.goo__action-button {
+			:global(.modal-button) {
 				width: 100%;
 			}
 		}

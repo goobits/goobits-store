@@ -4,6 +4,8 @@
 	import { browser } from '$app/environment'
 	import MFAVerificationInput from './MFAVerificationInput.svelte'
 	import MFABackupCodeInput from './MFABackupCodeInput.svelte'
+	import Alert from '@goobits/forms/ui/modals/Alert.svelte'
+	import Button from '@goobits/forms/ui/modals/Button.svelte'
 
 	/**
 	 * ShopLoginPage - Generic authentication page
@@ -251,11 +253,20 @@
 					: (branding.loginSubtitle || 'Sign in to access your account and orders')}
 			</p>
 
-			{#if authState.error}
-				<div class="goo__auth-error" role="alert">
-					{authState.error}
-				</div>
-			{/if}
+			<Alert
+				isVisible={!!authState.error}
+				onClose={() => {
+					if (auth && auth.clearError) {
+						auth.clearError()
+					} else {
+						authState = { ...authState, error: null }
+					}
+				}}
+				variant="danger"
+				title="Authentication Error"
+				message={authState.error || ''}
+				size="sm"
+			/>
 
 			{#if showRegister}
 			<form onsubmit={handleRegister} class="goo__auth-form">
@@ -327,14 +338,15 @@
 						disabled={authState.loading}
 					/>
 				</div>
-				
-				<button 
-					type="submit" 
+
+				<Button
+					type="submit"
+					variant="primary"
 					class="goo__auth-submit"
-					disabled={authState.loading}
+					loading={authState.loading}
 				>
-					{authState.loading ? 'Creating Account...' : 'Create Account'}
-				</button>
+					Create Account
+				</Button>
 			</form>
 		{:else}
 			<form onsubmit={handleLogin} class="goo__auth-form">
@@ -359,14 +371,15 @@
 						disabled={authState.loading}
 					/>
 				</div>
-				
-				<button 
-					type="submit" 
+
+				<Button
+					type="submit"
+					variant="primary"
 					class="goo__auth-submit"
-					disabled={authState.loading}
+					loading={authState.loading}
 				>
-					{authState.loading ? 'Signing In...' : 'Sign In'}
-				</button>
+					Sign In
+				</Button>
 			</form>
 		{/if}
 		
@@ -420,15 +433,6 @@
 		margin-bottom: $spacing-large;
 	}
 
-	.goo__auth-error {
-		background-color: var(--error-bg);
-		color: var(--error-text);
-		padding: $spacing-medium;
-		border-radius: $border-radius-medium;
-		margin-bottom: $spacing-medium;
-		text-align: center;
-	}
-	
 	.goo__auth-form {
 		margin-bottom: $spacing-large;
 	}
@@ -474,30 +478,10 @@
 			}
 		}
 	}
-	
+
 	.goo__auth-submit {
 		width: 100%;
-		padding: $spacing-medium;
-		background-color: var(--accent-primary);
-		color: var(--color-text-on-primary);
-		border: none;
-		border-radius: $border-radius-medium;
 		font-size: 1.1rem;
-		font-weight: 600;
-		cursor: pointer;
-		transition: all 0.2s ease;
-
-		&:hover:not(:disabled) {
-			background-color: var(--accent-light);
-			transform: translateY(-1px);
-			box-shadow: var(--shadow-md);
-		}
-
-		&:disabled {
-			background-color: var(--bg-tertiary);
-			cursor: not-allowed;
-			opacity: 0.6;
-		}
 	}
 
 	.goo__auth-toggle {
