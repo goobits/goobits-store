@@ -1,6 +1,7 @@
 <script>
 	import { get } from 'svelte/store'
 	import Modal from '@goobits/forms/ui/modals/Modal.svelte'
+	import { getBackendUrl, getPublishableKey } from '@goobits/config/urls'
 
 	/**
 	 * MFABackupCodes - Display and manage MFA backup codes
@@ -33,8 +34,8 @@
 	let copiedAll = $state(false)
 	let confirmChecked = $state(false)
 
-	const backendUrl = import.meta.env.PUBLIC_MEDUSA_BACKEND_URL || 'http://localhost:3282'
-	const publishableKey = import.meta.env.PUBLIC_MEDUSA_PUBLISHABLE_KEY
+	const backendUrl = $derived(getBackendUrl())
+	const publishableKey = $derived(getPublishableKey())
 
 	// Update codes when prop changes
 	$effect(() => {
@@ -142,7 +143,7 @@
 				throw new Error('Not authenticated')
 			}
 
-			const response = await fetch(`${ backendUrl }/auth/customer/mfa/backup-codes/regenerate`, {
+			const response = await fetch(`${ backendUrl }/store/auth/mfa/backup-codes/regenerate`, {
 				method: 'POST',
 				headers: {
 					'Content-Type': 'application/json'

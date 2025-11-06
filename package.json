@@ -30,6 +30,7 @@
 		"LICENSE"
 	],
 	"dependencies": {
+		"@goobits/config": "workspace:*",
 		"@goobits/logger": "workspace:*",
 		"@medusajs/medusa-js": "^6.1.10",
 		"qrcode": "^1.5.4"

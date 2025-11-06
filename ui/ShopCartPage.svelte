@@ -7,6 +7,7 @@
 	import { browser } from '$app/environment'
 	import { Logger } from '@lib/utils/Logger.js'
 	import { onMount } from 'svelte'
+	import { formatPrice } from '@goobits/store/utils/checkoutUtils'
 
 	const { data, config = {} } = $props()
 
@@ -46,6 +47,7 @@
 	let errorMessage = $state('')
 
 	// Derived state for subtotal - automatically updates when cart changes
+	// Note: Cart prices are stored as actual dollar amounts, not cents
 	let subtotal = $derived(
 		!$cart || $cart.length === 0 ? 0 :
 		$cart.reduce((total, item) => {
@@ -54,6 +56,13 @@
 			return total + (price * quantity)
 		}, 0)
 	)
+
+	// Helper function to format prices for display
+	function formatCartPrice(price) {
+		// Cart stores prices as dollars already, not cents
+		// Just format to 2 decimal places
+		return typeof price === 'number' ? price.toFixed(2) : '0.00'
+	}
 	
 	// Derived state for cleaner template logic
 	let hasItems = $derived($cart && $cart.length > 0)
@@ -252,7 +261,7 @@
 							</div>
 						</div>
 						<div class="goo__cart-item-price">
-							${typeof item.price === 'number' ? item.price.toFixed(2) : '0.00'}</div>
+							${formatCartPrice(item.price)}</div>
 						<div class="goo__cart-item-quantity">
 							<button
 								class="goo__quantity-btn"
@@ -271,10 +280,10 @@
 							</button>
 						</div>
 						<div class="goo__cart-item-total">
-							${(
+							${formatCartPrice(
 							(typeof item.price === 'number' ? item.price : 0) *
 							(typeof item.quantity === 'number' ? item.quantity : 1)
-						).toFixed(2)}
+						)}
 						</div>
 						<div class="goo__cart-item-actions">
 							<button
@@ -292,7 +301,7 @@
 			<div class="goo__cart-footer">
 				<div class="goo__cart-subtotal">
 					<span>Subtotal</span>
-					<span>${typeof subtotal === 'number' ? subtotal.toFixed(2) : '0.00'}</span>
+					<span>${formatCartPrice(subtotal)}</span>
 				</div>
 				<div class="goo__cart-actions">
 					<button onclick={handleContinueShopping} class="btn btn-secondary">

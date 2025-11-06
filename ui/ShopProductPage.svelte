@@ -4,6 +4,7 @@
 	import { goto } from '$app/navigation'
 	import OptimizedImage from '@components/OptimizedImage/OptimizedImage.svelte'
 	import { Logger } from '@lib/utils/Logger.js'
+	import { formatPrice } from '@goobits/store/utils/checkoutUtils'
 
 	const { data } = $props()
 
@@ -94,13 +95,6 @@
 		}
 
 		return null
-	}
-
-	// Format price
-	function formatPrice(price) {
-		if (!price && price !== 0) return 'N/A'
-		// Don't divide by 100 - Medusa v2 stores amounts as actual currency values, not cents
-		return parseFloat(price).toFixed(2)
 	}
 
 	// Handle image selection
@@ -617,7 +611,7 @@
 
 			&.added {
 				background-color: $color-success;
-				animation: cartBounce 0.5s ease;
+				animation: cart-bounce 0.5s ease;
 			}
 
 			&:disabled {
@@ -716,15 +710,6 @@
 					font-size: $font-size-small;
 				}
 			}
-		}
-	}
-
-	@keyframes cartBounce {
-		0%, 100% {
-			transform: scale(1);
-		}
-		50% {
-			transform: scale(1.1);
 		}
 	}
 </style>

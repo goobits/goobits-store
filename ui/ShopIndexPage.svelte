@@ -1,6 +1,7 @@
 <script>
 	import { addToCart, getCartCount } from '@goobits/store'
 	import { goto } from '$app/navigation'
+	import { formatPrice } from '@goobits/store/utils/checkoutUtils'
 
 	/**
 	 * ShopIndexPage - Generic shop homepage layout
@@ -42,8 +43,9 @@
 		const calculatedPrice = product.variants[0].calculated_price
 		if (!calculatedPrice) return 'N/A'
 		const price = calculatedPrice.calculated_amount || 0
-		// Don't divide by 100 - Medusa v2 stores amounts as actual currency values, not cents
-		return parseFloat(price).toFixed(2)
+		// Note: Medusa v2 may store amounts differently depending on configuration
+		// Use formatPrice to handle conversion consistently
+		return formatPrice(price)
 	}
 
 	/**
@@ -406,16 +408,7 @@
 	}
 
 	.btn-primary.added {
-		animation: cartBounce 0.5s ease;
-	}
-
-	@keyframes cartBounce {
-		0%, 100% {
-			transform: scale(1);
-		}
-		50% {
-			transform: scale(1.1);
-		}
+		animation: cart-bounce 0.5s ease;
 	}
 
 	/* Checkout Section */

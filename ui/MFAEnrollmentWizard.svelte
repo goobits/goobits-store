@@ -2,6 +2,7 @@
 	import { Check, ChevronLeft, Download, Copy, CheckCircle2, Smartphone, QrCode, Shield } from '@lucide/svelte'
 	import { browser } from '$app/environment'
 	import QRCodeLib from 'qrcode'
+	import { getBackendUrl } from '@goobits/config/urls'
 
 	/**
 	 * MFAEnrollmentWizard - Multi-step wizard for MFA enrollment
@@ -17,7 +18,7 @@
 		onComplete,
 		onCancel,
 		allowSkip = true,
-		backendUrl = 'http://localhost:3282'
+		backendUrl = getBackendUrl()
 	} = $props()
 
 	// State management
@@ -52,7 +53,7 @@
 		error = null
 
 		try {
-			const response = await fetch(`${ backendUrl }/auth/customer/mfa/enroll/initialize`, {
+			const response = await fetch(`${ backendUrl }/store/auth/mfa/enroll/initialize`, {
 				method: 'POST',
 				headers: {
 					'Content-Type': 'application/json'
@@ -99,7 +100,7 @@
 		error = null
 
 		try {
-			const response = await fetch(`${ backendUrl }/auth/customer/mfa/enroll/complete`, {
+			const response = await fetch(`${ backendUrl }/store/auth/mfa/enroll/complete`, {
 				method: 'POST',
 				headers: {
 					'Content-Type': 'application/json'
@@ -602,10 +603,6 @@
 		border-top-color: var(--accent-primary);
 		border-radius: 50%;
 		animation: spin 0.8s linear infinite;
-	}
-
-	@keyframes spin {
-		to { transform: rotate(360deg); }
 	}
 
 	// Step 1: Apps

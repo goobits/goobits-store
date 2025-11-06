@@ -5,6 +5,7 @@
 	import Button from '@goobits/forms/ui/modals/Button.svelte'
 	import MFABackupCodes from './MFABackupCodes.svelte'
 	import MFAEnrollmentWizard from './MFAEnrollmentWizard.svelte'
+	import { getBackendUrl, getPublishableKey } from '@goobits/config/urls'
 
 	/**
 	 * MFASettingsPanel - MFA Settings and Management
@@ -31,8 +32,8 @@
 	let backupCodes = $state(null)
 	let showEnrollmentWizard = $state(false)
 
-	const backendUrl = import.meta.env.PUBLIC_MEDUSA_BACKEND_URL || 'http://localhost:3282'
-	const publishableKey = import.meta.env.PUBLIC_MEDUSA_PUBLISHABLE_KEY
+	const backendUrl = $derived(getBackendUrl())
+	const publishableKey = $derived(getPublishableKey())
 
 	// Fetch MFA status
 	async function fetchMFAStatus() {
@@ -47,7 +48,7 @@
 				throw new Error('Not authenticated')
 			}
 
-			const response = await fetch(`${ backendUrl }/auth/customer/mfa/status`, {
+			const response = await fetch(`${ backendUrl }/store/auth/mfa/status`, {
 				method: 'GET',
 				headers: {
 					'Content-Type': 'application/json'
@@ -108,7 +109,7 @@
 				throw new Error('Not authenticated')
 			}
 
-			const response = await fetch(`${ backendUrl }/auth/customer/mfa/disable`, {
+			const response = await fetch(`${ backendUrl }/store/auth/mfa/disable`, {
 				method: 'POST',
 				headers: {
 					'Content-Type': 'application/json'

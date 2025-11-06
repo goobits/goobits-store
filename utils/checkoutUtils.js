@@ -37,10 +37,17 @@ const MODULE_NAME = 'CheckoutUtils'
  * Formats a price from cents to dollars with two decimal places
  *
  * @param {number|string} price - Price in cents
+ * @param {string} [currencySymbol='$'] - Currency symbol to prepend
+ * @param {boolean} [includeSymbol=false] - Whether to include currency symbol
  * @returns {string} Formatted price as a string with two decimal places
  * @throws {TypeError} If price is not a number or cannot be converted to one
+ *
+ * @example
+ * formatPrice(1999) // '19.99'
+ * formatPrice(1999, '$', true) // '$19.99'
+ * formatPrice(0) // '0.00'
  */
-export function formatPrice(price) {
+export function formatPrice(price, currencySymbol = '$', includeSymbol = false) {
 	try {
 		const priceNum = Number(price)
 
@@ -49,8 +56,39 @@ export function formatPrice(price) {
 			throw new TypeError('Price must be a number or convertible to a number')
 		}
 
-		if (!price) return '0.00'
-		return (priceNum / 100).toFixed(2)
+		if (!price || price === 0) {
+			return includeSymbol ? `${ currencySymbol }0.00` : '0.00'
+		}
+
+		const formatted = (priceNum / 100).toFixed(2)
+		return includeSymbol ? `${ currencySymbol }${ formatted }` : formatted
+	} catch (error) {
+		handleError(MODULE_NAME, error)
+	}
+}
+
+/**
+ * Format currency with proper symbol
+ *
+ * @param {number} amount - Amount in cents
+ * @param {string} [currencyCode='USD'] - Currency code (USD, EUR, etc.)
+ * @returns {string} Formatted currency string
+ *
+ * @example
+ * formatCurrency(1999, 'USD') // '$19.99'
+ * formatCurrency(1999, 'EUR') // '€19.99'
+ */
+export function formatCurrency(amount, currencyCode = 'USD') {
+	try {
+		const symbols = {
+			'USD': '$',
+			'EUR': '€',
+			'GBP': '£',
+			'JPY': '¥'
+		}
+
+		const symbol = symbols[currencyCode] || currencyCode
+		return formatPrice(amount, symbol, true)
 	} catch (error) {
 		handleError(MODULE_NAME, error)
 	}

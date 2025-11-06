@@ -51,6 +51,17 @@
 		}
 	})
 
+	// Clear initial session fetch errors on mount (these are expected when not logged in)
+	$effect(() => {
+		if (auth && authState.error && authState.error.includes('fetch session')) {
+			if (auth.clearError) {
+				auth.clearError()
+			} else {
+				authState = { ...authState, error: null }
+			}
+		}
+	})
+
 	// Auto-fill demo credentials on localhost
 	$effect(() => {
 		if (browser && typeof window !== 'undefined' && demoCredentials) {

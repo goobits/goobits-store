@@ -8,6 +8,7 @@
 import { redirect, error } from '@sveltejs/kit'
 import { medusaServerClient } from '../utils/medusaServerClient.js'
 import { createLogger } from '../utils/logger.js'
+import { getBackendUrl } from '@goobits/config/urls'
 
 const logger = createLogger('CheckoutHandler')
 
@@ -96,7 +97,7 @@ async function createSubscriptionForOrder(order, cart) {
 	// Create subscription via backend API
 	try {
 		// Get backend URL from environment
-		const backendUrl = process.env.PUBLIC_MEDUSA_BACKEND_URL || 'http://localhost:3282'
+		const backendUrl = getBackendUrl()
 
 		const response = await fetch(`${backendUrl}/store/subscriptions`, {
 			method: 'POST',
