@@ -253,6 +253,7 @@
 			</div>
 		</div>
 	{/if}
+	</div>
 </div>
 
 <!-- Disable MFA Confirmation Modal -->
