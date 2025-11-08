@@ -176,6 +176,7 @@
 
 	<!-- Original UI kept but hidden for future re-enablement -->
 	<div style="display: none;">
+	<!-- Alert component removed - not imported
 	<Alert
 		isVisible={!!error && !loading}
 		onClose={() => error = null}
@@ -184,6 +185,7 @@
 		message={error || ''}
 		size="sm"
 	/>
+	-->
 
 	{#if loading}
 		<div class="goo__loading">
@@ -287,6 +289,7 @@
 			/>
 		</div>
 
+		<!-- Alert component removed - not imported
 		<Alert
 			isVisible={!!error}
 			onClose={() => error = null}
@@ -295,6 +298,7 @@
 			message={error || ''}
 			size="sm"
 		/>
+		-->
 
 		<div class="goo__modal-actions">
 			<Button
