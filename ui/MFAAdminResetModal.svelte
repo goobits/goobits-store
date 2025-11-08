@@ -1,5 +1,5 @@
 <script>
-	import Alert from '@goobits/forms/ui/modals/Alert.svelte'
+	import FormErrors from '@goobits/forms/ui/FormErrors.svelte'
 	import Button from '@goobits/forms/ui/modals/Button.svelte'
 
 	/**
@@ -26,6 +26,9 @@
 	let confirmed = $state(false)
 	let submitting = $state(false)
 	let error = $state(null)
+
+	// Convert error to FormErrors format
+	let formErrors = $derived(error ? { _errors: [error] } : { _errors: [] })
 
 	const reasonOptions = [
 		{ value: 'lost_device', label: 'Lost device' },
@@ -187,14 +190,7 @@
 					<span>I understand the impact and want to proceed with the MFA reset</span>
 				</label>
 
-				<Alert
-					isVisible={!!error}
-					onClose={() => error = null}
-					variant="danger"
-					title="Reset Failed"
-					message={error || ''}
-					size="sm"
-				/>
+				<FormErrors errors={formErrors} title="Reset Failed" />
 			</div>
 
 			<footer class="goo__modal-footer">
@@ -436,6 +432,10 @@
 		span {
 			flex: 1;
 		}
+	}
+
+	:global(.form-error) {
+		margin-top: 1rem;
 	}
 
 	.goo__modal-footer {

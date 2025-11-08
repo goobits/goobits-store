@@ -1,7 +1,6 @@
 <script>
 	import { get } from 'svelte/store'
 	import Modal from '@goobits/forms/ui/modals/Modal.svelte'
-	import Alert from '@goobits/forms/ui/modals/Alert.svelte'
 	import Button from '@goobits/forms/ui/modals/Button.svelte'
 	import MFABackupCodes from './MFABackupCodes.svelte'
 	import MFAEnrollmentWizard from './MFAEnrollmentWizard.svelte'
