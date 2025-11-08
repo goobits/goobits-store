@@ -159,6 +159,24 @@
 </script>
 
 <div class="goo__mfa-settings">
+	<!-- MFA temporarily disabled - database connection issues -->
+	<div class="goo__mfa-disabled-notice">
+		<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+			<circle cx="12" cy="12" r="10" stroke-width="2"/>
+			<line x1="12" y1="8" x2="12" y2="12" stroke-width="2" stroke-linecap="round"/>
+			<line x1="12" y1="16" x2="12.01" y2="16" stroke-width="2" stroke-linecap="round"/>
+		</svg>
+		<div>
+			<h3>Two-Factor Authentication</h3>
+			<p>Multi-factor authentication is coming soon. We're working on enabling this security feature.</p>
+			<p class="goo__notice-detail">
+				Check back later for enhanced account protection with TOTP-based authentication and backup codes.
+			</p>
+		</div>
+	</div>
+
+	<!-- Original UI kept but hidden for future re-enablement -->
+	<div style="display: none;">
 	<Alert
 		isVisible={!!error && !loading}
 		onClose={() => error = null}
@@ -351,6 +369,47 @@
 
 	.goo__mfa-settings {
 		width: 100%;
+	}
+
+	.goo__mfa-disabled-notice {
+		display: flex;
+		gap: $spacing-medium;
+		padding: $spacing-large;
+		background-color: var(--bg-secondary);
+		border: 1px solid var(--color-border);
+		border-radius: $border-radius-medium;
+
+		svg {
+			flex-shrink: 0;
+			color: var(--text-secondary);
+			margin-top: 2px;
+		}
+
+		div {
+			flex: 1;
+		}
+
+		h3 {
+			margin: 0 0 $spacing-small 0;
+			color: var(--text-primary);
+			font-size: 1.1rem;
+			font-weight: 600;
+		}
+
+		p {
+			margin: 0 0 $spacing-small 0;
+			color: var(--text-secondary);
+			line-height: 1.5;
+
+			&:last-child {
+				margin-bottom: 0;
+			}
+		}
+
+		.goo__notice-detail {
+			font-size: 0.9rem;
+			color: var(--text-tertiary);
+		}
 	}
 
 	.goo__loading {
