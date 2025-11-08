@@ -4,7 +4,7 @@
 	import { browser } from '$app/environment'
 	import MFAVerificationInput from './MFAVerificationInput.svelte'
 	import MFABackupCodeInput from './MFABackupCodeInput.svelte'
-	import Alert from '@goobits/forms/ui/modals/Alert.svelte'
+	import FormErrors from '@goobits/forms/ui/FormErrors.svelte'
 	import Button from '@goobits/forms/ui/modals/Button.svelte'
 
 	/**
@@ -78,6 +78,9 @@
 	})
 
 	let returnUrl = $derived($page.url.searchParams.get('return') || '/shop/account')
+
+	// Convert auth error to FormErrors format
+	let formErrors = $derived(authState.error ? { _errors: [authState.error] } : { _errors: [] })
 
 	async function handleLogin(e) {
 		e.preventDefault()
@@ -264,20 +267,7 @@
 					: (branding.loginSubtitle || 'Sign in to access your account and orders')}
 			</p>
 
-			<Alert
-				isVisible={!!authState.error}
-				onClose={() => {
-					if (auth && auth.clearError) {
-						auth.clearError()
-					} else {
-						authState = { ...authState, error: null }
-					}
-				}}
-				variant="danger"
-				title="Authentication Error"
-				message={authState.error || ''}
-				size="sm"
-			/>
+			<FormErrors errors={formErrors} title="Authentication Error" />
 
 			{#if showRegister}
 			<form onsubmit={handleRegister} class="goo__auth-form">
@@ -441,6 +431,10 @@
 	.goo__auth-subtitle {
 		text-align: center;
 		color: var(--text-secondary);
+		margin-bottom: $spacing-large;
+	}
+
+	:global(.form-error) {
 		margin-bottom: $spacing-large;
 	}
 
