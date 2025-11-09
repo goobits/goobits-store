@@ -9,7 +9,7 @@
 	import { onMount, onDestroy } from 'svelte'
 	import { browser } from '$app/environment'
 	import { Logger } from '@lib/utils/Logger.js'
-	import { customer } from '@lib/stores/auth.js'
+	import { user as customer } from '@lib/stores/auth-simple.js'
 
 	// Import checkout components from store package
 	import CheckoutCustomerInfo from './Checkout/CheckoutCustomerInfo.svelte'

@@ -92,9 +92,10 @@
 		}
 	}
 
-	function handleLogout() {
+	async function handleLogout() {
 		if (auth) {
-			auth.logout()
+			await auth.logout()
+			goto('/shop/login')
 		}
 	}
 </script>

@@ -115,7 +115,7 @@
 				},
 				credentials: 'include',
 				body: JSON.stringify({
-					verificationCode
+					password: verificationCode  // Better Auth requires password to disable MFA
 				})
 			})
 
@@ -158,24 +158,6 @@
 </script>
 
 <div class="goo__mfa-settings">
-	<!-- MFA temporarily disabled - database connection issues -->
-	<div class="goo__mfa-disabled-notice">
-		<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-			<circle cx="12" cy="12" r="10" stroke-width="2"/>
-			<line x1="12" y1="8" x2="12" y2="12" stroke-width="2" stroke-linecap="round"/>
-			<line x1="12" y1="16" x2="12.01" y2="16" stroke-width="2" stroke-linecap="round"/>
-		</svg>
-		<div>
-			<h3>Two-Factor Authentication</h3>
-			<p>Multi-factor authentication is coming soon. We're working on enabling this security feature.</p>
-			<p class="goo__notice-detail">
-				Check back later for enhanced account protection with TOTP-based authentication and backup codes.
-			</p>
-		</div>
-	</div>
-
-	<!-- Original UI kept but hidden for future re-enablement -->
-	<div style="display: none;">
 	<!-- Alert component removed - not imported
 	<Alert
 		isVisible={!!error && !loading}
@@ -254,7 +236,6 @@
 			</div>
 		</div>
 	{/if}
-	</div>
 </div>
 
 <!-- Disable MFA Confirmation Modal -->
@@ -274,18 +255,16 @@
 	<form onsubmit={(e) => { e.preventDefault(); handleDisableMFA(); }}>
 		<div class="goo__form-group">
 			<label for="verification-code">
-				Enter your current MFA code to confirm:
+				Enter your password to confirm:
 			</label>
 			<input
-				type="text"
+				type="password"
 				id="verification-code"
 				bind:value={verificationCode}
-				placeholder="000000"
-				pattern="[0-9]{6}"
-				maxlength="6"
+				placeholder="Password"
 				required
 				disabled={isDisabling}
-				autocomplete="off"
+				autocomplete="current-password"
 			/>
 		</div>
 
