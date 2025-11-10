@@ -94,7 +94,7 @@
 
 		try {
 			const authState = auth ? get(auth) : null
-			const customer = authState?.customer
+			const customer = authState?.customer || authState?.user
 
 			if (!customer) {
 				throw new Error('Not authenticated')
