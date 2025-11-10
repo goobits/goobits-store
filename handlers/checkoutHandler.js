@@ -438,9 +438,35 @@ export function createCheckoutHandler(options = {}) {
 							try {
 								await createSubscriptionForOrder(data, cart)
 							} catch (subscriptionError) {
-								// Log error but don't fail the order
-								logger.error('Failed to create subscription for order:', subscriptionError)
-								// TODO: Queue for retry or manual intervention
+								// Log error but don't fail the order since payment was successful
+								logger.error('CRITICAL: Failed to create subscription for order', {
+									error: subscriptionError.message,
+									stack: subscriptionError.stack,
+									orderId: data.id,
+									customerEmail: data.email,
+									customerId: data.customer_id,
+									orderTotal: data.total,
+									currencyCode: data.currency_code,
+									subscriptionItems: cart.items
+										.filter(item => item.metadata?.subscription === true)
+										.map(item => ({
+											variant_id: item.variant_id,
+											product_id: item.product_id,
+											quantity: item.quantity,
+											period: item.metadata?.period
+										})),
+									timestamp: new Date().toISOString(),
+									// Manual recovery information
+									recovery: {
+										instructions: 'Create subscription manually via admin panel or API',
+										endpoint: '/admin/subscriptions',
+										requiredData: 'See subscriptionItems above'
+									}
+								})
+
+								// TODO: Send email alert to admin
+								// TODO: Add to monitoring dashboard
+								// TODO: Consider queueing for automatic retry after N minutes
 							}
 						}
 
