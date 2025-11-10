@@ -64,29 +64,35 @@
 	})
 
 	let editing = $state(false)
-	let name = $state('')
-	let email = $state('')
-	let phone = $state('')
 
 	// Get user data from either customerData or authState.user
 	const currentUser = $derived(customerData || authState.user)
 
-	$effect(() => {
-		if (currentUser && !editing) {
-			// Better Auth uses 'name' field, not first_name/last_name
-			name = currentUser.name || ''
-			email = currentUser.email || ''
-			phone = currentUser.phone || ''
-		}
-	})
+	// Use $derived for display values to ensure SSR/client consistency
+	let displayName = $derived(currentUser?.name || '')
+	let displayEmail = $derived(currentUser?.email || '')
+	let displayPhone = $derived(currentUser?.phone || '')
+
+	// Separate state for editing (only used when editing=true)
+	let editName = $state('')
+	let editEmail = $state('')
+	let editPhone = $state('')
+
+	// Populate edit fields when entering edit mode
+	function startEditing() {
+		editName = displayName
+		editEmail = displayEmail
+		editPhone = displayPhone
+		editing = true
+	}
 
 	async function handleUpdate(e) {
 		e.preventDefault()
 		if (!auth) return
 
 		const result = await auth.updateProfile({
-			name,
-			phone
+			name: editName,
+			phone: editPhone
 		})
 
 		if (result.success) {
@@ -118,7 +124,7 @@
 					<h2>Profile Information</h2>
 					{#if !editing}
 						<button
-							onclick={() => editing = true}
+							onclick={startEditing}
 							class="goo__edit-button"
 						>
 							Edit
@@ -133,7 +139,7 @@
 							<input
 								type="text"
 								id="name"
-								bind:value={name}
+								bind:value={editName}
 								required
 								disabled={authState.loading}
 								placeholder="Enter your full name"
@@ -145,7 +151,7 @@
 							<input
 								type="email"
 								id="email"
-								value={email}
+								value={editEmail}
 								disabled
 								title="Email cannot be changed"
 							/>
@@ -156,7 +162,7 @@
 							<input
 								type="tel"
 								id="phone"
-								bind:value={phone}
+								bind:value={editPhone}
 								disabled={authState.loading}
 							/>
 						</div>
@@ -189,15 +195,15 @@
 					<div class="goo__profile-info">
 						<div class="goo__info-row">
 							<span class="goo__info-label">Name:</span>
-							<span class="goo__info-value">{name || 'Not provided'}</span>
+							<span class="goo__info-value">{displayName || 'Not provided'}</span>
 						</div>
 						<div class="goo__info-row">
 							<span class="goo__info-label">Email:</span>
-							<span class="goo__info-value">{email}</span>
+							<span class="goo__info-value">{displayEmail}</span>
 						</div>
 						<div class="goo__info-row">
 							<span class="goo__info-label">Phone:</span>
-							<span class="goo__info-value">{phone || 'Not provided'}</span>
+							<span class="goo__info-value">{displayPhone || 'Not provided'}</span>
 						</div>
 					</div>
 				{/if}

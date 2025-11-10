@@ -26,7 +26,6 @@
 	// Component state
 	let loading = $state(false)
 	let error = $state(null)
-	let codes = $state(backupCodes)
 	let password = $state('')
 	let showRegenerateConfirm = $state(false)
 	let isRegenerating = $state(false)
@@ -37,10 +36,9 @@
 	const backendUrl = $derived(getBackendUrl())
 	const publishableKey = $derived(getPublishableKey())
 
-	// Update codes when prop changes
-	$effect(() => {
-		codes = backupCodes
-	})
+	// Codes state initialized from prop (no effect needed - ensures SSR consistency)
+	// Uses $state because codes can be mutated when regenerated
+	let codes = $state(backupCodes)
 
 	// Note: Better Auth stores backup codes hashed for security,
 	// so they can only be viewed once when first generated.

@@ -123,15 +123,8 @@
 		last_name: ''
 	})
 
-	// Get default country code separately to avoid reactivity issues
-	let defaultCountry = 'us'
-
-	// Update when defaultRegion changes
-	$effect(() => {
-		if (defaultRegion?.countries?.[0]?.iso_2) {
-			defaultCountry = defaultRegion.countries[0].iso_2
-		}
-	})
+	// Get default country code from region (derived to ensure SSR consistency)
+	let defaultCountry = $derived(defaultRegion?.countries?.[0]?.iso_2 || 'us')
 
 	let shippingAddress = $state(savedState?.shippingAddress || {
 		first_name: '',
@@ -145,18 +138,15 @@
 		phone: ''
 	})
 
-	// Initialize shipping option (defaulted if available)
-	let defaultShippingOption = $state('')
+	// Get default shipping option (derived to ensure SSR consistency)
+	let defaultShippingOption = $derived(
+		shippingOptions && shippingOptions.length > 0 ? shippingOptions[0].id : ''
+	)
 
-	$effect(() => {
-		if (shippingOptions && shippingOptions.length > 0) {
-			defaultShippingOption = shippingOptions[0].id
-		}
-	})
-
+	// Initialize selected shipping option from saved state or default
 	let selectedShippingOption = $state(savedState?.selectedShippingOption || '')
 
-	// Update selected shipping option when default changes and no option is selected
+	// Auto-select default shipping option if none selected (client-side only to avoid form issues)
 	$effect(() => {
 		if (defaultShippingOption && !selectedShippingOption) {
 			selectedShippingOption = defaultShippingOption

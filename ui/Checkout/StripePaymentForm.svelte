@@ -35,25 +35,21 @@
 	let stripeError = $state(null)
 	let stripeElements = $state(null)
 	let paymentIntentStatus = $state('')
+	// Processing state: use prop if provided, otherwise manage locally
 	let processing = $state(isProcessing)
-	
+
 	// Set up Elements when component mounts
 	onMount(() => {
 		if (!browser) return
-		
+
 		// Make sure the client secret is available
 		if (!clientSecret) {
 			stripeError = { message: 'Client secret is required' }
 			isLoading = false
 			return
 		}
-		
+
 		isLoading = false
-	})
-	
-	// Watch for changes in the isProcessing prop
-	$effect(() => {
-		processing = isProcessing
 	})
 	
 	// Update Elements when the client secret changes

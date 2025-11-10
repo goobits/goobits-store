@@ -18,61 +18,58 @@
 	// State
 	let quantity = $state(1)
 	let addedToCart = $state(false)
-	let selectedImage = $state(null)
+	let userSelectedImage = $state(null) // User's manual image selection
 	let selectedOptions = $state({}) // Stores { optionId: optionValue }
-	let selectedVariant = $state(null) // The variant matching selectedOptions
 	let showOptionWarning = $state(false) // State for showing option selection warning
 
 	// Reactive updates when product data changes
 	let variants = $derived(product.variants || [])
 	let options = $derived(product.options || [])
 
-	// Set initial image when product loads
-	$effect(() => {
-		if (product && product.images && product.images.length > 0 && !selectedImage) {
-			selectedImage = product.images[0] // Set initial image
+	// Initialize selectedOptions based on options and variants (runs during SSR)
+	let initialSelectedOptions = $derived.by(() => {
+		const initialOptions = {}
+		if (options && options.length > 0 && variants && variants.length > 0) {
+			options.forEach(option => {
+				// Calculate available values for this option
+				const availableValues = [ ...new Set(variants.map(v => v.options?.find(o => o.option_id === option.id)?.value).filter(Boolean)) ]
+				if (availableValues.length > 0) {
+					initialOptions[option.id] = availableValues[0]
+				}
+			})
 		}
+		return initialOptions
 	})
 
-	// Initialize variant and options when product data changes
-	$effect(() => {
+	// Calculate selected variant based on options (runs during SSR)
+	let selectedVariant = $derived.by(() => {
+		// If no options and only one variant, select it by default
 		if (options.length === 0 && variants.length === 1) {
-			// If no options and only one variant, select it by default
-			selectedVariant = variants[0]
-		} else {
-			// Reset selections if product changes
-			// Initialize selections with the first available option value
-			const initialSelectedOptions = {}
-			if (options && options.length > 0 && variants && variants.length > 0) {
-				options.forEach(option => {
-					// Calculate available values for this option
-					const availableValues = [ ...new Set(variants.map(v => v.options?.find(o => o.option_id === option.id)?.value).filter(Boolean)) ]
-					if (availableValues.length > 0) {
-						initialSelectedOptions[option.id] = availableValues[0]
-					}
-				})
-			}
-			selectedOptions = initialSelectedOptions
-			// selectedVariant will be calculated reactively based on the new selectedOptions
+			return variants[0]
 		}
-	})
 
-	// Find the matching variant whenever selectedOptions changes
-	$effect(() => {
-		if (options.length > 0 && Object.keys(selectedOptions).length === options.length) {
-			selectedVariant = variants.find(variant => {
+		// Use selectedOptions if user has made selections, otherwise use initial
+		const optionsToUse = Object.keys(selectedOptions).length > 0 ? selectedOptions : initialSelectedOptions
+
+		// Find variant matching all selected options
+		if (options.length > 0 && Object.keys(optionsToUse).length === options.length) {
+			return variants.find(variant => {
 				return options.every(option => {
 					const variantOption = variant.options.find(vo => vo.option_id === option.id)
-					return variantOption && variantOption.value === selectedOptions[option.id]
+					return variantOption && variantOption.value === optionsToUse[option.id]
 				})
-			}) || null // Find variant matching ALL selected options
-		} else if (options.length === 0 && variants.length === 1) {
-			// Handle products with no options / single variant
-			selectedVariant = variants[0]
-		} else {
-			selectedVariant = null // Not all options selected or no match found
+			}) || null
 		}
+
+		return null
 	})
+
+	// Selected image (derived to ensure SSR consistency)
+	// Uses user selection if available, otherwise defaults to first product image
+	let selectedImage = $derived(
+		userSelectedImage ||
+		(product?.images?.length > 0 ? product.images[0] : null)
+	)
 
 	// Get price from variant
 	function getVariantPrice(variant, region = defaultRegion) {
@@ -99,7 +96,7 @@
 
 	// Handle image selection
 	function selectImage(image) {
-		selectedImage = image
+		userSelectedImage = image
 	}
 
 	// Handle option selection
@@ -234,17 +231,18 @@
 						{#each options as option (option.id)}
 							<!-- Calculate available values for this option *inside* the each block -->
 							{@const availableValues = [ ...new Set(variants.map(v => v.options?.find(o => o.option_id === option.id)?.value).filter(Boolean)) ]}
+							{@const currentSelection = selectedOptions[option.id] || initialSelectedOptions[option.id]}
 							<div class="goo__option-group">
 								<h3>
 									{option.title}
-									{#if showOptionWarning && !selectedOptions[option.id]}
+									{#if showOptionWarning && !currentSelection}
 										<span class="goo__required-option-indicator">*</span>
 									{/if}
 								</h3>
 								<div class="goo__variant-options">
 									{#each availableValues as value (value)}
 										<button
-											class="goo__variant-button {selectedOptions[option.id] === value ? 'active' : ''}"
+											class="goo__variant-button {currentSelection === value ? 'active' : ''}"
 											onclick={() => selectOption(option.id, value)}
 										>
 											<!-- Add color swatch if it's a color option -->

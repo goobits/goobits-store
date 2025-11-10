@@ -1,5 +1,5 @@
 <script>
-	import { onMount } from 'svelte'
+	import { browser } from '$app/environment'
 
 	/**
 	 * MFAGracePeriodBanner - Warning banner for MFA grace period
@@ -17,9 +17,6 @@
 		onSetupNow = () => {}
 	} = $props()
 
-	// Dismissal state
-	let dismissed = $state(false)
-
 	// Calculate urgency level
 	let urgencyLevel = $derived(
 		daysRemaining < 3 ? 'critical' :
@@ -30,6 +27,27 @@
 
 	// Check if banner can be dismissed (only when >7 days)
 	let isDismissible = $derived(daysRemaining >= 7)
+
+	// Check localStorage for dismissal state (SSR-safe)
+	function checkDismissalState() {
+		if (!browser || !isDismissible) return false
+
+		const dismissalKey = `mfa-banner-dismissed-${ daysRemaining }`
+		const dismissedUntil = localStorage.getItem(dismissalKey)
+
+		if (dismissedUntil) {
+			const expiryDate = new Date(dismissedUntil)
+			if (expiryDate > new Date()) {
+				return true
+			} else {
+				localStorage.removeItem(dismissalKey)
+			}
+		}
+		return false
+	}
+
+	// Dismissal state (initialized with localStorage check)
+	let dismissed = $state(checkDismissalState())
 
 	// Get urgency-specific message
 	let message = $derived(() => {
@@ -58,23 +76,6 @@
 			})
 		} catch {
 			return ''
-		}
-	})
-
-	// Check localStorage for dismissal state on mount
-	onMount(() => {
-		if (isDismissible) {
-			const dismissalKey = `mfa-banner-dismissed-${ daysRemaining }`
-			const dismissedUntil = localStorage.getItem(dismissalKey)
-
-			if (dismissedUntil) {
-				const expiryDate = new Date(dismissedUntil)
-				if (expiryDate > new Date()) {
-					dismissed = true
-				} else {
-					localStorage.removeItem(dismissalKey)
-				}
-			}
 		}
 	})
 
