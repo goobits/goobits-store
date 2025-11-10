@@ -122,6 +122,40 @@ async function createSubscriptionForOrder(order, cart) {
 }
 
 /**
+ * Send alert to admin about subscription creation failure
+ *
+ * @param {Object} order - The completed order
+ * @param {Object} cart - The original cart
+ * @param {Error} error - The subscription error
+ * @param {Object} errorData - Structured error data
+ */
+async function sendSubscriptionFailureAlert(order, cart, error, errorData) {
+	const backendUrl = getBackendUrl()
+
+	try {
+		await fetch(`${backendUrl}/admin/alert`, {
+			method: 'POST',
+			headers: {
+				'Content-Type': 'application/json'
+			},
+			body: JSON.stringify({
+				subject: `Subscription Creation Failed for Order ${order.id}`,
+				message: `Payment succeeded but subscription creation failed for customer ${order.email}.\n\nOrder ID: ${order.id}\nError: ${error.message}\n\nIMMediate action required: Create subscription manually using recovery data below.`,
+				severity: 'critical',
+				data: errorData
+			})
+		})
+
+		logger.info('Subscription failure alert sent to admin')
+	} catch (alertError) {
+		// Silently fail - this is a best-effort alert
+		logger.warn('Could not send admin alert', {
+			error: alertError.message
+		})
+	}
+}
+
+/**
  * Calculate next billing date based on interval
  *
  * @param {Date} fromDate - Starting date
@@ -438,8 +472,8 @@ export function createCheckoutHandler(options = {}) {
 							try {
 								await createSubscriptionForOrder(data, cart)
 							} catch (subscriptionError) {
-								// Log error but don't fail the order since payment was successful
-								logger.error('CRITICAL: Failed to create subscription for order', {
+								// Prepare comprehensive error data for logging and alerting
+								const errorData = {
 									error: subscriptionError.message,
 									stack: subscriptionError.stack,
 									orderId: data.id,
@@ -462,11 +496,17 @@ export function createCheckoutHandler(options = {}) {
 										endpoint: '/admin/subscriptions',
 										requiredData: 'See subscriptionItems above'
 									}
-								})
+								}
 
-								// TODO: Send email alert to admin
-								// TODO: Add to monitoring dashboard
-								// TODO: Consider queueing for automatic retry after N minutes
+								// Log error but don't fail the order since payment was successful
+								logger.error('CRITICAL: Failed to create subscription for order', errorData)
+
+								// Send admin alert (fire-and-forget, don't block checkout)
+								sendSubscriptionFailureAlert(data, cart, subscriptionError, errorData).catch(alertError => {
+									logger.error('Failed to send subscription failure alert', {
+										error: alertError.message
+									})
+								})
 							}
 						}
 
