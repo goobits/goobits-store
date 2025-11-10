@@ -8,6 +8,7 @@
 	 * MFAEnrollmentWizard - Multi-step wizard for MFA enrollment
 	 *
 	 * @prop {string} userId - User ID for enrollment
+	 * @prop {string} password - Pre-verified password for enrollment
 	 * @prop {Function} onComplete - Callback when enrollment is complete
 	 * @prop {Function} onCancel - Callback when user cancels
 	 * @prop {boolean} allowSkip - Whether user can skip enrollment
@@ -15,6 +16,7 @@
 	 */
 	let {
 	userId,
+	password,
 	onComplete,
 	onCancel,
 	allowSkip = true,
@@ -31,7 +33,6 @@
 	let secretKey = $state('')
 	let totpUri = $state('')
 	let verificationCode = $state('')
-	let password = $state('')
 	let backupCodes = $state([])
 	let backupCodesSaved = $state(false)
 
@@ -180,10 +181,6 @@
 	// Navigate steps
 	function nextStep() {
 	if (currentStep === 1) {
-	if (!password) {
-	error = 'Please enter your password to continue'
-	return
-	}
 	currentStep = 2
 	// Initialize enrollment when moving to QR code step
 	initializeEnrollment()
@@ -192,6 +189,10 @@
 	} else if (currentStep === 3) {
 	completeEnrollment()
 	} else if (currentStep === 4 && backupCodesSaved) {
+	// Move to success screen
+	currentStep = 5
+	} else if (currentStep === 5) {
+	// Complete enrollment and trigger callback
 	onComplete?.(backupCodes)
 	}
 	}
@@ -309,20 +310,6 @@
 			<p class="goo__mfa-help-text">
 				Download from your App Store. We recommend Google Authenticator or Authy.
 			</p>
-		</div>
-
-		<div class="goo__mfa-password-section">
-			<label for="mfa-password">
-				Password
-			</label>
-			<input
-				type="password"
-				id="mfa-password"
-				bind:value={password}
-				placeholder="Enter your password"
-				autocomplete="current-password"
-				required
-			/>
 		</div>
 	</div>
 	{/if}
@@ -452,6 +439,36 @@
 		</div>
 	</div>
 	{/if}
+
+	<!-- Step 5: Success -->
+	{#if currentStep === 5}
+	<div class="goo__mfa-step goo__mfa-step--success">
+		<div class="goo__mfa-success-icon">
+			<svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+				<path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path>
+			</svg>
+		</div>
+		<h2>Two-Factor Authentication Enabled</h2>
+		<p class="goo__mfa-subtitle">
+			Your account is now more secure. You'll need your authenticator app each time you sign in.
+		</p>
+
+		<div class="goo__mfa-success-info">
+			<div class="goo__mfa-success-item">
+				<Shield size={20} />
+				<span>Your account is protected</span>
+			</div>
+			<div class="goo__mfa-success-item">
+				<Smartphone size={20} />
+				<span>Use your authenticator app to log in</span>
+			</div>
+			<div class="goo__mfa-success-item">
+				<CheckCircle2 size={20} />
+				<span>Backup codes saved for emergencies</span>
+			</div>
+		</div>
+	</div>
+	{/if}
 	</div>
 
 	<!-- Navigation -->
@@ -476,7 +493,7 @@
 		type="button"
 		class="goo__mfa-nav-btn goo__mfa-nav-btn--primary"
 		onclick={nextStep}
-		disabled={loading || (currentStep === 1 && !password) || (currentStep === 2 && !qrCodeUrl)}
+		disabled={loading || (currentStep === 2 && !qrCodeUrl)}
 	>
 		{currentStep === 1 ? 'Continue' : 'I\'ve Scanned It'}
 	</button>
@@ -487,7 +504,15 @@
 		onclick={nextStep}
 		disabled={!backupCodesSaved}
 	>
-		Finish Setup
+		Continue
+	</button>
+	{:else if currentStep === 5}
+	<button
+		type="button"
+		class="goo__mfa-nav-btn goo__mfa-nav-btn--primary"
+		onclick={nextStep}
+	>
+		Back to Settings
 	</button>
 	{/if}
 	</div>
@@ -964,6 +989,55 @@
 	span {
 	color: var(--text-primary);
 	font-weight: 500;
+	}
+	}
+
+	// Step 5: Success
+	.goo__mfa-step--success {
+	text-align: center;
+	}
+
+	.goo__mfa-success-icon {
+	width: 64px;
+	height: 64px;
+	background: linear-gradient(135deg, #34c759 0%, #30d158 100%);
+	border-radius: 50%;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	margin: 0 auto $spacing-xlarge;
+
+	svg {
+	width: 32px;
+	height: 32px;
+	stroke: #ffffff;
+	}
+	}
+
+	.goo__mfa-success-info {
+	display: flex;
+	flex-direction: column;
+	gap: $spacing-medium;
+	margin-top: $spacing-xlarge;
+	padding: $spacing-large;
+	background: var(--bg-secondary);
+	border-radius: $border-radius-medium;
+	}
+
+	.goo__mfa-success-item {
+	display: flex;
+	align-items: center;
+	gap: $spacing-medium;
+	color: var(--text-primary);
+	text-align: left;
+
+	svg {
+	flex-shrink: 0;
+	color: var(--accent-primary);
+	}
+
+	span {
+	font-size: $font-size-base;
 	}
 	}
 
