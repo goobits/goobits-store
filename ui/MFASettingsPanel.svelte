@@ -333,9 +333,10 @@
 >
 	{#if auth}
 		{@const authState = get(auth)}
-		{#if authState?.customer?.id}
+		{@const currentUser = authState?.customer || authState?.user}
+		{#if currentUser?.id}
 			<MFAEnrollmentWizard
-				userId={authState.customer.id}
+				userId={currentUser.id}
 				{backendUrl}
 				onComplete={handleEnrollmentComplete}
 				onCancel={closeEnrollmentWizard}

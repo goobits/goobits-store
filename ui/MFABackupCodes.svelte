@@ -49,7 +49,7 @@
 
 		try {
 			const authState = auth ? get(auth) : null
-			const customer = authState?.customer
+			const customer = authState?.customer || authState?.user
 
 			if (!customer) {
 				throw new Error('Not authenticated')
@@ -99,7 +99,8 @@
 		if (!codes || codes.length === 0) return
 
 		const authState = auth ? get(auth) : null
-		const email = authState?.customer?.email || 'user'
+		const currentUser = authState?.customer || authState?.user
+		const email = currentUser?.email || 'user'
 		const timestamp = new Date().toISOString().split('T')[0]
 
 		const content = [

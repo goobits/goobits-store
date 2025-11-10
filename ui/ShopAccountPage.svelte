@@ -51,29 +51,31 @@
 	})
 
 	// Redirect to login if not authenticated
-	// Fetch customer data if authenticated but missing
+	// Fetch user data if authenticated but missing
 	onMount(async () => {
 		if (!isAuth) {
 			goto('/shop/login?return=/shop/account')
-		} else if (isAuth && !customerData && auth) {
-			// User is authenticated but customer data is missing.
-			// Now that the backend is reliable, a single refresh should suffice.
-			await auth.refreshSession()
+		} else if (isAuth && !currentUser && auth) {
+			// User is authenticated but user data is missing.
+			// Refresh session to get user data
+			await auth.checkSession()
 		}
 	})
 
 	let editing = $state(false)
-	let firstName = $state('')
-	let lastName = $state('')
+	let name = $state('')
 	let email = $state('')
 	let phone = $state('')
 
+	// Get user data from either customerData or authState.user
+	const currentUser = $derived(customerData || authState.user)
+
 	$effect(() => {
-		if (customerData && !editing) {
-			firstName = customerData.first_name || ''
-			lastName = customerData.last_name || ''
-			email = customerData.email || ''
-			phone = customerData.phone || ''
+		if (currentUser && !editing) {
+			// Better Auth uses 'name' field, not first_name/last_name
+			name = currentUser.name || ''
+			email = currentUser.email || ''
+			phone = currentUser.phone || ''
 		}
 	})
 
@@ -81,9 +83,8 @@
 		e.preventDefault()
 		if (!auth) return
 
-		const result = await auth.updateCustomer({
-			first_name: firstName,
-			last_name: lastName,
+		const result = await auth.updateProfile({
+			name,
 			phone
 		})
 
@@ -104,7 +105,7 @@
 	<title>My Account - {branding.siteName}</title>
 </svelte:head>
 
-{#if isAuth && customerData}
+{#if isAuth && currentUser}
 	<div class="goo__account-page">
 		<h1>My Account</h1>
 
@@ -124,28 +125,16 @@
 
 				{#if editing}
 					<form onsubmit={handleUpdate} class="goo__profile-form">
-						<div class="goo__form-row">
-							<div class="goo__form-group">
-								<label for="firstName">First Name</label>
-								<input
-									type="text"
-									id="firstName"
-									bind:value={firstName}
-									required
-									disabled={authState.loading}
-								/>
-							</div>
-
-							<div class="goo__form-group">
-								<label for="lastName">Last Name</label>
-								<input
-									type="text"
-									id="lastName"
-									bind:value={lastName}
-									required
-									disabled={authState.loading}
-								/>
-							</div>
+						<div class="goo__form-group">
+							<label for="name">Full Name</label>
+							<input
+								type="text"
+								id="name"
+								bind:value={name}
+								required
+								disabled={authState.loading}
+								placeholder="Enter your full name"
+							/>
 						</div>
 
 						<div class="goo__form-group">
@@ -197,7 +186,7 @@
 					<div class="goo__profile-info">
 						<div class="goo__info-row">
 							<span class="goo__info-label">Name:</span>
-							<span class="goo__info-value">{firstName} {lastName}</span>
+							<span class="goo__info-value">{name || 'Not provided'}</span>
 						</div>
 						<div class="goo__info-row">
 							<span class="goo__info-label">Email:</span>
