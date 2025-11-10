@@ -38,6 +38,9 @@
 	// Manual code entry
 	let showManualEntry = $state(false)
 
+	// Selected app
+	let selectedApp = $state(null)
+
 	// Recommended authenticator apps
 	const authenticatorApps = [
 	{ name: 'Google Authenticator', icon: 'smartphone' },
@@ -285,14 +288,19 @@
 
 		<div class="goo__mfa-apps">
 			{#each authenticatorApps as app}
-				<div class="goo__mfa-app-card">
+				<button
+					type="button"
+					class="goo__mfa-app-card"
+					class:selected={selectedApp === app.name}
+					onclick={() => selectedApp = app.name}
+				>
 					{#if app.icon === 'smartphone'}
 						<Smartphone size={32} />
 					{:else}
 						<Shield size={32} />
 					{/if}
 					<span>{app.name}</span>
-				</div>
+				</button>
 			{/each}
 		</div>
 
@@ -649,6 +657,29 @@
 	background: var(--bg-primary, #ffffff);
 	color: var(--text-primary);
 	width: 100%;
+	cursor: pointer;
+	transition: all 0.2s ease;
+
+	&:hover {
+	border-color: var(--accent-primary, #06c);
+	box-shadow: var(--shadow-md, 0 4px 12px rgba(0, 0, 0, 0.08));
+	transform: translateY(-2px);
+	}
+
+	&:active {
+	transform: translateY(0);
+	}
+
+	&.selected {
+	border-color: var(--accent-primary, #06c);
+	border-width: 2px;
+	background: var(--accent-primary, #06c);
+	color: var(--color-text-on-primary, #ffffff);
+
+	:global(svg) {
+	stroke: var(--color-text-on-primary, #ffffff);
+	}
+	}
 
 	:global(svg) {
 	stroke: var(--accent-primary, #06c);
