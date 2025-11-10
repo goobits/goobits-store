@@ -26,14 +26,15 @@ export async function fetchMFAStatus(backendUrl, publishableKey) {
 		})
 
 		if (!response.ok) {
-			// If not authenticated or endpoint doesn't exist, return default
-			// 400 = Bad Request (invalid/missing auth), 401 = Unauthorized, 404 = Not Found
-			if (response.status === 400 || response.status === 401 || response.status === 404) {
+			// If not authenticated or endpoint doesn't exist, return default (not an error)
+			// 400 = Bad Request (invalid/missing auth), 401 = Unauthorized, 404 = Not Found, 500 = Server Error
+			if (response.status === 400 || response.status === 401 || response.status === 404 || response.status === 500) {
+				// Don't log these as errors - they're expected when not authenticated
 				return {
 					required: false,
 					enabled: false,
 					inGracePeriod: false,
-					error: false // Not really an error, just means MFA not available/required
+					error: false
 				}
 			}
 			throw new Error(`HTTP error! status: ${ response.status }`)
@@ -52,7 +53,10 @@ export async function fetchMFAStatus(backendUrl, publishableKey) {
 			error: true
 		}
 	} catch (error) {
-		console.error('Error fetching MFA status:', error)
+		// Only log unexpected errors (not auth-related)
+		if (!error.message.includes('401') && !error.message.includes('500')) {
+			console.error('Error fetching MFA status:', error)
+		}
 		return {
 			required: false,
 			enabled: false,

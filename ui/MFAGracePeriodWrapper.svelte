@@ -50,11 +50,13 @@
 	// Only fetch when we have customer data (confirmed authentication)
 	$effect(() => {
 		const isAuthenticated = authState.customer || authState.user
-		if (isAuthenticated && backendUrl) {
+		const hasUserId = isAuthenticated && (authState.customer?.id || authState.user?.id)
+
+		if (hasUserId && backendUrl) {
 			loadMFAStatus()
 		} else {
-			// Reset MFA status if user logs out
-			if (!isAuthenticated) {
+			// Reset MFA status if user logs out or not authenticated
+			if (!hasUserId) {
 				mfaStatus = null
 				loading = false
 			}
@@ -80,10 +82,9 @@
 		// Call parent callback
 		onSetupNow()
 
-		// Default behavior: navigate to account page MFA section
+		// Navigate to MFA setup page
 		if (typeof window !== 'undefined') {
-			// You can customize this based on your app structure
-			window.location.href = '/shop/account?section=mfa'
+			window.location.href = '/shop/account/mfa-setup'
 		}
 	}
 </script>

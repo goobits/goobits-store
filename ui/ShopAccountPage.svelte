@@ -1,5 +1,4 @@
 <script>
-	import { goto } from '$app/navigation'
 	import { onMount } from 'svelte'
 	import MFASettingsPanel from './MFASettingsPanel.svelte'
 
@@ -54,7 +53,9 @@
 	// Fetch user data if authenticated but missing
 	onMount(async () => {
 		if (!isAuth) {
-			goto('/shop/login?return=/shop/account')
+			if (typeof window !== 'undefined') {
+				window.location.href = '/shop/login?return=/shop/account'
+			}
 		} else if (isAuth && !currentUser && auth) {
 			// User is authenticated but user data is missing.
 			// Refresh session to get user data
@@ -96,7 +97,9 @@
 	async function handleLogout() {
 		if (auth) {
 			await auth.logout()
-			goto('/shop/login')
+			if (typeof window !== 'undefined') {
+				window.location.href = '/shop/login'
+			}
 		}
 	}
 </script>

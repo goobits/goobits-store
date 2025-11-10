@@ -1,9 +1,9 @@
 <script>
+	import { onMount } from 'svelte'
 	import { get } from 'svelte/store'
 	import Modal from '@goobits/forms/ui/modals/Modal.svelte'
 	import Button from '@goobits/forms/ui/modals/Button.svelte'
 	import MFABackupCodes from './MFABackupCodes.svelte'
-	import MFAEnrollmentWizard from './MFAEnrollmentWizard.svelte'
 	import { getBackendUrl, getPublishableKey } from '@goobits/config/urls'
 
 	/**
@@ -29,7 +29,6 @@
 	let verificationCode = $state('')
 	let isDisabling = $state(false)
 	let backupCodes = $state(null)
-	let showEnrollmentWizard = $state(false)
 
 	const backendUrl = $derived(getBackendUrl())
 	const publishableKey = $derived(getPublishableKey())
@@ -77,20 +76,10 @@
 		fetchMFAStatus()
 	})
 
-	// Handle enable MFA
+	// Handle enable MFA - navigate to dedicated page
 	function handleEnableMFA() {
-		showEnrollmentWizard = true
-	}
-
-	// Handle enrollment complete
-	function handleEnrollmentComplete(codes) {
-		showEnrollmentWizard = false
-		backupCodes = codes
-		showBackupCodesModal = true
-		fetchMFAStatus() // Refresh status
-
-		if (onEnrollComplete) {
-			onEnrollComplete()
+		if (typeof window !== 'undefined') {
+			window.location.href = '/shop/account/mfa-setup'
 		}
 	}
 
@@ -156,9 +145,18 @@
 		backupCodes = null
 	}
 
-	function closeEnrollmentWizard() {
-		showEnrollmentWizard = false
-	}
+	// Check for MFA enrollment success from URL params
+	onMount(() => {
+		if (typeof window !== 'undefined') {
+			const urlParams = new URLSearchParams(window.location.search)
+			if (urlParams.get('mfa') === 'enrolled') {
+				// Refresh MFA status to show new state
+				fetchMFAStatus()
+				// Clear the URL param
+				window.history.replaceState({}, '', window.location.pathname)
+			}
+		}
+	})
 </script>
 
 <div class="goo__mfa-settings">
@@ -322,35 +320,6 @@
 		}}
 		isNewEnrollment={!!backupCodes}
 	/>
-</Modal>
-
-<!-- Enrollment Wizard Modal -->
-<Modal
-	isVisible={showEnrollmentWizard}
-	onClose={closeEnrollmentWizard}
-	size="lg"
-	showCloseButton={false}
->
-	{#if auth}
-		{@const authState = get(auth)}
-		{@const currentUser = authState?.customer || authState?.user}
-		{#if currentUser?.id}
-			<MFAEnrollmentWizard
-				userId={currentUser.id}
-				{backendUrl}
-				onComplete={handleEnrollmentComplete}
-				onCancel={closeEnrollmentWizard}
-				allowSkip={false}
-			/>
-		{:else}
-			<div class="goo__modal-placeholder">
-				<p>Unable to load enrollment wizard - authentication required</p>
-				<Button variant="secondary" onclick={closeEnrollmentWizard}>
-					Close
-				</Button>
-			</div>
-		{/if}
-	{/if}
 </Modal>
 
 <style lang="scss">
@@ -568,16 +537,6 @@
 		gap: $spacing-medium;
 		justify-content: flex-end;
 		margin-top: $spacing-large;
-	}
-
-	.goo__modal-placeholder {
-		padding: $spacing-xlarge;
-		text-align: center;
-		color: var(--text-secondary);
-
-		p {
-			margin-bottom: $spacing-medium;
-		}
 	}
 
 	@media (max-width: 768px) {

@@ -42,28 +42,9 @@
 		codes = backupCodes
 	})
 
-	// Fetch current backup codes if not provided
-	async function fetchBackupCodes() {
-		loading = true
-		error = null
-
-		try {
-			const authState = auth ? get(auth) : null
-			const customer = authState?.customer || authState?.user
-
-			if (!customer) {
-				throw new Error('Not authenticated')
-			}
-
-			// Note: This endpoint doesn't exist yet, would need to be created
-			// For now, we'll just show the codes that were passed in
-			throw new Error('Cannot fetch existing backup codes - please regenerate')
-		} catch (err) {
-			error = err.message
-		} finally {
-			loading = false
-		}
-	}
+	// Note: Better Auth stores backup codes hashed for security,
+	// so they can only be viewed once when first generated.
+	// If codes aren't provided, user must regenerate new codes.
 
 	// Copy individual code
 	async function copyCode(code, index) {
@@ -231,13 +212,24 @@
 					<p>Save these backup codes in a safe place. You can use them to access your account if you lose your authenticator device.</p>
 				</div>
 			</div>
-		{:else}
+		{:else if codes && codes.length > 0}
 			<div class="goo__info-box">
 				<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor">
 					<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
 				</svg>
 				<div>
 					<p>Each backup code can only be used once. Store them in a secure location.</p>
+				</div>
+			</div>
+		{:else if !codes || codes.length === 0}
+			<div class="goo__info-box warning">
+				<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+					<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+				</svg>
+				<div>
+					<strong>Backup Codes Not Available</strong>
+					<p>For security reasons, backup codes can only be viewed once when first generated. If you need new codes, you can regenerate them below.</p>
+					<p><strong>Warning:</strong> Regenerating codes will invalidate any previously generated codes.</p>
 				</div>
 			</div>
 		{/if}
@@ -314,13 +306,31 @@
 		{/if}
 
 		<div class="goo__modal-footer">
-			<button
-				onclick={handleClose}
-				class="goo__modal-button primary"
-				disabled={isNewEnrollment && !confirmChecked}
-			>
-				{isNewEnrollment ? 'Done' : 'Close'}
-			</button>
+			{#if !codes || codes.length === 0}
+				<button
+					onclick={() => showRegenerateConfirm = true}
+					class="goo__modal-button primary"
+				>
+					<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+						<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+					</svg>
+					Regenerate Backup Codes
+				</button>
+				<button
+					onclick={handleClose}
+					class="goo__modal-button secondary"
+				>
+					Close
+				</button>
+			{:else}
+				<button
+					onclick={handleClose}
+					class="goo__modal-button primary"
+					disabled={isNewEnrollment && !confirmChecked}
+				>
+					{isNewEnrollment ? 'Done' : 'Close'}
+				</button>
+			{/if}
 		</div>
 	</div>
 </div>
@@ -457,6 +467,12 @@
 			background-color: var(--success-bg);
 			border-left-color: var(--success-border);
 			color: var(--success-text);
+		}
+
+		&.warning {
+			background-color: var(--warning-bg);
+			border-left-color: var(--warning-border);
+			color: var(--warning-text);
 		}
 
 		svg {
@@ -600,18 +616,26 @@
 
 	.goo__modal-footer {
 		display: flex;
+		gap: $spacing-medium;
 		justify-content: flex-end;
 		padding-top: $spacing-medium;
 		border-top: 1px solid var(--color-border);
 	}
 
 	.goo__modal-button {
+		display: inline-flex;
+		align-items: center;
+		gap: $spacing-small;
 		padding: $spacing-small $spacing-large;
 		border-radius: $border-radius-medium;
 		font-weight: 500;
 		cursor: pointer;
 		transition: all 0.2s ease;
 		border: none;
+
+		svg {
+			flex-shrink: 0;
+		}
 
 		&.primary {
 			background-color: var(--accent-primary);
