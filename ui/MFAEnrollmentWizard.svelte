@@ -285,24 +285,14 @@
 
 		<div class="goo__mfa-apps">
 			{#each authenticatorApps as app}
-				<button
-					type="button"
-					class="goo__mfa-app-card"
-					onclick={() => {
-						if (password) {
-							nextStep()
-						} else {
-							error = 'Please enter your password first'
-						}
-					}}
-				>
+				<div class="goo__mfa-app-card">
 					{#if app.icon === 'smartphone'}
 						<Smartphone size={32} />
 					{:else}
 						<Shield size={32} />
 					{/if}
 					<span>{app.name}</span>
-				</button>
+				</div>
 			{/each}
 		</div>
 
@@ -657,25 +647,8 @@
 	border: 1px solid var(--color-border, #d2d2d7);
 	border-radius: 12px;
 	background: var(--bg-primary, #ffffff);
-	transition: all 0.2s ease;
 	color: var(--text-primary);
-	cursor: pointer;
 	width: 100%;
-
-	&:hover:not(:disabled) {
-	border-color: var(--accent-primary, #06c);
-	box-shadow: var(--shadow-md, 0 4px 12px rgba(0, 0, 0, 0.08));
-	transform: translateY(-2px);
-	}
-
-	&:active:not(:disabled) {
-	transform: translateY(0);
-	}
-
-	&:disabled {
-	opacity: 0.6;
-	cursor: not-allowed;
-	}
 
 	:global(svg) {
 	stroke: var(--accent-primary, #06c);
