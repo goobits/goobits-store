@@ -2,6 +2,7 @@
 	import { onMount } from 'svelte'
 	import MFAGracePeriodBanner from './MFAGracePeriodBanner.svelte'
 	import { fetchMFAStatus, shouldShowGracePeriodBanner } from './mfaStatus.js'
+	import { getPublishableKey } from '@goobits/config/urls'
 
 	/**
 	 * MFAGracePeriodWrapper - Wrapper that manages MFA status checking
@@ -25,7 +26,7 @@
 	let error = $state(false)
 
 	// Auth state
-	let authState = $state({ token: null })
+	let authState = $state({ customer: null, user: null })
 
 	// Subscribe to auth store
 	$effect(() => {
@@ -48,11 +49,12 @@
 	// Load MFA status when component mounts or auth changes
 	// Only fetch when we have customer data (confirmed authentication)
 	$effect(() => {
-		if (authState.customer && authState.token && backendUrl) {
+		const isAuthenticated = authState.customer || authState.user
+		if (isAuthenticated && backendUrl) {
 			loadMFAStatus()
 		} else {
 			// Reset MFA status if user logs out
-			if (!authState.customer) {
+			if (!isAuthenticated) {
 				mfaStatus = null
 				loading = false
 			}
@@ -64,7 +66,7 @@
 		error = false
 
 		try {
-			const status = await fetchMFAStatus(backendUrl, authState.token)
+			const status = await fetchMFAStatus(backendUrl, getPublishableKey())
 			mfaStatus = status
 		} catch (err) {
 			console.error('Error loading MFA status:', err)

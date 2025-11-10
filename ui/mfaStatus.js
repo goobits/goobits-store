@@ -11,16 +11,16 @@
 /**
  * Fetch MFA status from the API
  * @param {string} backendUrl - Medusa backend URL
- * @param {string} token - Auth token
+ * @param {string} publishableKey - Medusa publishable API key
  * @returns {Promise<Object>} MFA status object
  */
-export async function fetchMFAStatus(backendUrl, token) {
+export async function fetchMFAStatus(backendUrl, publishableKey) {
 	try {
 		const response = await fetch(`${ backendUrl }/store/auth/mfa/status`, {
 			method: 'GET',
 			headers: {
 				'Content-Type': 'application/json',
-				'Authorization': `Bearer ${ token }`
+				'x-publishable-api-key': publishableKey
 			},
 			credentials: 'include'
 		})
@@ -139,11 +139,11 @@ export function createMFAStatusStore() {
 		}
 	}
 
-	async function load(backendUrl, token) {
+	async function load(backendUrl, publishableKey) {
 		set({ loading: true, error: false })
 
 		try {
-			const mfaStatus = await fetchMFAStatus(backendUrl, token)
+			const mfaStatus = await fetchMFAStatus(backendUrl, publishableKey)
 			set({
 				...mfaStatus,
 				loading: false,

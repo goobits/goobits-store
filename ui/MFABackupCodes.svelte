@@ -27,7 +27,7 @@
 	let loading = $state(false)
 	let error = $state(null)
 	let codes = $state(backupCodes)
-	let verificationCode = $state('')
+	let password = $state('')
 	let showRegenerateConfirm = $state(false)
 	let isRegenerating = $state(false)
 	let copiedIndex = $state(null)
@@ -128,7 +128,7 @@
 
 	// Regenerate backup codes
 	async function handleRegenerate() {
-		if (!verificationCode) {
+		if (!password) {
 			return
 		}
 
@@ -137,20 +137,21 @@
 
 		try {
 			const authState = auth ? get(auth) : null
-			const customer = authState?.customer
+			const customer = authState?.customer || authState?.user
 
 			if (!customer) {
 				throw new Error('Not authenticated')
 			}
 
-			const response = await fetch(`${ backendUrl }/store/auth/mfa/backup-codes/regenerate`, {
+			const response = await fetch(`${ backendUrl }/store/auth/mfa/backup-codes`, {
 				method: 'POST',
 				headers: {
-					'Content-Type': 'application/json'
+					'Content-Type': 'application/json',
+					'x-publishable-api-key': publishableKey
 				},
 				credentials: 'include',
 				body: JSON.stringify({
-					verificationCode
+					password
 				})
 			})
 
@@ -164,7 +165,7 @@
 
 			// Close regenerate confirm modal
 			showRegenerateConfirm = false
-			verificationCode = ''
+			password = ''
 			confirmChecked = false
 
 			// Call callback
@@ -342,19 +343,17 @@
 
 	<form onsubmit={(e) => { e.preventDefault(); handleRegenerate(); }}>
 		<div class="goo__form-group">
-			<label for="regenerate-code">
-				Enter your current MFA code to confirm:
+			<label for="regenerate-password">
+				Enter your password to confirm:
 			</label>
 			<input
-				type="text"
-				id="regenerate-code"
-				bind:value={verificationCode}
-				placeholder="000000"
-				pattern="[0-9]{6}"
-				maxlength="6"
+				type="password"
+				id="regenerate-password"
+				bind:value={password}
+				placeholder="Enter your password"
 				required
 				disabled={isRegenerating}
-				autocomplete="off"
+				autocomplete="current-password"
 			/>
 		</div>
 
@@ -376,7 +375,7 @@
 			<button
 				type="submit"
 				class="goo__modal-button warning"
-				disabled={isRegenerating || !verificationCode}
+				disabled={isRegenerating || !password}
 			>
 				{isRegenerating ? 'Regenerating...' : 'Regenerate Codes'}
 			</button>
@@ -690,10 +689,6 @@
 			font-size: 1rem;
 			background-color: var(--bg-primary);
 			color: var(--text-primary);
-			text-align: center;
-			font-family: 'Courier New', monospace;
-			font-size: 1.5rem;
-			letter-spacing: 0.5em;
 
 			&:focus {
 				outline: none;

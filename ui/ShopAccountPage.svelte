@@ -221,20 +221,33 @@
 
 			<section class="goo__account-section">
 				<h2>Order History</h2>
-				<p class="goo__empty-state">
-					You haven't placed any orders yet.
-					<a href="/shop">Start shopping</a> to see your order history here.
-				</p>
+				<div class="goo__empty-state">
+					<svg class="goo__empty-icon" width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+						<path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></path>
+						<line x1="3" y1="6" x2="21" y2="6"></line>
+						<path d="M16 10a4 4 0 0 1-8 0"></path>
+					</svg>
+					<h3 class="goo__empty-title">No orders yet</h3>
+					<p class="goo__empty-description">Start your shopping journey and your orders will appear here.</p>
+					<a href="/shop" class="goo__empty-action">Browse Products</a>
+				</div>
 			</section>
 
-			<section class="goo__account-section">
+			<section class="goo__account-section goo__account-actions">
 				<h2>Account Actions</h2>
-				<button
-					onclick={handleLogout}
-					class="goo__logout-button"
-				>
-					Sign Out
-				</button>
+				<div class="goo__actions-grid">
+					<button
+						onclick={handleLogout}
+						class="goo__action-button goo__action-button--danger"
+					>
+						<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+							<path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+							<polyline points="16 17 21 12 16 7"></polyline>
+							<line x1="21" y1="12" x2="9" y2="12"></line>
+						</svg>
+						<span>Sign Out</span>
+					</button>
+				</div>
 			</section>
 		</div>
 	</div>
@@ -436,33 +449,106 @@
 	}
 
 	.goo__empty-state {
-		color: var(--text-secondary);
+		display: flex;
+		flex-direction: column;
+		align-items: center;
 		text-align: center;
-		padding: $spacing-xlarge;
+		padding: $spacing-xlarge * 2;
+		background: linear-gradient(135deg, var(--bg-secondary) 0%, var(--bg-primary) 100%);
+		border-radius: $border-radius-large;
+		border: 1px solid var(--color-border);
+		gap: $spacing-medium;
+	}
 
-		a {
-			color: var(--accent-primary);
-			text-decoration: none;
-			font-weight: 500;
+	.goo__empty-icon {
+		color: var(--accent-primary);
+		opacity: 0.6;
+		margin-bottom: $spacing-small;
+	}
 
-			&:hover {
-				text-decoration: underline;
-			}
+	.goo__empty-title {
+		color: var(--text-primary);
+		font-size: 1.25rem;
+		font-weight: 600;
+		margin: 0;
+	}
+
+	.goo__empty-description {
+		color: var(--text-secondary);
+		font-size: 0.95rem;
+		margin: 0;
+		max-width: 400px;
+		line-height: 1.5;
+	}
+
+	.goo__empty-action {
+		display: inline-flex;
+		align-items: center;
+		padding: $spacing-small $spacing-large;
+		margin-top: $spacing-small;
+		background-color: var(--accent-primary);
+		color: var(--color-text-on-primary);
+		text-decoration: none;
+		font-weight: 600;
+		border-radius: $border-radius-medium;
+		transition: all 0.2s ease;
+		box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+
+		&:hover {
+			background-color: var(--accent-light);
+			transform: translateY(-1px);
+			box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+		}
+
+		&:active {
+			transform: translateY(0);
 		}
 	}
 
-	.goo__logout-button {
+	.goo__account-actions {
+		h2 {
+			margin-bottom: $spacing-large;
+		}
+	}
+
+	.goo__actions-grid {
+		display: grid;
+		grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+		gap: $spacing-medium;
+	}
+
+	.goo__action-button {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		gap: $spacing-small;
 		padding: $spacing-medium $spacing-large;
-		background-color: var(--color-surface);
-		color: var(--error-text);
-		border: 1px solid var(--error-text);
 		border-radius: $border-radius-medium;
-		font-weight: 500;
+		font-weight: 600;
+		font-size: 0.95rem;
 		cursor: pointer;
 		transition: all 0.2s ease;
+		border: 1px solid transparent;
 
-		&:hover {
-			background-color: var(--error-bg);
+		svg {
+			flex-shrink: 0;
+		}
+
+		&--danger {
+			background-color: transparent;
+			color: var(--error-text);
+			border-color: var(--error-border);
+
+			&:hover {
+				background-color: var(--error-bg);
+				border-color: var(--error-text);
+				transform: translateY(-1px);
+				box-shadow: 0 2px 8px rgba(220, 38, 38, 0.15);
+			}
+
+			&:active {
+				transform: translateY(0);
+			}
 		}
 	}
 

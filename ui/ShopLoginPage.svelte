@@ -6,6 +6,7 @@
 	import MFABackupCodeInput from './MFABackupCodeInput.svelte'
 	import FormErrors from '@goobits/forms/ui/FormErrors.svelte'
 	import Button from '@goobits/forms/ui/modals/Button.svelte'
+	import { getPublishableKey } from '@goobits/config/urls'
 
 	/**
 	 * ShopLoginPage - Generic authentication page
@@ -106,35 +107,31 @@
 			const response = await fetch('/store/auth/mfa/verify', {
 				method: 'POST',
 				headers: {
-					'Content-Type': 'application/json'
+					'Content-Type': 'application/json',
+					'x-publishable-api-key': getPublishableKey()
 				},
+				credentials: 'include', // Important for session cookies
 				body: JSON.stringify({
-					userId: mfaUserId,
-					token: code,
-					rememberDevice
+					code,
+					trustDevice: rememberDevice
 				})
 			})
 
 			const data = await response.json()
 
 			if (!response.ok) {
-				mfaError = data.message || 'Verification failed'
+				mfaError = data.error || 'Verification failed'
 				mfaLoading = false
 				return
 			}
 
-			// MFA verified, complete the login
-			if (auth && auth.completeMFALogin) {
-				const result = await auth.completeMFALogin(mfaUserId)
-				if (result.success) {
-					goto(returnUrl)
-				} else {
-					mfaError = result.error || 'Login failed'
-				}
-			} else {
-				// Fallback: just navigate
-				goto(returnUrl)
+			// MFA verified successfully, update auth state
+			if (auth && auth.checkSession) {
+				await auth.checkSession()
 			}
+
+			// Navigate to the return URL
+			goto(returnUrl)
 		} catch (error) {
 			mfaError = error.message || 'Verification failed'
 		} finally {
@@ -150,34 +147,28 @@
 			const response = await fetch('/store/auth/mfa/verify-backup-code', {
 				method: 'POST',
 				headers: {
-					'Content-Type': 'application/json'
+					'Content-Type': 'application/json',
+					'x-publishable-api-key': getPublishableKey()
 				},
-				body: JSON.stringify({
-					userId: mfaUserId,
-					code
-				})
+				credentials: 'include', // Important for session cookies
+				body: JSON.stringify({ code })
 			})
 
 			const data = await response.json()
 
 			if (!response.ok) {
-				mfaError = data.message || 'Verification failed'
+				mfaError = data.error || 'Verification failed'
 				mfaLoading = false
 				return
 			}
 
-			// Backup code verified, complete the login
-			if (auth && auth.completeMFALogin) {
-				const result = await auth.completeMFALogin(mfaUserId)
-				if (result.success) {
-					goto(returnUrl)
-				} else {
-					mfaError = result.error || 'Login failed'
-				}
-			} else {
-				// Fallback: just navigate
-				goto(returnUrl)
+			// Backup code verified successfully, update auth state
+			if (auth && auth.checkSession) {
+				await auth.checkSession()
 			}
+
+			// Navigate to the return URL
+			goto(returnUrl)
 		} catch (error) {
 			mfaError = error.message || 'Verification failed'
 		} finally {

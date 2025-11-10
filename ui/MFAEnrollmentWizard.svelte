@@ -2,7 +2,7 @@
 	import { Check, ChevronLeft, Download, Copy, CheckCircle2, Smartphone, QrCode, Shield } from '@lucide/svelte'
 	import { browser } from '$app/environment'
 	import QRCodeLib from 'qrcode'
-	import { getBackendUrl } from '@goobits/config/urls'
+	import { getBackendUrl, getPublishableKey } from '@goobits/config/urls'
 
 	/**
 	 * MFAEnrollmentWizard - Multi-step wizard for MFA enrollment
@@ -31,6 +31,7 @@
 	let secretKey = $state('')
 	let totpUri = $state('')
 	let verificationCode = $state('')
+	let password = $state('')
 	let backupCodes = $state([])
 	let backupCodesSaved = $state(false)
 
@@ -47,7 +48,7 @@
 
 	// Initialize MFA enrollment
 	async function initializeEnrollment() {
-		if (currentStep !== 2) return
+		if (currentStep !== 2 || !password) return
 
 		loading = true
 		error = null
@@ -56,20 +57,23 @@
 			const response = await fetch(`${ backendUrl }/store/auth/mfa/enroll/initialize`, {
 				method: 'POST',
 				headers: {
-					'Content-Type': 'application/json'
+					'Content-Type': 'application/json',
+					'x-publishable-api-key': getPublishableKey()
 				},
-				credentials: 'include'
+				credentials: 'include',
+				body: JSON.stringify({ password })
 			})
 
 			const data = await response.json()
 
 			if (!response.ok) {
-				throw new Error(data.message || 'Failed to initialize MFA enrollment')
+				throw new Error(data.error || data.message || 'Failed to initialize MFA enrollment')
 			}
 
 			// Store enrollment data
 			secretKey = data.mfa.secret
 			totpUri = data.mfa.uri
+			backupCodes = data.backupCodes || []
 
 			// Generate QR code
 			if (browser) {
@@ -103,7 +107,8 @@
 			const response = await fetch(`${ backendUrl }/store/auth/mfa/enroll/complete`, {
 				method: 'POST',
 				headers: {
-					'Content-Type': 'application/json'
+					'Content-Type': 'application/json',
+					'x-publishable-api-key': getPublishableKey()
 				},
 				credentials: 'include',
 				body: JSON.stringify({ code: verificationCode })
@@ -112,13 +117,11 @@
 			const data = await response.json()
 
 			if (!response.ok) {
-				throw new Error(data.message || 'Invalid verification code')
+				throw new Error(data.error || data.message || 'Invalid verification code')
 			}
 
-			// Store backup codes
-			backupCodes = data.backupCodes || []
-
-			// Move to final step
+			// Backup codes were already retrieved in initialize step
+			// Move to final step to display them
 			currentStep = 4
 		} catch (err) {
 			error = err.message
@@ -167,6 +170,10 @@
 	// Navigate steps
 	function nextStep() {
 		if (currentStep === 1) {
+			if (!password) {
+				error = 'Please enter your password to continue'
+				return
+			}
 			currentStep = 2
 			// Initialize enrollment when moving to QR code step
 			initializeEnrollment()
@@ -175,7 +182,7 @@
 		} else if (currentStep === 3) {
 			completeEnrollment()
 		} else if (currentStep === 4 && backupCodesSaved) {
-			onComplete?.()
+			onComplete?.(backupCodes)
 		}
 	}
 
@@ -289,6 +296,20 @@
 						<p class="goo__mfa-help-text">
 							Download one from your app store. We recommend Google Authenticator or Authy.
 						</p>
+					</div>
+
+					<div class="goo__mfa-password-section">
+						<label for="mfa-password">
+							Enter your password to continue
+						</label>
+						<input
+							type="password"
+							id="mfa-password"
+							bind:value={password}
+							placeholder="Enter your password"
+							autocomplete="current-password"
+							required
+						/>
 					</div>
 				</div>
 			{/if}
@@ -442,7 +463,7 @@
 					type="button"
 					class="goo__mfa-nav-btn goo__mfa-nav-btn--primary"
 					onclick={nextStep}
-					disabled={loading || (currentStep === 2 && !qrCodeUrl)}
+					disabled={loading || (currentStep === 1 && !password) || (currentStep === 2 && !qrCodeUrl)}
 				>
 					{currentStep === 1 ? 'Continue' : 'I\'ve Scanned It'}
 				</button>
@@ -658,6 +679,36 @@
 		.goo__mfa-help-text {
 			font-weight: 400;
 			font-size: $font-size-small;
+		}
+	}
+
+	.goo__mfa-password-section {
+		width: 100%;
+		max-width: 400px;
+		margin-top: $spacing-large;
+
+		label {
+			display: block;
+			margin-bottom: $spacing-small;
+			font-weight: 500;
+			color: var(--text-secondary);
+			font-size: $font-size-small;
+		}
+
+		input {
+			width: 100%;
+			padding: $spacing-medium;
+			border: 1px solid var(--color-border);
+			border-radius: $border-radius-medium;
+			font-size: $font-size-base;
+			background-color: var(--bg-primary);
+			color: var(--text-primary);
+
+			&:focus {
+				outline: none;
+				border-color: var(--accent-primary);
+				box-shadow: 0 0 0 3px var(--accent-shadow);
+			}
 		}
 	}
 

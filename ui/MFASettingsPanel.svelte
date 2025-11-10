@@ -41,7 +41,7 @@
 
 		try {
 			const authState = auth ? get(auth) : null
-			const customer = authState?.customer
+			const customer = authState?.customer || authState?.user
 
 			if (!customer) {
 				throw new Error('Not authenticated')
@@ -50,7 +50,8 @@
 			const response = await fetch(`${ backendUrl }/store/auth/mfa/status`, {
 				method: 'GET',
 				headers: {
-					'Content-Type': 'application/json'
+					'Content-Type': 'application/json',
+					'x-publishable-api-key': publishableKey
 				},
 				credentials: 'include'
 			})
@@ -60,10 +61,12 @@
 			}
 
 			const data = await response.json()
-			mfaStatus = data.status
+			mfaStatus = data.status || { enabled: false, inGracePeriod: false }
 		} catch (err) {
+			console.error('MFA status fetch error:', err)
 			error = err.message
-			mfaStatus = null
+			// Set a default status so UI still renders
+			mfaStatus = { enabled: false, inGracePeriod: false }
 		} finally {
 			loading = false
 		}
@@ -111,7 +114,8 @@
 			const response = await fetch(`${ backendUrl }/store/auth/mfa/disable`, {
 				method: 'POST',
 				headers: {
-					'Content-Type': 'application/json'
+					'Content-Type': 'application/json',
+					'x-publishable-api-key': publishableKey
 				},
 				credentials: 'include',
 				body: JSON.stringify({
@@ -158,16 +162,17 @@
 </script>
 
 <div class="goo__mfa-settings">
-	<!-- Alert component removed - not imported
-	<Alert
-		isVisible={!!error && !loading}
-		onClose={() => error = null}
-		variant="danger"
-		title="Error Loading MFA Settings"
-		message={error || ''}
-		size="sm"
-	/>
-	-->
+	{#if error && !loading}
+		<div class="goo__error-banner" role="alert">
+			<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+				<circle cx="12" cy="12" r="10"></circle>
+				<line x1="12" y1="8" x2="12" y2="12"></line>
+				<line x1="12" y1="16" x2="12.01" y2="16"></line>
+			</svg>
+			<span>{error}</span>
+			<button onclick={() => error = null} class="goo__error-close" aria-label="Close">×</button>
+		</div>
+	{/if}
 
 	{#if loading}
 		<div class="goo__loading">
@@ -352,6 +357,43 @@
 
 	.goo__mfa-settings {
 		width: 100%;
+	}
+
+	.goo__error-banner {
+		display: flex;
+		align-items: center;
+		gap: $spacing-medium;
+		padding: $spacing-medium;
+		margin-bottom: $spacing-medium;
+		background-color: var(--error-bg);
+		color: var(--error-text);
+		border: 1px solid var(--error-border);
+		border-radius: $border-radius-medium;
+		font-size: 0.9rem;
+
+		svg {
+			flex-shrink: 0;
+		}
+
+		span {
+			flex: 1;
+		}
+	}
+
+	.goo__error-close {
+		background: none;
+		border: none;
+		color: var(--error-text);
+		font-size: 1.5rem;
+		line-height: 1;
+		cursor: pointer;
+		padding: 0 $spacing-small;
+		opacity: 0.7;
+		transition: opacity 0.2s ease;
+
+		&:hover {
+			opacity: 1;
+		}
 	}
 
 	.goo__mfa-disabled-notice {
