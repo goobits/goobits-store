@@ -77,12 +77,19 @@
 
 			// Generate QR code
 			if (browser) {
+				// Detect if dark mode is active
+				const isDarkMode = window.matchMedia('(prefers-color-scheme: dark)').matches ||
+					document.documentElement.getAttribute('data-theme') === 'dark' ||
+					document.documentElement.classList.contains('dark')
+
 				qrCodeUrl = await QRCodeLib.toDataURL(totpUri, {
 					width: 300,
 					margin: 2,
 					color: {
-						dark: '#000000',
-						light: '#ffffff'
+						// In dark mode: use light foreground on dark background
+						// In light mode: use dark foreground on light background
+						dark: isDarkMode ? '#ffffff' : '#000000',
+						light: isDarkMode ? '#1a1a1a' : '#ffffff'
 					}
 				})
 			}
@@ -280,14 +287,24 @@
 
 					<div class="goo__mfa-apps">
 						{#each authenticatorApps as app}
-							<div class="goo__mfa-app-card">
+							<button
+								type="button"
+								class="goo__mfa-app-card"
+								onclick={() => {
+									if (password) {
+										nextStep()
+									} else {
+										error = 'Please enter your password first'
+									}
+								}}
+							>
 								{#if app.icon === 'smartphone'}
 									<Smartphone size={32} />
 								{:else}
 									<Shield size={32} />
 								{/if}
 								<span>{app.name}</span>
-							</div>
+							</button>
 						{/each}
 					</div>
 
@@ -647,11 +664,22 @@
 		background: var(--bg-primary);
 		transition: all $transition-base;
 		color: var(--text-primary);
+		cursor: pointer;
+		width: 100%;
 
-		&:hover {
+		&:hover:not(:disabled) {
 			border-color: var(--accent-primary);
 			transform: translateY(-2px);
 			box-shadow: var(--shadow-md);
+		}
+
+		&:active:not(:disabled) {
+			transform: translateY(0);
+		}
+
+		&:disabled {
+			opacity: 0.6;
+			cursor: not-allowed;
 		}
 
 		span {
@@ -714,7 +742,7 @@
 
 	// Step 2: QR Code
 	.goo__mfa-qr-container {
-		background: white;
+		background: var(--color-surface, var(--bg-primary, #ffffff));
 		padding: $spacing-large;
 		border-radius: $border-radius-medium;
 		margin-bottom: $spacing-medium;
