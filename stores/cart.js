@@ -66,6 +66,22 @@ if (browser) {
 	cart.subscribe(value => {
 		persistCart(value)
 	})
+
+	// Listen for storage events from other tabs/windows or synthetic events from tests
+	window.addEventListener('storage', (event) => {
+		if (event.key === 'cart' && event.newValue !== null) {
+			try {
+				const newCart = JSON.parse(event.newValue)
+				// Update the store without triggering another persist cycle
+				cart.set(newCart)
+			} catch (e) {
+				logger.error('Error parsing cart from storage event:', e)
+			}
+		} else if (event.key === 'cart' && event.newValue === null) {
+			// Cart was cleared
+			cart.set([])
+		}
+	})
 }
 
 /**
@@ -78,13 +94,13 @@ if (browser) {
  * @returns {void}
  */
 export function addToCart(product) {
-	let updatedCart
 	cart.update(items => {
 		// Use variant_id if available, otherwise use product id
 		const productId = product.variant_id || product.id
 
 		const existingItem = items.find(item => (item.variant_id || item.id) === productId)
 
+		let updatedCart
 		if (existingItem) {
 			// Update quantity of existing cart item
 			updatedCart = items.map(item =>
@@ -99,13 +115,11 @@ export function addToCart(product) {
 			// Add as new cart item
 			updatedCart = [ ...items, newProduct ]
 		}
+
+		// Persist synchronously BEFORE returning (fixes race condition)
+		persistCart(updatedCart)
 		return updatedCart
 	})
-
-	// Immediately persist to ensure cart is saved before any navigation/reload
-	if (updatedCart) {
-		persistCart(updatedCart)
-	}
 }
 
 /**
@@ -115,16 +129,12 @@ export function addToCart(product) {
  * @returns {void}
  */
 export function removeFromCart(productId) {
-	let updatedCart
 	cart.update(items => {
-		updatedCart = items.filter(item => (item.variant_id || item.id) !== productId)
+		const updatedCart = items.filter(item => (item.variant_id || item.id) !== productId)
+		// Persist synchronously BEFORE returning (fixes race condition)
+		persistCart(updatedCart)
 		return updatedCart
 	})
-
-	// Immediately persist to ensure cart is saved before any navigation/reload
-	if (updatedCart) {
-		persistCart(updatedCart)
-	}
 }
 
 /**
@@ -141,20 +151,16 @@ export function updateQuantity(productId, quantity) {
 		return
 	}
 
-	let updatedCart
 	cart.update(items => {
-		updatedCart = items.map(item =>
+		const updatedCart = items.map(item =>
 			(item.variant_id || item.id) === productId
 				? { ...item, quantity }
 				: item
 		)
+		// Persist synchronously BEFORE returning (fixes race condition)
+		persistCart(updatedCart)
 		return updatedCart
 	})
-
-	// Immediately persist to ensure cart is saved before any navigation/reload
-	if (updatedCart) {
-		persistCart(updatedCart)
-	}
 }
 
 /**
