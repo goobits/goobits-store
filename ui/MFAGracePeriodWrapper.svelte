@@ -3,6 +3,9 @@
 	import MFAGracePeriodBanner from './MFAGracePeriodBanner.svelte'
 	import { fetchMFAStatus, shouldShowGracePeriodBanner } from './mfaStatus.js'
 	import { getPublishableKey } from '@goobits/config/urls'
+	import { createLogger } from '../utils/logger.js'
+
+	const logger = createLogger('MFAGracePeriodWrapper')
 
 	/**
 	 * MFAGracePeriodWrapper - Wrapper that manages MFA status checking
@@ -71,7 +74,7 @@
 			const status = await fetchMFAStatus(backendUrl, getPublishableKey())
 			mfaStatus = status
 		} catch (err) {
-			console.error('Error loading MFA status:', err)
+			logger.error('Error loading MFA status:', err)
 			error = true
 		} finally {
 			loading = false

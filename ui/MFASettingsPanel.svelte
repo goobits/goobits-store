@@ -6,6 +6,9 @@
 	import MFABackupCodes from './MFABackupCodes.svelte'
 	import MFAEnrollmentWizard from './MFAEnrollmentWizard.svelte'
 	import { getBackendUrl, getPublishableKey } from '@goobits/config/urls'
+	import { createLogger } from '../utils/logger.js'
+
+	const logger = createLogger('MFASettingsPanel')
 
 	/**
 	 * MFASettingsPanel - MFA Settings and Management
@@ -68,11 +71,11 @@
 			const data = await response.json()
 			mfaStatus = data.status || { enabled: false, inGracePeriod: false }
 		} catch (err) {
-			console.error('MFA status fetch error:', err)
+			logger.error('MFA status fetch error:', err)
 			error = err.message
 			// Set a default status so UI still renders
 			mfaStatus = { enabled: false, inGracePeriod: false }
-		} finally {
+		} finally{
 			loading = false
 		}
 	}

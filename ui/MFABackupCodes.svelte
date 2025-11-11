@@ -2,6 +2,9 @@
 	import { get } from 'svelte/store'
 	import Modal from '@goobits/forms/ui/modals/Modal.svelte'
 	import { getBackendUrl, getPublishableKey } from '@goobits/config/urls'
+	import { createLogger } from '../utils/logger.js'
+
+	const logger = createLogger('MFABackupCodes')
 
 	/**
 	 * MFABackupCodes - Display and manage MFA backup codes
@@ -53,7 +56,7 @@
 				copiedIndex = null
 			}, 2000)
 		} catch (err) {
-			console.error('Failed to copy code:', err)
+			logger.error('Failed to copy code:', err)
 		}
 	}
 
@@ -69,7 +72,7 @@
 				copiedAll = false
 			}, 2000)
 		} catch (err) {
-			console.error('Failed to copy codes:', err)
+			logger.error('Failed to copy codes:', err)
 		}
 	}
 

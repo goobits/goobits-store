@@ -8,6 +8,10 @@
  * @version 1.0.0
  */
 
+import { createLogger } from '../utils/logger.js'
+
+const logger = createLogger('MFAStatus')
+
 /**
  * Fetch MFA status from the API
  * @param {string} backendUrl - Medusa backend URL
@@ -55,7 +59,7 @@ export async function fetchMFAStatus(backendUrl, publishableKey) {
 	} catch (error) {
 		// Only log unexpected errors (not auth-related)
 		if (!error.message.includes('401') && !error.message.includes('500')) {
-			console.error('Error fetching MFA status:', error)
+			logger.error('Error fetching MFA status:', error)
 		}
 		return {
 			required: false,
@@ -154,7 +158,7 @@ export function createMFAStatusStore() {
 				error: false
 			})
 		} catch (error) {
-			console.error('Error loading MFA status:', error)
+			logger.error('Error loading MFA status:', error)
 			set({
 				loading: false,
 				error: true
@@ -190,7 +194,7 @@ export function isBannerDismissed(daysRemaining) {
 			}
 		}
 	} catch (error) {
-		console.error('Error checking banner dismissal:', error)
+		logger.error('Error checking banner dismissal:', error)
 	}
 
 	return false
@@ -209,7 +213,7 @@ export function dismissBanner(daysRemaining) {
 		expiryDate.setHours(expiryDate.getHours() + 24)
 		localStorage.setItem(dismissalKey, expiryDate.toISOString())
 	} catch (error) {
-		console.error('Error dismissing banner:', error)
+		logger.error('Error dismissing banner:', error)
 	}
 }
 

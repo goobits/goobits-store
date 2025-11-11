@@ -3,6 +3,9 @@
 	import { browser } from '$app/environment'
 	import QRCodeLib from 'qrcode'
 	import { getBackendUrl, getPublishableKey } from '@goobits/config/urls'
+	import { createLogger } from '../utils/logger.js'
+
+	const logger = createLogger('MFAEnrollmentWizard')
 
 	/**
 	 * MFAEnrollmentWizard - Multi-step wizard for MFA enrollment
@@ -165,7 +168,7 @@
 	await navigator.clipboard.writeText(content)
 	// Show success feedback (could add a toast here)
 	} catch (err) {
-	console.error('Failed to copy codes:', err)
+	logger.error('Failed to copy codes:', err)
 	}
 	}
 
@@ -174,7 +177,7 @@
 	try {
 	await navigator.clipboard.writeText(secretKey)
 	} catch (err) {
-	console.error('Failed to copy secret key:', err)
+	logger.error('Failed to copy secret key:', err)
 	}
 	}
 
