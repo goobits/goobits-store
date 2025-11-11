@@ -40,6 +40,22 @@ function getStoredCart() {
 }
 
 /**
+ * Helper function to persist cart to storage synchronously
+ * @param {Array} cartItems - Cart items to persist
+ */
+function persistCart(cartItems) {
+	if (!browser) return
+
+	try {
+		const cartJson = JSON.stringify(cartItems)
+		sessionStorage.setItem('cart', cartJson)
+		localStorage.setItem('cart', cartJson)
+	} catch (e) {
+		logger.error('Error saving cart to storage:', e)
+	}
+}
+
+/**
  * Cart store containing all cart items
  * @type {import('svelte/store').Writable<Array>}
  */
@@ -48,13 +64,7 @@ export const cart = writable(getStoredCart())
 // Persist cart state to browser storage when changes occur
 if (browser) {
 	cart.subscribe(value => {
-		try {
-			const cartJson = JSON.stringify(value)
-			sessionStorage.setItem('cart', cartJson)
-			localStorage.setItem('cart', cartJson)
-		} catch (e) {
-			logger.error('Error saving cart to storage:', e)
-		}
+		persistCart(value)
 	})
 }
 
@@ -68,6 +78,7 @@ if (browser) {
  * @returns {void}
  */
 export function addToCart(product) {
+	let updatedCart
 	cart.update(items => {
 		// Use variant_id if available, otherwise use product id
 		const productId = product.variant_id || product.id
@@ -76,7 +87,7 @@ export function addToCart(product) {
 
 		if (existingItem) {
 			// Update quantity of existing cart item
-			return items.map(item =>
+			updatedCart = items.map(item =>
 				(item.variant_id || item.id) === productId
 					? { ...item, quantity: item.quantity + (product.quantity || 1) }
 					: item
@@ -86,9 +97,15 @@ export function addToCart(product) {
 			if (!newProduct.quantity) newProduct.quantity = 1
 
 			// Add as new cart item
-			return [ ...items, newProduct ]
+			updatedCart = [ ...items, newProduct ]
 		}
+		return updatedCart
 	})
+
+	// Immediately persist to ensure cart is saved before any navigation/reload
+	if (updatedCart) {
+		persistCart(updatedCart)
+	}
 }
 
 /**
@@ -98,7 +115,16 @@ export function addToCart(product) {
  * @returns {void}
  */
 export function removeFromCart(productId) {
-	cart.update(items => items.filter(item => (item.variant_id || item.id) !== productId))
+	let updatedCart
+	cart.update(items => {
+		updatedCart = items.filter(item => (item.variant_id || item.id) !== productId)
+		return updatedCart
+	})
+
+	// Immediately persist to ensure cart is saved before any navigation/reload
+	if (updatedCart) {
+		persistCart(updatedCart)
+	}
 }
 
 /**
@@ -115,13 +141,20 @@ export function updateQuantity(productId, quantity) {
 		return
 	}
 
-	cart.update(items =>
-		items.map(item =>
+	let updatedCart
+	cart.update(items => {
+		updatedCart = items.map(item =>
 			(item.variant_id || item.id) === productId
 				? { ...item, quantity }
 				: item
 		)
-	)
+		return updatedCart
+	})
+
+	// Immediately persist to ensure cart is saved before any navigation/reload
+	if (updatedCart) {
+		persistCart(updatedCart)
+	}
 }
 
 /**
@@ -131,6 +164,8 @@ export function updateQuantity(productId, quantity) {
  */
 export function clearCart() {
 	cart.set([])
+	// Immediately persist empty cart
+	persistCart([])
 }
 
 /**

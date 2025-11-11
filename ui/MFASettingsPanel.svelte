@@ -4,6 +4,7 @@
 	import Modal from '@goobits/forms/ui/modals/Modal.svelte'
 	import Button from '@goobits/forms/ui/modals/Button.svelte'
 	import MFABackupCodes from './MFABackupCodes.svelte'
+	import MFAEnrollmentWizard from './MFAEnrollmentWizard.svelte'
 	import { getBackendUrl, getPublishableKey } from '@goobits/config/urls'
 
 	/**
@@ -26,9 +27,14 @@
 	let error = $state(null)
 	let showDisableModal = $state(false)
 	let showBackupCodesModal = $state(false)
+	let showEnrollmentWizard = $state(false)
+	let showPasswordPrompt = $state(false)
 	let verificationCode = $state('')
 	let isDisabling = $state(false)
 	let backupCodes = $state(null)
+	let enrollmentPassword = $state('')
+	let passwordError = $state(null)
+	let isVerifyingPassword = $state(false)
 
 	const backendUrl = $derived(getBackendUrl())
 	const publishableKey = $derived(getPublishableKey())
@@ -76,11 +82,75 @@
 		fetchMFAStatus()
 	})
 
-	// Handle enable MFA - navigate to dedicated page
-	function handleEnableMFA() {
-		if (typeof window !== 'undefined') {
-			window.location.href = '/shop/account/mfa-setup'
+	// Handle enable MFA - show password prompt first
+	async function handleEnableMFA() {
+		enrollmentPassword = ''
+		passwordError = null
+		showPasswordPrompt = true
+	}
+
+	// Verify password and proceed to wizard
+	async function verifyPasswordAndProceed() {
+		if (!enrollmentPassword) return
+
+		isVerifyingPassword = true
+		passwordError = null
+
+		try {
+			// Verify password by attempting to initialize MFA
+			const response = await fetch(`${backendUrl}/store/auth/mfa/enroll/initialize`, {
+				method: 'POST',
+				headers: {
+					'Content-Type': 'application/json',
+					'x-publishable-api-key': publishableKey
+				},
+				credentials: 'include',
+				body: JSON.stringify({ password: enrollmentPassword })
+			})
+
+			const data = await response.json()
+
+			if (!response.ok) {
+				throw new Error(data.error || data.message || 'Invalid password')
+			}
+
+			// Password is valid, show wizard
+			showPasswordPrompt = false
+			showEnrollmentWizard = true
+		} catch (err) {
+			passwordError = err.message
+			enrollmentPassword = ''
+		} finally {
+			isVerifyingPassword = false
 		}
+	}
+
+	// Handle enrollment wizard completion
+	async function handleEnrollmentComplete(codes) {
+		showEnrollmentWizard = false
+		backupCodes = codes
+		enrollmentPassword = ''
+
+		// Refresh MFA status
+		await fetchMFAStatus()
+
+		// Call parent callback if provided
+		if (onEnrollComplete) {
+			onEnrollComplete()
+		}
+	}
+
+	// Handle enrollment wizard cancellation
+	function handleEnrollmentCancel() {
+		showEnrollmentWizard = false
+		enrollmentPassword = ''
+	}
+
+	// Handle password prompt cancellation
+	function handlePasswordPromptCancel() {
+		showPasswordPrompt = false
+		enrollmentPassword = ''
+		passwordError = null
 	}
 
 	// Handle disable MFA
@@ -322,6 +392,77 @@
 	/>
 </Modal>
 
+<!-- Password Verification Modal -->
+<Modal
+	isVisible={showPasswordPrompt}
+	onClose={handlePasswordPromptCancel}
+	title="Verify Your Password"
+	size="sm"
+>
+	<div class="goo__password-prompt">
+		<p class="goo__password-prompt-description">
+			Enter your password to continue with setting up two-factor authentication.
+		</p>
+
+		<form onsubmit={(e) => { e.preventDefault(); verifyPasswordAndProceed(); }}>
+			<div class="goo__form-group">
+				<label for="enrollment-password">Password</label>
+				<input
+					type="password"
+					id="enrollment-password"
+					bind:value={enrollmentPassword}
+					placeholder="Enter your password"
+					required
+					disabled={isVerifyingPassword}
+					autocomplete="current-password"
+				/>
+			</div>
+
+			{#if passwordError}
+				<div class="goo__error" role="alert">
+					{passwordError}
+				</div>
+			{/if}
+
+			<div class="goo__modal-actions">
+				<Button
+					type="button"
+					variant="secondary"
+					onclick={handlePasswordPromptCancel}
+					disabled={isVerifyingPassword}
+				>
+					Cancel
+				</Button>
+				<Button
+					type="submit"
+					variant="primary"
+					loading={isVerifyingPassword}
+					disabled={!enrollmentPassword}
+				>
+					Continue
+				</Button>
+			</div>
+		</form>
+	</div>
+</Modal>
+
+<!-- Enrollment Wizard Modal -->
+<Modal
+	isVisible={showEnrollmentWizard}
+	onClose={handleEnrollmentCancel}
+	title="Enable Two-Factor Authentication"
+	size="lg"
+>
+	<MFAEnrollmentWizard
+		userId={auth ? get(auth)?.customer?.id || get(auth)?.user?.id : null}
+		password={enrollmentPassword}
+		onComplete={handleEnrollmentComplete}
+		onCancel={handleEnrollmentCancel}
+		allowSkip={true}
+		backendUrl={backendUrl}
+	/>
+</Modal>
+
 <style lang="scss">
 	@use '../../../sveltekit/src/styles/variables.scss' as *;
 
@@ -537,6 +678,17 @@
 		gap: $spacing-medium;
 		justify-content: flex-end;
 		margin-top: $spacing-large;
+	}
+
+	.goo__password-prompt {
+		padding: 0;
+	}
+
+	.goo__password-prompt-description {
+		margin-bottom: $spacing-large;
+		color: var(--text-secondary);
+		font-size: 0.9375rem;
+		line-height: 1.5;
 	}
 
 	@media (max-width: 768px) {

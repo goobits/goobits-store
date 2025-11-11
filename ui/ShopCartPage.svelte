@@ -6,7 +6,6 @@
 	import { medusaClient } from '@goobits/store'
 	import { browser } from '$app/environment'
 	import { Logger } from '@lib/utils/Logger.js'
-	import { onMount } from 'svelte'
 	import { formatPrice } from '@goobits/store/utils/checkoutUtils'
 
 	const { data, config = {} } = $props()
@@ -19,24 +18,6 @@
 
 	// Extract region data from server
 	let defaultRegion = $derived(data?.defaultRegion)
-
-	// Force cart to reload from storage on component mount
-	// This ensures cart persists across page reloads
-	onMount(() => {
-		if (browser) {
-			const storedCart = sessionStorage.getItem('cart') || localStorage.getItem('cart')
-			if (storedCart) {
-				try {
-					const parsedCart = JSON.parse(storedCart)
-					if (parsedCart && parsedCart.length > 0) {
-						cart.set(parsedCart)
-					}
-				} catch (e) {
-					logger.error('Error reloading cart from storage:', e)
-				}
-			}
-		}
-	})
 	
 	// Utility function to get product ID consistently
 	function getProductId(product) {
