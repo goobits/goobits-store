@@ -45,7 +45,7 @@
 		"zod": "^3.23.0"
 	},
 	"devDependencies": {
-		"@sveltejs/kit": "^2.48.0"
+		"@sveltejs/kit": "^2.48.4"
 	},
 	"scripts": {
 		"dev": "echo 'Run from monorepo root'",
