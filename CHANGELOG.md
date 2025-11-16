@@ -5,6 +5,41 @@ All notable changes to the `@goobits/store` package will be documented in this f
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.7.0] - 2025-11-16
+
+### Added
+- **MFA Enrollment Wizard** - Complete multi-factor authentication setup flow
+  - Dedicated MFA enrollment page with Apple-style design
+  - QR code generation with light/dark theme support
+  - Inline MFA wizard for seamless user experience
+  - Password validation before MFA setup
+  - Visual feedback for authenticator app selection
+  - Theme-aware CSS variables for better integration
+- **Subscription Failure Alerting** - Enhanced checkout handler with subscription failure detection
+  - Detailed logging with recovery information
+  - Improved error handling for subscription flows
+- **Cart Persistence** - Storage event listener for external cart modifications
+  - Synchronization across browser tabs
+  - Better cart state management
+
+### Changed
+- **Dependency Updates** - Updated `@sveltejs/kit` to v2.48.4
+- **Logging Migration** - Replaced `console.*` with structured Logger across components
+  - MFA components now use `@goobits/logger`
+  - Consistent logging throughout store package
+
+### Fixed
+- **SSR Hydration** - Resolved hydration mismatches across store components
+  - Fixed client/server rendering inconsistencies
+  - Improved component initialization
+- **MFA UI Issues** - Multiple fixes for MFA enrollment and management
+  - Fixed account page and MFA enrollment display issues
+  - Corrected MFA disable handler to check both customer and user
+  - Removed undefined Alert component references
+  - Replaced Alert modals with inline FormErrors
+  - Made app cards informational with proper validation flow
+  - Fixed wizard to accept password prop
+
 ## [1.6.0] - 2025-10-30
 
 ### Added
