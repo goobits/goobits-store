@@ -3,7 +3,42 @@
 	"version": "1.7.0",
 	"description": "Reusable e-commerce store components and utilities for Goobits projects built on Medusa v2",
 	"main": "index.js",
+	"svelte": "./index.js",
 	"type": "module",
+	"exports": {
+		".": {
+			"svelte": "./index.js",
+			"default": "./index.js"
+		},
+		"./ui": {
+			"svelte": "./ui/index.js",
+			"default": "./ui/index.js"
+		},
+		"./utils": {
+			"svelte": "./utils/index.js",
+			"default": "./utils/index.js"
+		},
+		"./stores": {
+			"svelte": "./stores/index.js",
+			"default": "./stores/index.js"
+		},
+		"./handlers": {
+			"svelte": "./handlers/index.js",
+			"default": "./handlers/index.js"
+		},
+		"./payment": {
+			"svelte": "./payment/index.js",
+			"default": "./payment/index.js"
+		},
+		"./config": {
+			"svelte": "./config/index.js",
+			"default": "./config/index.js"
+		},
+		"./i18n": {
+			"svelte": "./i18n/index.js",
+			"default": "./i18n/index.js"
+		}
+	},
 	"keywords": [
 		"sveltekit",
 		"shop",
