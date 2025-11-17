@@ -1,7 +1,7 @@
 <script>
 	import { get } from 'svelte/store'
 	import Modal from '@goobits/forms/ui/modals/Modal.svelte'
-	import { getBackendUrl, getPublishableKey } from '@goobits/config/urls'
+	import { getBackendUrl, getPublishableKey } from '../config/urls.js'
 	import { createLogger } from '../utils/logger.js'
 
 	const logger = createLogger('MFABackupCodes')

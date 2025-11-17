@@ -2,7 +2,7 @@
 	import { Check, ChevronLeft, Download, Copy, CheckCircle2, Smartphone, QrCode, Shield } from '@lucide/svelte'
 	import { browser } from '$app/environment'
 	import QRCodeLib from 'qrcode'
-	import { getBackendUrl, getPublishableKey } from '@goobits/config/urls'
+	import { getBackendUrl, getPublishableKey } from '../config/urls.js'
 	import { createLogger } from '../utils/logger.js'
 
 	const logger = createLogger('MFAEnrollmentWizard')

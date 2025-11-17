@@ -6,7 +6,7 @@
 	import MFABackupCodeInput from './MFABackupCodeInput.svelte'
 	import FormErrors from '@goobits/forms/ui/FormErrors.svelte'
 	import Button from '@goobits/forms/ui/modals/Button.svelte'
-	import { getPublishableKey } from '@goobits/config/urls'
+	import { getPublishableKey } from '../config/urls.js'
 
 	/**
 	 * ShopLoginPage - Generic authentication page

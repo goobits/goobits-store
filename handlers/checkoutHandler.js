@@ -8,7 +8,7 @@
 import { redirect, error } from '@sveltejs/kit'
 import { medusaServerClient } from '../utils/medusaServerClient.js'
 import { createLogger } from '../utils/logger.js'
-import { getBackendUrl } from '@goobits/config/urls'
+import { getBackendUrl } from '../config/urls.js'
 
 const logger = createLogger('CheckoutHandler')
 

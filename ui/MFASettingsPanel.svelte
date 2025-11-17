@@ -5,7 +5,7 @@
 	import Button from '@goobits/forms/ui/modals/Button.svelte'
 	import MFABackupCodes from './MFABackupCodes.svelte'
 	import MFAEnrollmentWizard from './MFAEnrollmentWizard.svelte'
-	import { getBackendUrl, getPublishableKey } from '@goobits/config/urls'
+	import { getBackendUrl, getPublishableKey } from '../config/urls.js'
 	import { createLogger } from '../utils/logger.js'
 
 	const logger = createLogger('MFASettingsPanel')
