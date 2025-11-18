@@ -396,7 +396,7 @@
 </Modal>
 
 <style lang="scss">
-	@use '../../../sveltekit/src/styles/variables.scss' as *;
+	@use './variables.scss' as *;
 
 	.goo__backup-codes {
 		width: 100%;

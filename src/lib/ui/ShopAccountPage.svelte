@@ -256,7 +256,7 @@
 {/if}
 
 <style lang="scss">
-	@use '../../../sveltekit/src/styles/variables.scss' as *;
+	@use './variables.scss' as *;
 	
 	.goo__account-page {
 		flex: 1;

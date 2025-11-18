@@ -521,7 +521,7 @@
 	</div>
 
 <style lang="scss">
-	@use '../../../sveltekit/src/styles/variables.scss' as *;
+	@use './variables.scss' as *;
 
 	// Progress Indicator
 	.goo__mfa-progress {

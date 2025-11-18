@@ -355,8 +355,8 @@
 
 <!-- Import existing SCSS styles -->
 <style lang="scss">
-	@use '../../../sveltekit/src/styles/variables' as *;
-	@use '../../../sveltekit/src/styles/mixins' as *;
+	@use './variables.scss' as *;
+	@use './mixins.scss' as *;
 
 	.goo__product-loading {
 		text-align: center;

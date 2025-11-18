@@ -122,8 +122,8 @@
 		"vite": "^7.2.2"
 	},
 	"scripts": {
-		"dev": "svelte-package --watch --input .",
-		"build": "svelte-package --input .",
+		"dev": "svelte-package --watch",
+		"build": "svelte-package",
 		"prepublishOnly": "pnpm run build",
 		"test": "echo 'No tests configured'"
 	},

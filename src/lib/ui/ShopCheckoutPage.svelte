@@ -460,8 +460,8 @@
 <style lang="scss">
 	@use 'sass:color';
 	@use 'sass:math';
-	@use '../../../sveltekit/src/styles/variables' as *;
-	@use '../../../sveltekit/src/styles/mixins' as *;
+	@use './variables.scss' as *;
+	@use './mixins.scss' as *;
 
 	.goo {
 		&__checkout-page {

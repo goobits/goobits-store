@@ -467,7 +467,7 @@
 </Modal>
 
 <style lang="scss">
-	@use '../../../sveltekit/src/styles/variables.scss' as *;
+	@use './variables.scss' as *;
 
 	.goo__mfa-settings {
 		width: 100%;
