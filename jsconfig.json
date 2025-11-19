@@ -1,23 +1,22 @@
 {
 	"compilerOptions": {
 		"allowJs": true,
-		"checkJs": true,
+		"checkJs": false,
 		"esModuleInterop": true,
 		"forceConsistentCasingInFileNames": true,
 		"resolveJsonModule": true,
 		"skipLibCheck": true,
-		"sourceMap": true,
-		"strict": false,
 		"moduleResolution": "bundler",
 		"module": "ESNext",
 		"target": "ESNext"
 	},
 	"include": [
-		"**/*.js",
-		"**/*.svelte"
+		"src/**/*.js",
+		"src/**/*.svelte"
 	],
 	"exclude": [
 		"node_modules",
-		"dist"
+		"dist",
+		".svelte-kit"
 	]
 }

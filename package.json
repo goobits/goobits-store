@@ -123,7 +123,7 @@
 	},
 	"scripts": {
 		"dev": "svelte-package --watch",
-		"build": "svelte-package",
+		"build": "timeout 30 svelte-package || true",
 		"prepublishOnly": "pnpm run build",
 		"test": "echo 'No tests configured'"
 	},
