@@ -12,38 +12,50 @@ import { createLogger } from '../utils/logger.js'
 
 const logger = createLogger('Stripe')
 
-// Public Stripe key (client-side safe)
-const STRIPE_PUBLIC_KEY = import.meta.env.VITE_STRIPE_PUBLIC_KEY
-
-// Validate Stripe key is set
-if (browser && !STRIPE_PUBLIC_KEY) {
-	logger.error(
-		'VITE_STRIPE_PUBLIC_KEY is not set in environment variables',
-		'\n💡 Solution: This variable is in .env but Vite needs restart to load it.',
-		'\n   Run: Ctrl+C and restart with `pnpm dev`'
-	)
-}
-
 // Store to track loading state
 export const stripeLoading = writable(true)
 export const stripeError = writable(null)
 
 // Stripe instance (will be initialized)
 let stripePromise
+let configuredPublicKey = null
+
+/**
+ * Configure Stripe with a public key
+ * @param {string} publicKey - Stripe public key
+ */
+export const configureStripe = (publicKey) => {
+	configuredPublicKey = publicKey
+	// Reset promise to force re-initialization with new key
+	stripePromise = null
+}
 
 /**
  * Initialize Stripe
+ * @param {string} [publicKey] - Optional Stripe public key. If not provided, uses configured key.
  * @returns {Promise<Object>} Stripe instance
  */
-export const getStripe = async () => {
+export const getStripe = async (publicKey) => {
 	if (!browser) return null
+
+	const keyToUse = publicKey || configuredPublicKey
+
+	if (!keyToUse) {
+		logger.error(
+			'Stripe public key not provided',
+			'\n💡 Solution: Call configureStripe(key) or pass key to getStripe(key)',
+			'\n   Or set it in your SvelteKit app via environment variables'
+		)
+		stripeError.set('Stripe public key not configured')
+		return null
+	}
 
 	if (!stripePromise) {
 		stripeLoading.set(true)
 		stripeError.set(null)
 
 		try {
-			stripePromise = loadStripe(STRIPE_PUBLIC_KEY)
+			stripePromise = loadStripe(keyToUse)
 			const stripe = await stripePromise
 
 			if (!stripe) {
