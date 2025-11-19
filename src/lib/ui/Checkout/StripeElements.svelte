@@ -1,21 +1,22 @@
 <script>
 	import { onMount, onDestroy, createEventDispatcher } from 'svelte'
 	import { Loader2 } from '@lucide/svelte'
+	import { getStripe as defaultGetStripe, createElements as defaultCreateElements, createPaymentElementOptions as defaultCreatePaymentElementOptions } from '../../payment/stripeService.js'
 
 	// Use console for logging within the package
 	const logger = console
-	
+
 	const dispatch = createEventDispatcher()
-	
+
 	// Props
 	let {
 		clientSecret = '',
 		returnUrl = '',
 		billingDetails = {},
-		stripeConfig = {}, // Stripe configuration with public key
-		getStripe = null, // Function to get Stripe instance
-		createElements = null, // Function to create Stripe Elements
-		createPaymentElementOptions = null, // Function to create payment element options
+		stripePublicKey = '', // Stripe public key
+		getStripe = defaultGetStripe, // Function to get Stripe instance
+		createElements = defaultCreateElements, // Function to create Stripe Elements
+		createPaymentElementOptions = defaultCreatePaymentElementOptions, // Function to create payment element options
 		appearance = {
 			theme: 'stripe',
 			variables: {
@@ -43,7 +44,7 @@
 			}
 		}
 	} = $props()
-	
+
 	// State
 	let elements = $state(null)
 	let stripe = $state(null)
@@ -51,16 +52,16 @@
 	let elementsReady = $state(false)
 	let elementsError = $state(null)
 	let elementsContainer = $state(null)
-	
+
 	// Variables to store the payment element reference
 	let paymentElement = null
-	
+
 	// Mount: Initialize Stripe when the component mounts
 	onMount(async () => {
 		// Load Stripe
 		try {
-			// Initialize Stripe with the configuration
-			stripe = await getStripe(stripeConfig)
+			// Initialize Stripe with the public key
+			stripe = await getStripe(stripePublicKey)
 			
 			if (!stripe) {
 				elementsError = new Error('Failed to load Stripe')
@@ -70,16 +71,11 @@
 			
 			// Create Elements instance
 			if (clientSecret) {
-				// Create payment element options using the provided function
-				const options = createPaymentElementOptions({
-					clientSecret,
-					appearance,
-					returnUrl,
-					billingDetails
-				})
-				
 				// Create elements instance using the provided function
-				elements = createElements(stripe, options)
+				elements = await createElements(stripe, {
+					clientSecret,
+					appearance
+				})
 				
 				// Create the Payment Element
 				paymentElement = elements.create('payment')

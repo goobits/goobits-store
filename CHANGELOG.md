@@ -5,6 +5,24 @@ All notable changes to the `@goobits/store` package will be documented in this f
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.8.0] - 2025-11-19
+
+### Fixed
+- **Build Warnings** - Removed `import.meta.env` usage that only works with Vite bundler
+  - Updated URL configuration functions to accept optional parameters instead of reading from `import.meta.env`
+  - Stripe service now accepts public key via parameter or configuration function
+  - StripeElements component properly imports and uses stripe services with default implementations
+- **Package Structure** - Restructured to use standard `src/lib` layout for better SvelteKit compatibility
+- **Build Performance** - Removed `vitePreprocess` to fix hanging builds
+
+### Changed
+- **API Flexibility** - URL and Stripe configuration functions now accept optional parameters
+  - `getBackendUrl(envValue?)` - accepts optional backend URL
+  - `getAppUrl(envValue?)` - accepts optional app URL
+  - `getPublishableKey(envValue?)` - accepts optional publishable key
+  - `getStripe(publicKey?)` - accepts optional Stripe public key
+  - Added `configureStripe(publicKey)` for global Stripe configuration
+
 ## [1.7.0] - 2025-11-16
 
 ### Added
