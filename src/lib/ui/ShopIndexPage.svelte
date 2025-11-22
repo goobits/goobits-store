@@ -1,7 +1,7 @@
 <script>
-	import { addToCart, getCartCount } from '@goobits/store'
+	import { addToCart, getCartCount } from '../stores/cart.js'
 	import { goto } from '$app/navigation'
-	import { formatPrice } from '@goobits/store/utils/checkoutUtils'
+	import { formatPrice } from '../utils/checkoutUtils.js'
 
 	/**
 	 * ShopIndexPage - Generic shop homepage layout

@@ -1,14 +1,13 @@
 <script>
 	// This component contains the existing product detail functionality
-	import { addToCart } from '@goobits/store'
+	import { addToCart } from '../stores/cart.js'
 	import { goto } from '$app/navigation'
-	import OptimizedImage from '@components/OptimizedImage/OptimizedImage.svelte'
-	import { Logger } from '@lib/utils/Logger.js'
-	import { formatPrice } from '@goobits/store/utils/checkoutUtils'
+	import { createLogger } from '../utils/logger.js'
+	import { formatPrice } from '../utils/checkoutUtils.js'
 
 	const { data } = $props()
 
-	const logger = new Logger('ProductDetail')
+	const logger = createLogger('ProductDetail')
 
 	// Extract product data
 	let product = $derived(data.product || {})
@@ -169,20 +168,18 @@
 			<div class="goo__product-images">
 				<div class="goo__product-main-image">
 					{#if selectedImage && selectedImage.url}
-						<OptimizedImage
+						<img
 							src={selectedImage.url}
 							alt={product.title || "Product Image"}
-							widths={[400, 800, 1200]}
-							sizes="(max-width: 768px) 100vw, 50vw"
 							class="main-product-image"
+							loading="lazy"
 						/>
 					{:else if product.thumbnail}
-						<OptimizedImage
+						<img
 							src={product.thumbnail}
 							alt={product.title || "Product Image"}
-							widths={[400, 800, 1200]}
-							sizes="(max-width: 768px) 100vw, 50vw"
 							class="main-product-image"
+							loading="lazy"
 						/>
 					{:else}
 						<div class="goo__product-placeholder">No image available</div>
@@ -321,20 +318,18 @@
 							<div class="goo__related-product">
 								<a href="/shop/{relatedProduct.handle}">
 									{#if relatedProduct.thumbnail}
-										<OptimizedImage
+										<img
 											src={relatedProduct.thumbnail}
 											alt={relatedProduct.title || 'Related Product'}
-											widths={[200, 400, 600]}
-											sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
 											class="related-product-image"
+											loading="lazy"
 										/>
 									{:else if relatedProduct.images && relatedProduct.images.length > 0 && relatedProduct.images[0].url}
-										<OptimizedImage
+										<img
 											src={relatedProduct.images[0].url}
 											alt={relatedProduct.title || 'Related Product'}
-											widths={[200, 400, 600]}
-											sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
 											class="related-product-image"
+											loading="lazy"
 										/>
 									{:else}
 										<div class="goo__product-placeholder">No image</div>

@@ -3,9 +3,9 @@
 	import { browser } from '$app/environment'
 	import StripeElements from './StripeElements.svelte'
 	import { Loader2 } from '@lucide/svelte'
+	import { createLogger } from '../../utils/logger.js'
 
-	// Use console for logging within the package
-	const logger = console
+	const logger = createLogger('StripePaymentForm')
 	
 	const dispatch = createEventDispatcher()
 	
@@ -131,7 +131,7 @@
 				<p>Loading payment form...</p>
 			</div>
 		{:else}
-			<form class="goo__stripe-payment-form" onsubmit={handleSubmit}>
+			<form class="goo__stripe-payment-form" onsubmit={(e) => { e.preventDefault(); handleSubmit(); }}>
 				<!-- Stripe Elements will be injected here -->
 				<StripeElements {clientSecret} onready={handleElementsReady} />
 

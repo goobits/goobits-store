@@ -4,12 +4,17 @@
 	const { data, form = undefined } = $props()
 
 	// Re-export all the checkout functionality from the original file
-	import { clearCart } from '@goobits/store'
+	import { clearCart } from '../stores/cart.js'
 	import { goto } from '$app/navigation'
 	import { onMount, onDestroy } from 'svelte'
 	import { browser } from '$app/environment'
-	import { Logger } from '@lib/utils/Logger.js'
-	import { user as customer } from '@lib/stores/auth-simple.js'
+	import { createLogger } from '../utils/logger.js'
+
+	// Note: auth store should be passed via props or context by consuming application
+	// This is a placeholder that creates a minimal reactive store
+	const customer = {
+		subscribe: (fn) => { fn(null); return () => {} }
+	}
 
 	// Import checkout components from store package
 	import CheckoutCustomerInfo from './Checkout/CheckoutCustomerInfo.svelte'
@@ -21,7 +26,7 @@
 	// Import checkout utilities directly to avoid circular dependency
 	import * as CheckoutUtils from '../utils/checkoutUtils.js'
 
-	const logger = new Logger('Checkout')
+	const logger = createLogger('Checkout')
 
 	// Debug: log when component loads
 	logger.info('ShopCheckoutPage loading...')

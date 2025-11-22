@@ -101,10 +101,12 @@
 		"LICENSE"
 	],
 	"dependencies": {
+		"@goobits/logger": "^1.0.0",
 		"@medusajs/medusa-js": "^6.1.10",
 		"qrcode": "^1.5.4"
 	},
 	"peerDependencies": {
+		"@goobits/forms": "^1.0.0",
 		"@lucide/svelte": "^0.548.0",
 		"@stripe/stripe-js": "^3.0.0 || ^4.0.0 || ^5.0.0",
 		"@sveltejs/kit": "^2.0.0",

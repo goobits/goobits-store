@@ -1,12 +1,12 @@
 <script>
 	// We'll import the existing cart page content and eventually refactor
 	// For now, this is a wrapper around the existing cart functionality
-	import { cart, updateQuantity, removeFromCart } from '@goobits/store'
+	import { cart, updateQuantity, removeFromCart } from '../stores/cart.js'
 	import { goto } from '$app/navigation'
-	import { medusaClient } from '@goobits/store'
+	import { medusaClient } from '../utils/medusaClient.js'
 	import { browser } from '$app/environment'
-	import { Logger } from '@lib/utils/Logger.js'
-	import { formatPrice } from '@goobits/store/utils/checkoutUtils'
+	import { createLogger } from '../utils/logger.js'
+	import { formatPrice } from '../utils/checkoutUtils.js'
 
 	const { data, config = {} } = $props()
 
@@ -14,7 +14,7 @@
 	const fallbackImage = config?.ui?.placeholders?.product ||
 		'https://placehold.co/100x100/E5E5E5/999?text=Product'
 
-	const logger = new Logger('ShopCart')
+	const logger = createLogger('ShopCart')
 
 	// Extract region data from server
 	let defaultRegion = $derived(data?.defaultRegion)

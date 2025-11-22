@@ -70,10 +70,10 @@ export async function loadShopIndex(lang, config = null, options = {}) {
 		}
 	} catch (err) {
 		logger.error('Error loading shop index:', err)
-		const error = new Error('Error loading products from Medusa')
-		error.status = 500
-		error.details = err.message
-		throw error
+		const storeError = new Error('Error loading products from Medusa')
+		storeError.status = 500
+		storeError.details = err.message
+		throw storeError
 	}
 }
 
