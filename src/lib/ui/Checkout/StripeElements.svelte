@@ -2,9 +2,9 @@
 	import { onMount, onDestroy, createEventDispatcher } from 'svelte'
 	import { Loader2 } from '@lucide/svelte'
 	import { getStripe as defaultGetStripe, createElements as defaultCreateElements, createPaymentElementOptions as defaultCreatePaymentElementOptions } from '../../payment/stripeService.js'
+	import { createLogger } from '../../utils/logger.js'
 
-	// Use console for logging within the package
-	const logger = console
+	const logger = createLogger('StripeElements')
 
 	const dispatch = createEventDispatcher()
 
