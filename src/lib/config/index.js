@@ -5,6 +5,9 @@
 // Export messages
 export * from './defaultMessages.js'
 
+// Export URL utilities
+export * from './urls.js'
+
 export const storeConfig = {
 	shopUri: '/shop',
 	currency: 'USD',
