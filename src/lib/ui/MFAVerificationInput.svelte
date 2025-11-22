@@ -154,7 +154,7 @@
 		}
 	}
 
-	function clearCode() {
+	function _clearCode() {
 		digits = ['', '', '', '', '', '']
 		if (inputRefs[0]) {
 			inputRefs[0].focus()

@@ -258,7 +258,7 @@
 					<div class="goo__product-variants">
 						<h3>Select Option</h3>
 						<div class="goo__variant-options">
-							{#each variants as variant, index (variant.id)}
+							{#each variants as variant, _index (variant.id)}
 								<button
 									class="goo__variant-button {selectedVariant?.id === variant.id ? 'active' : ''}"
 									onclick={() => { selectedVariant = variant; selectedOptions = {}; /* Reset options if selecting variant directly */ }}

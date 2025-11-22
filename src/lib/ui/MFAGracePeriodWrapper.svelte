@@ -1,5 +1,4 @@
 <script>
-	import { onMount } from 'svelte'
 	import MFAGracePeriodBanner from './MFAGracePeriodBanner.svelte'
 	import { fetchMFAStatus, shouldShowGracePeriodBanner } from './mfaStatus.js'
 	import { getPublishableKey } from '../config/urls.js'

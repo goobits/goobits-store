@@ -18,7 +18,7 @@
 	 * @prop {string} backendUrl - Backend API URL
 	 */
 	let {
-	userId,
+	userId: _userId,
 	password,
 	onComplete,
 	onCancel,

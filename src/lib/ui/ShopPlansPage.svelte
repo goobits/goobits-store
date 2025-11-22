@@ -6,7 +6,7 @@
 	 * @prop {Object} [content] - Page content (title, description, links)
 	 */
 	const {
-		data,
+		data: _data,
 		content = {
 			title: 'Service Plans & Subscriptions',
 			description: 'Our service plans and subscription options have moved to make them easier to find!',

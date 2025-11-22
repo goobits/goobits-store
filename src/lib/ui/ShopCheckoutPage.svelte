@@ -62,7 +62,7 @@
 
 	// Extract checkout data
 	let medusaCart = $derived(data.cart || {})
-	let regions = $derived(data.regions || [])
+	let _regions = $derived(data.regions || [])
 	let defaultRegion = $derived(data.defaultRegion || null)
 	let shippingOptions = $derived(data.shippingOptions || [])
 
@@ -185,7 +185,7 @@
 	})
 
 	// Handle form submissions for each step
-	async function handleCustomerInfoSubmit(event) {
+	async function handleCustomerInfoSubmit(_event) {
 		formSubmitting = true
 
 		// Save form state before submission
@@ -202,7 +202,7 @@
 		formSubmitting = false
 	}
 
-	async function handleShippingAddressSubmit(event) {
+	async function handleShippingAddressSubmit(_event) {
 		formSubmitting = true
 
 		// Save form state before submission
@@ -218,7 +218,7 @@
 		formSubmitting = false
 	}
 
-	async function handleShippingMethodSubmit(event) {
+	async function handleShippingMethodSubmit(_event) {
 		formSubmitting = true
 
 		// Save form state before submission
@@ -234,7 +234,7 @@
 		formSubmitting = false
 	}
 
-	async function handlePaymentUpdate(event) {
+	async function handlePaymentUpdate(_event) {
 		formSubmitting = true
 		paymentErrors = {}
 
@@ -264,7 +264,7 @@
 		paymentErrors.general = event.detail.error || 'Payment processing failed'
 	}
 
-	async function handlePlaceOrder(event) {
+	async function handlePlaceOrder(_event) {
 		formSubmitting = true
 		orderError = ''
 

@@ -116,18 +116,30 @@
 		"zod": "^3.23.0"
 	},
 	"devDependencies": {
+		"@eslint/js": "^9.39.1",
 		"@sveltejs/kit": "^2.48.4",
 		"@sveltejs/package": "^2.5.4",
 		"@sveltejs/vite-plugin-svelte": "^6.2.1",
+		"@testing-library/svelte": "^5.2.9",
+		"@vitest/coverage-v8": "^4.0.13",
+		"eslint": "^9.39.1",
+		"eslint-plugin-svelte": "^3.13.0",
+		"globals": "^16.5.0",
+		"jsdom": "^27.2.0",
 		"sass-embedded": "^1.93.3",
 		"svelte": "^5.43.9",
-		"vite": "^7.2.2"
+		"vite": "^7.2.2",
+		"vitest": "^4.0.13"
 	},
 	"scripts": {
 		"dev": "svelte-package --watch",
 		"build": "svelte-package",
 		"prepublishOnly": "pnpm run build",
-		"test": "echo 'No tests configured'"
+		"test": "vitest run",
+		"test:watch": "vitest",
+		"test:coverage": "vitest run --coverage",
+		"lint": "eslint .",
+		"lint:fix": "eslint . --fix"
 	},
 	"homepage": "https://github.com/goobits/store#readme",
 	"bugs": {

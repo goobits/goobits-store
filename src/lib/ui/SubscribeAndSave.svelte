@@ -53,12 +53,12 @@
 	}
 
 	// Handle subscribe toggle
-	function toggleSubscription() {
+	function _toggleSubscription() {
 		isSubscription = !isSubscription
 	}
 
 	// Handle subscribe click
-	function handleSubscribe() {
+	function _handleSubscribe() {
 		if (onSubscribe) {
 			onSubscribe({
 				isSubscription,

@@ -6,7 +6,6 @@
 	import { medusaClient } from '../utils/medusaClient.js'
 	import { browser } from '$app/environment'
 	import { createLogger } from '../utils/logger.js'
-	import { formatPrice } from '../utils/checkoutUtils.js'
 
 	const { data, config = {} } = $props()
 

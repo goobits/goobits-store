@@ -11,12 +11,12 @@
 	// Props
 	let {
 		clientSecret = '',
-		returnUrl = '',
-		billingDetails = {},
+		returnUrl: _returnUrl = '',
+		billingDetails: _billingDetails = {},
 		stripePublicKey = '', // Stripe public key
 		getStripe = defaultGetStripe, // Function to get Stripe instance
 		createElements = defaultCreateElements, // Function to create Stripe Elements
-		createPaymentElementOptions = defaultCreatePaymentElementOptions, // Function to create payment element options
+		createPaymentElementOptions: _createPaymentElementOptions = defaultCreatePaymentElementOptions, // Function to create payment element options
 		appearance = {
 			theme: 'stripe',
 			variables: {
@@ -49,7 +49,7 @@
 	let elements = $state(null)
 	let stripe = $state(null)
 	let isLoading = $state(true)
-	let elementsReady = $state(false)
+	let _elementsReady = $state(false)
 	let elementsError = $state(null)
 	let elementsContainer = $state(null)
 
@@ -84,8 +84,8 @@
 				paymentElement.mount('#stripe-payment-element')
 				
 				// Listen for ready event
-				paymentElement.on('ready', (event) => {
-					elementsReady = true
+				paymentElement.on('ready', (_event) => {
+					_elementsReady = true
 					isLoading = false
 					
 					// Dispatch the ready event with the elements and stripe objects

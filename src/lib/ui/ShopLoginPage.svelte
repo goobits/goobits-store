@@ -30,11 +30,11 @@
 	let lastName = $state('')
 	let phone = $state('')
 	let confirmPassword = $state('')
-	let isDemoMode = $state(false)
+	let _isDemoMode = $state(false)
 
 	// MFA state
 	let mfaRequired = $state(false)
-	let mfaUserId = $state(null)
+	let _mfaUserId = $state(null)
 	let mfaError = $state('')
 	let mfaLoading = $state(false)
 	let useBackupCode = $state(false)
@@ -73,7 +73,7 @@
 			if (isLocalhost && !showRegister && !email && !password) {
 				email = demoCredentials.email
 				password = demoCredentials.password
-				isDemoMode = true
+				_isDemoMode = true
 			}
 		}
 	})
@@ -92,7 +92,7 @@
 		// Check if MFA is required
 		if (result.mfaRequired) {
 			mfaRequired = true
-			mfaUserId = result.userId
+			_mfaUserId = result.userId
 			mfaError = ''
 		} else if (result.success) {
 			goto(returnUrl)

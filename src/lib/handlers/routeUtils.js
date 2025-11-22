@@ -426,7 +426,7 @@ export async function loadCheckout(lang, config = null, url) {
  * @param {Object} config - Shop configuration
  * @returns {Promise<object>} An object containing page data for the cart
  */
-export async function loadCart(lang, config = null) {
+export async function loadCart(lang, _config = null) {
 	try {
 		// Get regions for cart creation
 		const { regions } = await medusaServerClient.regions.list()

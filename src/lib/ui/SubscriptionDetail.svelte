@@ -6,7 +6,7 @@
 	 * Reusable across different storefronts
 	 */
 	import Modal from '@goobits/forms/ui/modals/Modal.svelte'
-	import { formatCurrency, formatDate, getStatusClass } from '../utils/subscription-helpers.js'
+	import { formatCurrency, formatDate } from '../utils/subscription-helpers.js'
 
 	let {
 		subscription,

@@ -34,7 +34,7 @@
 	let isLoading = $state(true)
 	let stripeError = $state(null)
 	let stripeElements = $state(null)
-	let paymentIntentStatus = $state('')
+	let _paymentIntentStatus = $state('')
 	// Processing state: use prop if provided, otherwise manage locally
 	let processing = $state(isProcessing)
 
@@ -92,7 +92,7 @@
 			} else {
 				// The payment has been processed!
 				if (result.paymentIntent) {
-					paymentIntentStatus = result.paymentIntent.status
+					_paymentIntentStatus = result.paymentIntent.status
 					
 					// Dispatch the success event with payment info
 					dispatch('success', {

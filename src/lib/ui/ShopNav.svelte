@@ -27,7 +27,7 @@
 	const getMessage = createMessageGetter({ ...defaultMessages, ...messages })
 	
 	// Determine if we're in the shop section
-	let isShopSection = $derived($page.url.pathname.startsWith(shopUrl))
+	let _isShopSection = $derived($page.url.pathname.startsWith(shopUrl))
 	
 	// Get cart item count
 	let cartCount = $derived(getCartCount())
