@@ -5,12 +5,19 @@
  * and ensure consistency across the codebase.
  */
 
+// Extend the Window interface to include our custom property
+declare global {
+	interface Window {
+		__MEDUSA_PUBLISHABLE_KEY__?: string;
+	}
+}
+
 /**
  * Get the Medusa backend API URL
- * @param {string} [envValue] - Optional environment value to use
- * @returns {string} Backend URL
+ * @param envValue - Optional environment value to use
+ * @returns Backend URL
  */
-export function getBackendUrl(envValue) {
+export function getBackendUrl(envValue?: string): string {
 	// Use provided value first
 	if (envValue) {
 		return envValue
@@ -25,10 +32,10 @@ export function getBackendUrl(envValue) {
 
 /**
  * Get the application frontend URL
- * @param {string} [envValue] - Optional environment value to use
- * @returns {string} Application URL
+ * @param envValue - Optional environment value to use
+ * @returns Application URL
  */
-export function getAppUrl(envValue) {
+export function getAppUrl(envValue?: string): string {
 	// Use provided value first
 	if (envValue) {
 		return envValue
@@ -43,10 +50,10 @@ export function getAppUrl(envValue) {
 
 /**
  * Get Medusa publishable key
- * @param {string} [envValue] - Optional environment value to use
- * @returns {string} Publishable key
+ * @param envValue - Optional environment value to use
+ * @returns Publishable key
  */
-export function getPublishableKey(envValue) {
+export function getPublishableKey(envValue?: string): string {
 	// Use provided value first
 	if (envValue) {
 		return envValue
@@ -61,6 +68,7 @@ export function getPublishableKey(envValue) {
 	}
 	// Log warning in development
 	if (typeof process === 'undefined' || (process.env?.NODE_ENV !== 'production')) {
+		// eslint-disable-next-line no-console
 		console.warn('[URLConfig] Publishable key not found. Make sure PUBLIC_MEDUSA_PUBLISHABLE_KEY is set in your .env file.')
 	}
 	return ''
@@ -68,9 +76,9 @@ export function getPublishableKey(envValue) {
 
 /**
  * Check if running in development mode
- * @returns {boolean}
+ * @returns boolean
  */
-export function isDevelopment() {
+export function isDevelopment(): boolean {
 	if (typeof process !== 'undefined' && process.env?.NODE_ENV === 'development') {
 		return true
 	}
@@ -79,9 +87,9 @@ export function isDevelopment() {
 
 /**
  * Check if running in production mode
- * @returns {boolean}
+ * @returns boolean
  */
-export function isProduction() {
+export function isProduction(): boolean {
 	if (typeof process !== 'undefined' && process.env?.NODE_ENV === 'production') {
 		return true
 	}

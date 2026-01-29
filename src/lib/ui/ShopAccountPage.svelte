@@ -1,30 +1,54 @@
-<script>
+<script lang="ts">
 	import { onMount } from 'svelte'
 	import MFASettingsPanel from './MFASettingsPanel.svelte'
+	import type { Readable } from 'svelte/store'
 
-	/**
-	 * ShopAccountPage - Customer account management
-	 *
-	 * @prop {Object} auth - Auth store instance
-	 * @prop {Object} isAuthenticated - Auth status store
-	 * @prop {Object} customer - Customer data store
-	 * @prop {Object} [branding] - Site branding
-	 */
-	let {
+	interface AuthState {
+		customer: MedusaCustomer | null;
+		user?: MedusaCustomer | null;
+		token: string | null;
+		loading: boolean;
+		error: string | null;
+	}
+
+	interface AuthStore {
+		subscribe: (fn: (state: AuthState) => void) => () => void;
+		checkSession: () => Promise<void>;
+		updateProfile: (data: { name?: string; phone?: string }) => Promise<{ success: boolean }>;
+		logout: () => Promise<void>;
+	}
+
+	interface Branding {
+		siteName?: string;
+	}
+
+	interface PageData {
+		[key: string]: unknown;
+	}
+
+	interface Props {
+		data?: PageData;
+		auth?: AuthStore;
+		isAuthenticated?: Readable<boolean>;
+		customer?: Readable<MedusaCustomer | null>;
+		branding?: Branding;
+	}
+
+	const {
 		auth,
 		isAuthenticated,
 		customer,
 		branding = { siteName: 'Store' }
-	} = $props()
+	}: Props = $props()
 
 	// Subscribe to stores
-	let authState = $state({ customer: null, token: null, loading: false, error: null })
-	let isAuth = $state(false)
-	let customerData = $state(null)
+	let authState: AuthState = $state({ customer: null, token: null, loading: false, error: null })
+	let isAuth: boolean = $state(false)
+	let customerData: MedusaCustomer | null = $state(null)
 
 	$effect(() => {
 		if (auth) {
-			const unsubAuth = auth.subscribe((state) => {
+			const unsubAuth = auth.subscribe((state: AuthState) => {
 				authState = state
 			})
 			return unsubAuth
@@ -33,7 +57,7 @@
 
 	$effect(() => {
 		if (isAuthenticated) {
-			const unsubIsAuth = isAuthenticated.subscribe((value) => {
+			const unsubIsAuth = isAuthenticated.subscribe((value: boolean) => {
 				isAuth = value
 			})
 			return unsubIsAuth
@@ -42,7 +66,7 @@
 
 	$effect(() => {
 		if (customer) {
-			const unsubCustomer = customer.subscribe((value) => {
+			const unsubCustomer = customer.subscribe((value: MedusaCustomer | null) => {
 				customerData = value
 			})
 			return unsubCustomer
@@ -63,30 +87,30 @@
 		}
 	})
 
-	let editing = $state(false)
+	let editing: boolean = $state(false)
 
 	// Get user data from either customerData or authState.user
-	const currentUser = $derived(customerData || authState.user)
+	const currentUser: MedusaCustomer | null | undefined = $derived(customerData || authState.user)
 
 	// Use $derived for display values to ensure SSR/client consistency
-	let displayName = $derived(currentUser?.name || '')
-	let displayEmail = $derived(currentUser?.email || '')
-	let displayPhone = $derived(currentUser?.phone || '')
+	const displayName: string = $derived(currentUser?.first_name || '')
+	const displayEmail: string = $derived(currentUser?.email || '')
+	const displayPhone: string = $derived(currentUser?.phone || '')
 
 	// Separate state for editing (only used when editing=true)
-	let editName = $state('')
-	let editEmail = $state('')
-	let editPhone = $state('')
+	let editName: string = $state('')
+	let editEmail: string = $state('')
+	let editPhone: string = $state('')
 
 	// Populate edit fields when entering edit mode
-	function startEditing() {
+	function startEditing(): void {
 		editName = displayName
 		editEmail = displayEmail
 		editPhone = displayPhone
 		editing = true
 	}
 
-	async function handleUpdate(e) {
+	async function handleUpdate(e: Event): Promise<void> {
 		e.preventDefault()
 		if (!auth) return
 
@@ -100,7 +124,7 @@
 		}
 	}
 
-	async function handleLogout() {
+	async function handleLogout(): Promise<void> {
 		if (auth) {
 			await auth.logout()
 			if (typeof window !== 'undefined') {
@@ -257,7 +281,7 @@
 
 <style lang="scss">
 	@use './variables.scss' as *;
-	
+
 	.goo__account-page {
 		flex: 1;
 		max-width: 800px;
@@ -295,18 +319,18 @@
 		font-size: 0.9375rem;
 		line-height: 1.5;
 	}
-	
+
 	.goo__section-header {
 		display: flex;
 		justify-content: space-between;
 		align-items: center;
 		margin-bottom: $spacing-medium;
-		
+
 		h2 {
 			margin-bottom: 0;
 		}
 	}
-	
+
 	.goo__edit-button {
 		padding: $spacing-small $spacing-medium;
 		background-color: var(--color-surface);
@@ -365,7 +389,7 @@
 			}
 		}
 	}
-	
+
 	.goo__error {
 		background-color: var(--error-bg);
 		color: var(--error-text);
@@ -422,7 +446,7 @@
 			opacity: 0.6;
 		}
 	}
-	
+
 	.goo__profile-info {
 		.goo__info-row {
 			display: flex;

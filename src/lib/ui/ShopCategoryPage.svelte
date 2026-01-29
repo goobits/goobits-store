@@ -1,15 +1,23 @@
-<script>
+<script lang="ts">
 	import ShopIndexPage from './ShopIndexPage.svelte'
 
-	/**
-	 * @typedef {Object} Props
-	 * @property {Object} data - Route data containing category and products
-	 */
+	interface MedusaCategory {
+		name?: string;
+		description?: string;
+	}
 
-	/** @type {Props} */
-	let { data } = $props()
+	interface PageData {
+		category?: MedusaCategory;
+		products?: MedusaProduct[];
+	}
 
-	let category = $derived(data.category || {})
+	interface Props {
+		data: PageData;
+	}
+
+	const { data }: Props = $props()
+
+	const category: MedusaCategory = $derived(data.category || {})
 </script>
 
 <section class="category-header">

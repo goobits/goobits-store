@@ -1,4 +1,4 @@
-<script>
+<script lang="ts">
 	import ShopIndexPage from './ShopIndexPage.svelte'
 	import ShopProductPage from './ShopProductPage.svelte'
 	import ShopCategoryPage from './ShopCategoryPage.svelte'
@@ -8,25 +8,73 @@
 	import ShopCheckoutPage from './ShopCheckoutPage.svelte'
 	import ShopLoginPage from './ShopLoginPage.svelte'
 	import ShopPlansPage from './ShopPlansPage.svelte'
+	import type { Readable } from 'svelte/store'
 
-	/**
-	 * ShopRouter - Routes to appropriate shop page component
-	 *
-	 * @typedef {Object} Props
-	 * @property {Object} data - Route data from load function
-	 * @property {Object} [content] - Page-specific content (hero, branding, etc.)
-	 * @property {Object} [config] - UI configuration
-	 */
+	type PageType = 'index' | 'product' | 'category' | 'collection' | 'account' | 'cart' | 'checkout' | 'login' | 'register' | 'plans'
 
-	/** @type {Props} */
-	let {
+	interface AuthStore {
+		subscribe: Readable<AuthState>['subscribe'];
+		login: (email: string, password: string) => Promise<{ success: boolean; mfaRequired?: boolean }>;
+		logout: () => Promise<void>;
+		register: (data: Record<string, unknown>) => Promise<{ success: boolean }>;
+		checkSession: () => Promise<void>;
+		clearError?: () => void;
+		updateProfile?: (data: Record<string, unknown>) => Promise<{ success: boolean }>;
+	}
+
+	interface DemoCredentials {
+		email: string;
+		password: string;
+	}
+
+	interface Branding {
+		siteName?: string;
+		loginTitle?: string;
+		loginSubtitle?: string;
+		registerTitle?: string;
+		registerSubtitle?: string;
+	}
+
+	interface PageData {
+		pageType?: PageType;
+		products?: MedusaProduct[];
+		product?: MedusaProduct;
+		cart?: MedusaCart;
+		regions?: MedusaRegion[];
+		auth?: AuthStore;
+		isAuthenticated?: Readable<boolean>;
+		customer?: Readable<MedusaCustomer | null>;
+		form?: Record<string, unknown>;
+		demoCredentials?: DemoCredentials;
+		[key: string]: unknown;
+	}
+
+	interface ContentConfig {
+		hero?: HeroSection;
+		features?: FeaturesSection;
+		footer?: FooterSection;
+		branding?: Branding;
+		plans?: {
+			title: string;
+			description: string;
+			links: Array<{ url: string; label: string }>;
+		};
+	}
+
+	interface Props {
+		data: PageData;
+		content?: ContentConfig;
+		config?: ShopConfig;
+	}
+
+	const {
 		data,
 		content = {},
 		config = {}
-	} = $props()
+	}: Props = $props()
 
 	// Extract page type and route data
-	let pageType = $derived(data.pageType || 'index')
+	const pageType: PageType = $derived((data.pageType || 'index') as PageType)
 </script>
 
 <div class="shop-router">

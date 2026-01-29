@@ -6,11 +6,11 @@
  * Formats a phone number string into a readable format
  * Converts "+15551234567" to "(555) 123-4567"
  *
- * @param {string} phoneNumber - The phone number to format (with or without country code)
- * @returns {string} The formatted phone number
+ * @param phoneNumber - The phone number to format (with or without country code)
+ * @returns The formatted phone number
  */
-export function formatPhoneNumber(phoneNumber) {
-	if (!phoneNumber) return ''
+export function formatPhoneNumber(phoneNumber: string | null | undefined): string {
+	if (!phoneNumber) { return '' }
 
 	// Remove all non-digit characters
 	const numbers = phoneNumber.replace(/\D/g, '')
@@ -21,7 +21,7 @@ export function formatPhoneNumber(phoneNumber) {
 
 	// Format the number: (XXX) XXX-XXXX
 	if (digits.length === 10) {
-		return `(${ digits.substring(0, 3) }) ${ digits.substring(3, 6) }-${ digits.substring(6) }`
+		return `(${digits.substring(0, 3)}) ${digits.substring(3, 6)}-${digits.substring(6)}`
 	}
 
 	// Return original format if we can't parse it

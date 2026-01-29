@@ -1,4 +1,4 @@
-<script>
+<script lang="ts">
 	/**
 	 * Subscription Detail Component
 	 *
@@ -6,35 +6,43 @@
 	 * Reusable across different storefronts
 	 */
 	import Modal from '@goobits/forms/ui/modals/Modal.svelte'
-	import { formatCurrency, formatDate, getStatusClass } from '../utils/subscription-helpers.js'
+	import { formatCurrency, formatDate } from '../utils/subscription-helpers'
 
-	let {
+	interface Props {
+		subscription?: Subscription;
+		backendUrl?: string;
+		onUpdate?: (event: SubscriptionUpdateEvent) => void;
+		backLinkUrl?: string;
+		backLinkText?: string;
+	}
+
+	const {
 		subscription,
 		backendUrl = '',
 		onUpdate = () => {},
 		backLinkUrl = '/shop/subscriptions',
 		backLinkText = '← Back to Subscriptions'
-	} = $props()
+	}: Props = $props()
 
 	// Loading states
-	let isPausing = $state(false)
-	let isResuming = $state(false)
-	let isCancelling = $state(false)
-	let showCancelConfirm = $state(false)
+	let isPausing: boolean = $state(false)
+	let isResuming: boolean = $state(false)
+	let isCancelling: boolean = $state(false)
+	let showCancelConfirm: boolean = $state(false)
 
 	// Error/success handling
-	let error = $state(null)
-	let success = $state(null)
+	let error: string | null = $state(null)
+	let success: string | null = $state(null)
 
 	/**
 	 * Pause subscription
 	 */
-	async function pauseSubscription() {
+	async function pauseSubscription(): Promise<void> {
 		isPausing = true
 		error = null
 
 		try {
-			const response = await fetch(`${backendUrl}/store/subscriptions/${subscription.id}/pause`, {
+			const response = await fetch(`${backendUrl}/store/subscriptions/${subscription?.id}/pause`, {
 				method: 'POST',
 				headers: {
 					'Content-Type': 'application/json'
@@ -46,9 +54,11 @@
 			}
 
 			success = 'Subscription paused successfully'
-			onUpdate({ action: 'pause', subscription })
+			if (subscription) {
+				onUpdate({ action: 'pause', subscription })
+			}
 		} catch (err) {
-			error = err.message
+			error = (err as Error).message
 		} finally {
 			isPausing = false
 		}
@@ -57,12 +67,12 @@
 	/**
 	 * Resume subscription
 	 */
-	async function resumeSubscription() {
+	async function resumeSubscription(): Promise<void> {
 		isResuming = true
 		error = null
 
 		try {
-			const response = await fetch(`${backendUrl}/store/subscriptions/${subscription.id}/resume`, {
+			const response = await fetch(`${backendUrl}/store/subscriptions/${subscription?.id}/resume`, {
 				method: 'POST',
 				headers: {
 					'Content-Type': 'application/json'
@@ -74,9 +84,11 @@
 			}
 
 			success = 'Subscription resumed successfully'
-			onUpdate({ action: 'resume', subscription })
+			if (subscription) {
+				onUpdate({ action: 'resume', subscription })
+			}
 		} catch (err) {
-			error = err.message
+			error = (err as Error).message
 		} finally {
 			isResuming = false
 		}
@@ -85,13 +97,13 @@
 	/**
 	 * Cancel subscription
 	 */
-	async function cancelSubscription(immediately = false) {
+	async function cancelSubscription(immediately: boolean = false): Promise<void> {
 		isCancelling = true
 		error = null
 
 		try {
 			const response = await fetch(
-				`${backendUrl}/store/subscriptions/${subscription.id}?immediately=${immediately}`,
+				`${backendUrl}/store/subscriptions/${subscription?.id}?immediately=${immediately}`,
 				{
 					method: 'DELETE',
 					headers: {
@@ -108,9 +120,11 @@
 				? 'Subscription cancelled immediately'
 				: 'Subscription will be cancelled at the end of the current period'
 
-			onUpdate({ action: 'cancel', subscription, immediately })
+			if (subscription) {
+				onUpdate({ action: 'cancel', subscription, immediately })
+			}
 		} catch (err) {
-			error = err.message
+			error = (err as Error).message
 		} finally {
 			isCancelling = false
 			showCancelConfirm = false
@@ -163,7 +177,7 @@
 					<div class="detail-item">
 						<dt>Amount:</dt>
 						<dd>
-							{formatCurrency(subscription.amount, subscription.currency_code)}
+							{formatCurrency(subscription.amount ?? 0, subscription.currency_code)}
 							{#if subscription.discount_type !== 'none'}
 								<span class="discount-badge">
 									{subscription.discount_value}{subscription.discount_type === 'percentage' ? '%' : ''} off
@@ -253,7 +267,7 @@
 			</section>
 
 			<!-- Payment Info Card -->
-			{#if subscription.payment_retry_count > 0}
+			{#if (subscription.payment_retry_count ?? 0) > 0}
 				<section class="card card--warning">
 					<h2>Payment Issues</h2>
 					<p>

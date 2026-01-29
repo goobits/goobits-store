@@ -1,28 +1,75 @@
-<script>
-	/**
-	 * @typedef {Object} Props
-	 * @property {Object} medusaCart - The Medusa cart object
-	 * @property {Object} shippingAddress - The current shipping address
-	 * @property {string} selectedShippingOption - ID of the selected shipping option
-	 * @property {boolean} paymentProcessed - Whether payment has been processed
-	 * @property {Object} paymentResult - Result of payment processing
-	 * @property {string} orderError - Order error message if any
-	 * @property {Object} defaultRegion - The default region data with countries
-	 * @property {boolean} formSubmitting - Whether the form is currently submitting
-	 * @property {Function} handlePlaceOrder - Function to handle order placement
-	 * @property {Function} getSelectedShippingOption - Function to get selected shipping option
-	 * @property {Function} formatPrice - Function to format price values
-	 * @property {Function} getLineItemTotal - Function to calculate line item total
-	 * @property {Function} getCartSubtotal - Function to get cart subtotal
-	 * @property {Function} getShippingTotal - Function to get shipping total
-	 * @property {Function} getTaxTotal - Function to get tax total
-	 * @property {Function} getOrderTotal - Function to get order total
-	 * @property {Function} goToStep - Function to navigate between steps
-	 * @property {string} STEPS_PAYMENT - The payment step identifier
-	 */
+<script lang="ts">
+	interface MedusaVariant {
+		id: string;
+		title: string;
+	}
 
-	/** @type {Props} */
-	let {
+	interface LineItem {
+		id: string;
+		title: string;
+		quantity: number;
+		thumbnail?: string;
+		variant: MedusaVariant;
+	}
+
+	interface MedusaCartData {
+		id: string;
+		items?: LineItem[];
+	}
+
+	interface ShippingAddress {
+		first_name: string;
+		last_name: string;
+		address_1: string;
+		address_2?: string;
+		city: string;
+		province: string;
+		postal_code: string;
+		country_code: string;
+		phone?: string;
+	}
+
+	interface PaymentResultData {
+		id: string;
+		last4?: string;
+	}
+
+	interface Country {
+		iso_2: string;
+		display_name: string;
+	}
+
+	interface DefaultRegion {
+		countries?: Country[];
+	}
+
+	interface ShippingOption {
+		name: string;
+		amount: number;
+	}
+
+	interface Props {
+		medusaCart: MedusaCartData;
+		shippingAddress: ShippingAddress;
+		selectedShippingOption: string;
+		paymentProcessed: boolean;
+		paymentResult: PaymentResultData | null;
+		orderError: string | null;
+		defaultRegion: DefaultRegion | null;
+		formSubmitting: boolean;
+		handlePlaceOrder: (event: SubmitEvent) => void;
+		getSelectedShippingOption: () => ShippingOption | null;
+		formatPrice: (amount: number) => string;
+		getLineItemTotal: (item: LineItem) => string;
+		getCartSubtotal: () => string;
+		getShippingTotal: () => string;
+		getTaxTotal: () => string;
+		getOrderTotal: () => string;
+		goToStep: (step: string) => void;
+		STEPS_PAYMENT: string;
+	}
+
+	const {
 		medusaCart,
 		shippingAddress,
 		selectedShippingOption,
@@ -41,12 +88,12 @@
 		getOrderTotal,
 		goToStep,
 		STEPS_PAYMENT
-	} = $props()
+	}: Props = $props()
 </script>
 
 <div class="goo__checkout-section">
 	<h2>Review Your Order</h2>
-	
+
 	<div class="goo__order-review">
 		<!-- Shipping Information -->
 		<div class="goo__review-section">
@@ -71,14 +118,14 @@
 			</div>
 			<button type="button" class="goo__edit-button" onclick={() => goToStep(STEPS_PAYMENT)}>Edit</button>
 		</div>
-		
+
 		<!-- Shipping Method -->
 		<div class="goo__review-section">
 			<h3>Shipping Method</h3>
 			<div class="goo__review-content">
 				{#if selectedShippingOption}
 					<p>
-						{getSelectedShippingOption()?.name || 'Standard Shipping'} - 
+						{getSelectedShippingOption()?.name || 'Standard Shipping'} -
 						${formatPrice(getSelectedShippingOption()?.amount || 0)}
 					</p>
 				{:else}
@@ -87,7 +134,7 @@
 			</div>
 			<button type="button" class="goo__edit-button" onclick={() => goToStep(STEPS_PAYMENT)}>Edit</button>
 		</div>
-		
+
 		<!-- Payment Method -->
 		<div class="goo__review-section">
 			<h3>Payment Method</h3>
@@ -103,7 +150,7 @@
 			</div>
 			<button type="button" class="goo__edit-button" onclick={() => goToStep(STEPS_PAYMENT)}>Edit</button>
 		</div>
-		
+
 		<!-- Order Items -->
 		<div class="goo__review-section">
 			<h3>Order Items</h3>
@@ -131,7 +178,7 @@
 				{/if}
 			</div>
 		</div>
-		
+
 		<!-- Order Summary -->
 		<div class="goo__order-summary">
 			<div class="goo__summary-row">
@@ -151,16 +198,16 @@
 				<span>${getOrderTotal()}</span>
 			</div>
 		</div>
-		
+
 		{#if orderError}
 			<div class="goo__form-error">
 				{orderError}
 			</div>
 		{/if}
-		
-		<form method="POST" action="?/completeCart" onsubmit={(e) => { e.preventDefault(); handlePlaceOrder(e); }}>
+
+		<form method="POST" action="?/completeCart" onsubmit={(e: SubmitEvent) => { e.preventDefault(); handlePlaceOrder(e); }}>
 			<input type="hidden" name="cart_id" value={medusaCart.id} />
-			
+
 			<div class="goo__form-actions">
 				<button type="button" class="goo__back-button" onclick={() => goToStep(STEPS_PAYMENT)}>
 					Return to Payment

@@ -1,15 +1,12 @@
-<script>
+<script lang="ts">
 	// This component contains the existing checkout functionality
 	// For now, we'll import and wrap the existing functionality
-	const { data, form = undefined } = $props()
-
-	// Re-export all the checkout functionality from the original file
 	import { clearCart } from '@goobits/store'
 	import { goto } from '$app/navigation'
 	import { onMount, onDestroy } from 'svelte'
 	import { browser } from '$app/environment'
-	import { Logger } from '@lib/utils/Logger.js'
-	import { user as customer } from '@lib/stores/auth-simple.js'
+	import { Logger } from '@lib/utils/Logger'
+	import { user as customer } from '@lib/stores/auth-simple'
 
 	// Import checkout components from store package
 	import CheckoutCustomerInfo from './Checkout/CheckoutCustomerInfo.svelte'
@@ -19,21 +16,87 @@
 	import CheckoutConfirmation from './Checkout/CheckoutConfirmation.svelte'
 
 	// Import checkout utilities directly to avoid circular dependency
-	import * as CheckoutUtils from '../utils/checkoutUtils.js'
+	import * as CheckoutUtils from '../utils/checkoutUtils'
+
+	interface CustomerInfo {
+		email: string;
+		first_name: string;
+		last_name: string;
+	}
+
+	interface ShippingAddress {
+		first_name: string;
+		last_name: string;
+		address_1: string;
+		address_2: string;
+		city: string;
+		province: string;
+		postal_code: string;
+		country_code: string;
+		phone: string;
+	}
+
+	interface ShippingOption {
+		id: string;
+		name?: string;
+		amount?: number;
+		[key: string]: unknown;
+	}
+
+	interface SavedCheckoutState {
+		currentStep?: string;
+		customerInfo?: CustomerInfo;
+		shippingAddress?: ShippingAddress;
+		selectedShippingOption?: string;
+		useSameAddress?: boolean;
+	}
+
+	interface FormData {
+		success?: boolean;
+		error?: string;
+		order?: MedusaOrder;
+	}
+
+	interface PaymentErrors {
+		general?: string;
+		[key: string]: string | undefined;
+	}
+
+	interface PaymentIntent {
+		id: string;
+		status: string;
+		[key: string]: unknown;
+	}
+
+	interface PageData {
+		cart?: MedusaCart;
+		defaultRegion?: MedusaRegion | null;
+		shippingOptions?: ShippingOption[];
+		[key: string]: unknown;
+	}
+
+	interface Props {
+		data: PageData;
+		form?: FormData;
+	}
+
+	const { data, form = undefined }: Props = $props()
 
 	const logger = new Logger('Checkout')
 
 	// Debug: log when component loads
 	logger.info('ShopCheckoutPage loading...')
+	// eslint-disable-next-line svelte/valid-compile -- debug logging intentionally captures initial values
 	logger.info('Data cart:', data?.cart?.id)
-	logger.info('Data regions:', data?.regions?.length)
+	// eslint-disable-next-line svelte/valid-compile -- debug logging intentionally captures initial values
+	logger.info('Data regions:', data?.defaultRegion)
 
 	// Setup lifecycle hooks
 	onMount(() => {
 		// Initialize session storage for checkout
 		if (browser && typeof window !== 'undefined') {
 			// Populate customer data from store if available and not already loaded from session
-			const unsubscribe = customer.subscribe(value => {
+			const unsubscribe = customer.subscribe((value: MedusaCustomer | null) => {
 				if (value && !savedState?.customerInfo) {
 					// Only populate if we don't have saved state
 					customerInfo.email = value.email || ''
@@ -56,10 +119,9 @@
 	})
 
 	// Extract checkout data
-	let medusaCart = $derived(data.cart || {})
-	let regions = $derived(data.regions || [])
-	let defaultRegion = $derived(data.defaultRegion || null)
-	let shippingOptions = $derived(data.shippingOptions || [])
+	const medusaCart: MedusaCart = $derived(data.cart || {} as MedusaCart)
+	const defaultRegion: MedusaRegion | null = $derived(data.defaultRegion || null)
+	const shippingOptions: ShippingOption[] = $derived(data.shippingOptions || [])
 
 	// Checkout steps
 	const STEPS = {
@@ -68,15 +130,17 @@
 		PAYMENT: 'payment',
 		REVIEW: 'review',
 		CONFIRMATION: 'confirmation'
-	}
+	} as const
+
+	type StepType = typeof STEPS[keyof typeof STEPS]
 
 	// Load state from session storage or use defaults
-	function loadCheckoutState() {
+	function loadCheckoutState(): SavedCheckoutState | null {
 		if (!browser) return null
 
 		try {
 			const savedState = sessionStorage.getItem('checkout_state')
-			return savedState ? JSON.parse(savedState) : null
+			return savedState ? JSON.parse(savedState) as SavedCheckoutState : null
 		} catch (e) {
 			logger.error('Error loading checkout state:', e)
 			return null
@@ -86,22 +150,22 @@
 	const savedState = loadCheckoutState()
 
 	// Initialize form state (either from session storage or defaults)
-	let currentStep = $state(savedState?.currentStep || STEPS.INFORMATION)
-	let completedOrder = $state(null)
-	let orderError = $state('')
-	let formSubmitting = $state(false)
-	let paymentErrors = $state({})
+	let currentStep: StepType = $state((savedState?.currentStep as StepType) || STEPS.INFORMATION)
+	let completedOrder: MedusaOrder | null = $state(null)
+	let orderError: string = $state('')
+	let formSubmitting: boolean = $state(false)
+	let paymentErrors: PaymentErrors = $state({})
 
 	// Payment state
-	let paymentProcessed = $state(false)
-	let paymentResult = $state(null)
+	let paymentProcessed: boolean = $state(false)
+	let paymentResult: PaymentIntent | null = $state(null)
 
 	// Save checkout state to session storage
-	function saveCheckoutState() {
+	function saveCheckoutState(): void {
 		if (!browser) return
 
 		try {
-			const stateToSave = {
+			const stateToSave: SavedCheckoutState = {
 				currentStep,
 				customerInfo,
 				shippingAddress,
@@ -117,16 +181,17 @@
 
 	// Form data for each step (using saved state if available, or from authenticated user)
 	// Initialize with empty values - we'll populate from customer store in onMount
-	let customerInfo = $state(savedState?.customerInfo || {
+	const customerInfo: CustomerInfo = $state(savedState?.customerInfo || {
 		email: '',
 		first_name: '',
 		last_name: ''
 	})
 
 	// Get default country code from region (derived to ensure SSR consistency)
-	let defaultCountry = $derived(defaultRegion?.countries?.[0]?.iso_2 || 'us')
+	const defaultCountry: string = $derived(defaultRegion?.countries?.[0]?.iso_2 || 'us')
 
-	let shippingAddress = $state(savedState?.shippingAddress || {
+	/* eslint-disable svelte/valid-compile -- defaultCountry reference is intentional for initial state */
+	const shippingAddress: ShippingAddress = $state(savedState?.shippingAddress || {
 		first_name: '',
 		last_name: '',
 		address_1: '',
@@ -137,14 +202,15 @@
 		country_code: defaultCountry,
 		phone: ''
 	})
+	/* eslint-enable svelte/valid-compile */
 
 	// Get default shipping option (derived to ensure SSR consistency)
-	let defaultShippingOption = $derived(
+	const defaultShippingOption: string = $derived(
 		shippingOptions && shippingOptions.length > 0 ? shippingOptions[0].id : ''
 	)
 
 	// Initialize selected shipping option from saved state or default
-	let selectedShippingOption = $state(savedState?.selectedShippingOption || '')
+	let selectedShippingOption: string = $state(savedState?.selectedShippingOption || '')
 
 	// Auto-select default shipping option if none selected (client-side only to avoid form issues)
 	$effect(() => {
@@ -180,7 +246,7 @@
 	})
 
 	// Handle form submissions for each step
-	async function handleCustomerInfoSubmit(event) {
+	async function handleCustomerInfoSubmit(_event: Event): Promise<void> {
 		formSubmitting = true
 
 		// Save form state before submission
@@ -197,7 +263,7 @@
 		formSubmitting = false
 	}
 
-	async function handleShippingAddressSubmit(event) {
+	async function handleShippingAddressSubmit(_event: Event): Promise<void> {
 		formSubmitting = true
 
 		// Save form state before submission
@@ -213,7 +279,7 @@
 		formSubmitting = false
 	}
 
-	async function handleShippingMethodSubmit(event) {
+	async function handleShippingMethodSubmit(_event: Event): Promise<void> {
 		formSubmitting = true
 
 		// Save form state before submission
@@ -229,7 +295,7 @@
 		formSubmitting = false
 	}
 
-	async function handlePaymentUpdate(event) {
+	async function handlePaymentUpdate(_event: Event): Promise<void> {
 		formSubmitting = true
 		paymentErrors = {}
 
@@ -244,7 +310,7 @@
 		formSubmitting = false
 	}
 
-	function handlePaymentSuccess(event) {
+	function handlePaymentSuccess(event: CustomEvent<{ paymentIntent: PaymentIntent }>): void {
 		paymentProcessed = true
 		paymentResult = event.detail.paymentIntent
 		paymentErrors = {}
@@ -254,12 +320,12 @@
 		saveCheckoutState()
 	}
 
-	function handlePaymentError(event) {
+	function handlePaymentError(event: CustomEvent<{ error: string }>): void {
 		paymentProcessed = false
 		paymentErrors.general = event.detail.error || 'Payment processing failed'
 	}
 
-	async function handlePlaceOrder(event) {
+	async function handlePlaceOrder(_event: Event): Promise<void> {
 		formSubmitting = true
 		orderError = ''
 
@@ -285,35 +351,35 @@
 	}
 
 	// Helper functions
-	function getSelectedShippingOption() {
+	function getSelectedShippingOption(): ShippingOption | undefined {
 		return shippingOptions.find(option => option.id === selectedShippingOption)
 	}
 
-	function formatPrice(price) {
+	function formatPrice(price: number): string {
 		return CheckoutUtils.formatPrice(price)
 	}
 
-	function getLineItemTotal(item) {
+	function getLineItemTotal(item: MedusaLineItem): number {
 		return CheckoutUtils.getLineItemTotal(item)
 	}
 
-	function getCartSubtotal() {
+	function getCartSubtotal(): number {
 		return CheckoutUtils.getCartSubtotal(medusaCart)
 	}
 
-	function getShippingTotal() {
+	function getShippingTotal(): number {
 		return CheckoutUtils.getShippingTotal(medusaCart)
 	}
 
-	function getTaxTotal() {
+	function getTaxTotal(): number {
 		return CheckoutUtils.getTaxTotal(medusaCart)
 	}
 
-	function getOrderTotal() {
+	function getOrderTotal(): number {
 		return CheckoutUtils.getOrderTotal(medusaCart)
 	}
 
-	function goToStep(step) {
+	function goToStep(step: StepType): void {
 		// Only allow going back to previous steps
 		const steps = Object.values(STEPS)
 		const currentIndex = steps.indexOf(currentStep)
@@ -324,11 +390,13 @@
 		}
 	}
 
-	function continueShopping() {
+	function continueShopping(): void {
 		goto('/shop')
 	}
 
+	// eslint-disable-next-line svelte/valid-compile -- Debug logging intentionally captures initial values
 	logger.info('About to render template, currentStep:', currentStep)
+	// eslint-disable-next-line svelte/valid-compile -- Debug logging intentionally captures initial values
 	logger.info('medusaCart id:', medusaCart?.id)
 </script>
 
@@ -337,7 +405,8 @@
 
 	<!-- Checkout Navigation -->
 	<div class="goo__checkout-steps">
-		<div class="goo__checkout-step {currentStep === STEPS.INFORMATION ? 'active' : ''}"
+		<div class="goo__checkout-step"
+			 class:active={currentStep === STEPS.INFORMATION}
 			 onclick={() => goToStep(STEPS.INFORMATION)}
 			 onkeydown={(e) => e.key === 'Enter' && goToStep(STEPS.INFORMATION)}
 			 tabindex="0"
@@ -346,7 +415,8 @@
 			<span class="goo__step-name">Information</span>
 		</div>
 		<div class="goo__step-divider"></div>
-		<div class="goo__checkout-step {currentStep === STEPS.SHIPPING ? 'active' : ''}"
+		<div class="goo__checkout-step"
+			 class:active={currentStep === STEPS.SHIPPING}
 			 onclick={() => goToStep(STEPS.SHIPPING)}
 			 onkeydown={(e) => e.key === 'Enter' && goToStep(STEPS.SHIPPING)}
 			 tabindex="0"
@@ -355,7 +425,8 @@
 			<span class="goo__step-name">Shipping</span>
 		</div>
 		<div class="goo__step-divider"></div>
-		<div class="goo__checkout-step {currentStep === STEPS.PAYMENT ? 'active' : ''}"
+		<div class="goo__checkout-step"
+			 class:active={currentStep === STEPS.PAYMENT}
 			 onclick={() => goToStep(STEPS.PAYMENT)}
 			 onkeydown={(e) => e.key === 'Enter' && goToStep(STEPS.PAYMENT)}
 			 tabindex="0"
@@ -364,7 +435,8 @@
 			<span class="goo__step-name">Payment</span>
 		</div>
 		<div class="goo__step-divider"></div>
-		<div class="goo__checkout-step {currentStep === STEPS.REVIEW ? 'active' : ''}"
+		<div class="goo__checkout-step"
+			 class:active={currentStep === STEPS.REVIEW}
 			 onclick={() => goToStep(STEPS.REVIEW)}
 			 onkeydown={(e) => e.key === 'Enter' && goToStep(STEPS.REVIEW)}
 			 tabindex="0"

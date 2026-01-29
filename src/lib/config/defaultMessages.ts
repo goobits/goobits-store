@@ -3,7 +3,95 @@
  * These can be overridden by passing a messages prop to components
  */
 
-export const defaultMessages = {
+export interface CheckoutStepsMessages {
+	customer: string;
+	shipping: string;
+	payment: string;
+	review: string;
+	confirmation: string;
+}
+
+export interface DefaultMessages {
+	// Navigation
+	shopName: string;
+	products: string;
+	cart: string;
+	backToMainSite: string;
+
+	// Cart
+	emptyCart: string;
+	addToCart: string;
+	removeFromCart: string;
+	quantity: string;
+	total: string;
+	subtotal: string;
+
+	// Checkout
+	checkout: string;
+	checkoutSteps: CheckoutStepsMessages;
+
+	// Customer info
+	email: string;
+	firstName: string;
+	lastName: string;
+	phone: string;
+	address: string;
+	city: string;
+	postalCode: string;
+	country: string;
+	state: string;
+
+	// Shipping
+	shippingMethod: string;
+	shippingAddress: string;
+	selectShippingMethod: string;
+
+	// Payment
+	paymentMethod: string;
+	creditCard: string;
+	cardNumber: string;
+	expiryDate: string;
+	cvv: string;
+	billingAddress: string;
+	sameAsShipping: string;
+
+	// Review
+	orderSummary: string;
+	placeOrder: string;
+	orderTotal: string;
+
+	// Confirmation
+	orderConfirmation: string;
+	thankYouForOrder: string;
+	orderNumber: string;
+	estimatedDelivery: string;
+
+	// Actions
+	continueToShipping: string;
+	continueToPayment: string;
+	continueToReview: string;
+	goToCheckout: string;
+	continueShopping: string;
+	back: string;
+	next: string;
+	save: string;
+	cancel: string;
+
+	// Errors
+	requiredField: string;
+	invalidEmail: string;
+	invalidCardNumber: string;
+	genericError: string;
+
+	// Success messages
+	itemAddedToCart: string;
+	orderSuccess: string;
+
+	// Currency
+	currency: string;
+}
+
+export const defaultMessages: DefaultMessages = {
 	// Navigation
 	shopName: 'Shop',
 	products: 'Products',

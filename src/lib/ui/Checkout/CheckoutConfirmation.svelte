@@ -1,70 +1,90 @@
-<script>
-	import { createMessageGetter } from '../../utils/messages.js'
-	import { defaultMessages } from '../../config/defaultMessages.js'
-	
-	/**
-	 * @typedef {Object} Props
-	 * @property {Object} completedOrder - The completed order details
-	 * @property {Function} formatPrice - Function to format price values
-	 * @property {Function} continueShopping - Function to navigate back to shopping
-	 * @property {Object} [messages] - Custom messages for i18n
-	 * @property {string} [locale] - Locale for date formatting
-	 */
+<script lang="ts">
+	import { createMessageGetter } from '../../utils/messages'
+	import { defaultMessages } from '../../config/defaultMessages'
 
-	/** @type {Props} */
-	let {
+	interface CompletedOrder {
+		id: string;
+		display_id?: number;
+		email: string;
+		created_at: string;
+		subtotal: number;
+		shipping_total: number;
+		tax_total: number;
+		total: number;
+		shipping_address?: {
+			first_name: string;
+			last_name: string;
+			address_1: string;
+			address_2?: string;
+			city: string;
+			province: string;
+			postal_code: string;
+			country_code: string;
+		};
+	}
+
+	interface Props {
+		completedOrder: CompletedOrder;
+		formatPrice: (amount: number) => string;
+		continueShopping: () => void;
+		messages?: Record<string, string>;
+		locale?: string;
+	}
+
+	const {
 		completedOrder,
 		formatPrice,
 		continueShopping,
 		messages = {},
 		locale = 'en-US'
-	} = $props()
-	
-	// Create message getter
-	const getMessage = createMessageGetter({ ...defaultMessages, ...messages })
+	}: Props = $props()
+
+	// Create message getter - cast to string since we always provide fallback
+	const messageGetter = $derived(createMessageGetter({ ...defaultMessages, ...messages }))
+	const msg = (key: string, fallback: string): string => String(messageGetter(key, fallback))
 </script>
 
 <div class="goo__checkout-section goo__confirmation">
 	<div class="goo__confirmation-header">
 		<div class="goo__confirmation-icon">✓</div>
-		<h2>{getMessage('thankYouForOrder', 'Thank you!')}</h2>
-		<p>{getMessage('orderSuccess', 'Your order has been placed successfully.')}</p>
+		<h2>{msg('thankYouForOrder', 'Thank you!')}</h2>
+		<p>{msg('orderSuccess', 'Your order has been placed successfully.')}</p>
 	</div>
-	
+
 	{#if completedOrder}
 		<div class="goo__confirmation-details">
 			<div class="goo__confirmation-info">
-				<h3>{getMessage('orderInformation', 'Order Information')}</h3>
-				<p><strong>{getMessage('orderNumber', 'Order Number')}:</strong> {completedOrder.display_id || completedOrder.id}</p>
-				<p><strong>{getMessage('date', 'Date')}:</strong> {new Date(completedOrder.created_at).toLocaleDateString(locale)}</p>
-				<p><strong>{getMessage('email', 'Email')}:</strong> {completedOrder.email}</p>
+				<h3>{msg('orderInformation', 'Order Information')}</h3>
+				<p><strong>{msg('orderNumber', 'Order Number')}:</strong> {completedOrder.display_id || completedOrder.id}</p>
+				<p><strong>{msg('date', 'Date')}:</strong> {new Date(completedOrder.created_at).toLocaleDateString(locale)}</p>
+				<p><strong>{msg('email', 'Email')}:</strong> {completedOrder.email}</p>
 			</div>
-			
+
 			<div class="goo__confirmation-summary">
-				<h3>{getMessage('orderSummary', 'Order Summary')}</h3>
+				<h3>{msg('orderSummary', 'Order Summary')}</h3>
 				<div class="goo__summary-row">
-					<span>{getMessage('subtotal', 'Subtotal')}</span>
-					<span>{getMessage('currency', '$')}{formatPrice(completedOrder.subtotal)}</span>
+					<span>{msg('subtotal', 'Subtotal')}</span>
+					<span>{msg('currency', '$')}{formatPrice(completedOrder.subtotal)}</span>
 				</div>
 				<div class="goo__summary-row">
-					<span>{getMessage('shipping', 'Shipping')}</span>
-					<span>{getMessage('currency', '$')}{formatPrice(completedOrder.shipping_total)}</span>
+					<span>{msg('shipping', 'Shipping')}</span>
+					<span>{msg('currency', '$')}{formatPrice(completedOrder.shipping_total)}</span>
 				</div>
 				{#if completedOrder.tax_total > 0}
 					<div class="goo__summary-row">
-						<span>{getMessage('tax', 'Tax')}</span>
-						<span>{getMessage('currency', '$')}{formatPrice(completedOrder.tax_total)}</span>
+						<span>{msg('tax', 'Tax')}</span>
+						<span>{msg('currency', '$')}{formatPrice(completedOrder.tax_total)}</span>
 					</div>
 				{/if}
 				<div class="goo__summary-row goo__summary-total">
-					<span>{getMessage('total', 'Total')}</span>
-					<span>{getMessage('currency', '$')}{formatPrice(completedOrder.total)}</span>
+					<span>{msg('total', 'Total')}</span>
+					<span>{msg('currency', '$')}{formatPrice(completedOrder.total)}</span>
 				</div>
 			</div>
-			
+
 			{#if completedOrder.shipping_address}
 				<div class="goo__confirmation-shipping">
-					<h3>{getMessage('shippingInformation', 'Shipping Information')}</h3>
+					<h3>{msg('shippingInformation', 'Shipping Information')}</h3>
 					<p>
 						{completedOrder.shipping_address.first_name} {completedOrder.shipping_address.last_name}<br>
 						{completedOrder.shipping_address.address_1}<br>
@@ -78,13 +98,13 @@
 			{/if}
 		</div>
 	{/if}
-	
+
 	<div class="goo__confirmation-actions">
-		<button 
+		<button
 			class="goo__btn goo__btn--primary"
 			onclick={continueShopping}
 		>
-			{getMessage('continueShopping', 'Continue Shopping')}
+			{msg('continueShopping', 'Continue Shopping')}
 		</button>
 	</div>
 </div>
@@ -125,20 +145,20 @@
 		text-decoration: none;
 		display: inline-block;
 		font-size: $font-size-medium;
-		
+
 		&:hover {
 			background-color: $hover-background;
 			transform: translateY(-1px);
 		}
-		
+
 		&:active {
 			transform: translateY(0);
 		}
-		
+
 		&:disabled {
 			opacity: 0.5;
 			cursor: not-allowed;
-			
+
 			&:hover {
 				transform: none;
 			}
@@ -154,11 +174,11 @@
 		&__confirmation {
 			text-align: center;
 			margin-top: $spacing-large;
-			
+
 			&-header {
 				margin-bottom: $spacing-xlarge;
 			}
-			
+
 			&-icon {
 				display: inline-block;
 				width: 80px;
@@ -170,7 +190,7 @@
 				font-size: 40px;
 				margin-bottom: $spacing-medium;
 			}
-			
+
 			&-details {
 				display: grid;
 				grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
@@ -178,44 +198,44 @@
 				margin: $spacing-large 0;
 				text-align: left;
 			}
-			
+
 			&-info,
 			// &-summary,
 			&-shipping {
 				background-color: $light-gray;
 				border-radius: $border-radius-medium;
 				padding: $spacing-medium;
-				
+
 				h3 {
 					margin-bottom: $spacing-medium;
 					font-size: $font-size-medium;
 				}
-				
+
 				p {
 					margin-bottom: $spacing-small;
-					
+
 					&:last-child {
 						margin-bottom: 0;
 					}
 				}
 			}
-			
+
 			&-actions {
 				margin-top: $spacing-xlarge;
 			}
 		}
-		
+
 		&__summary {
 			&-row {
 				display: flex;
 				justify-content: space-between;
 				margin-bottom: $spacing-small;
-				
+
 				&:last-child {
 					margin-bottom: 0;
 				}
 			}
-			
+
 			&-total {
 				font-weight: bold;
 				font-size: $font-size-medium;
@@ -224,7 +244,7 @@
 				margin-top: $spacing-small;
 			}
 		}
-		
+
 		&__btn {
 			&--primary {
 				@include button-primary;

@@ -1,9 +1,9 @@
-<script>
-	import { onMount } from 'svelte'
+<script lang="ts">
 	import MFAGracePeriodBanner from './MFAGracePeriodBanner.svelte'
-	import { fetchMFAStatus, shouldShowGracePeriodBanner } from './mfaStatus.js'
-	import { getPublishableKey } from '../config/urls.js'
-	import { createLogger } from '../utils/logger.js'
+	import { fetchMFAStatus, shouldShowGracePeriodBanner, type MFAStatus } from './mfaStatus'
+	import { getPublishableKey } from '../config/urls'
+	import { createLogger } from '../utils/logger'
+	import type { Readable } from 'svelte/store'
 
 	const logger = createLogger('MFAGracePeriodWrapper')
 
@@ -12,24 +12,32 @@
 	 *
 	 * Automatically fetches MFA status and shows banner if needed.
 	 * Integrates with auth store to get current user token.
-	 *
-	 * @prop {Object} auth - Auth store instance
-	 * @prop {string} backendUrl - Medusa backend URL
-	 * @prop {Function} onSetupNow - Callback when "Set up now" is clicked
 	 */
-	let {
+
+	interface AuthState {
+		customer?: { id: string } | null
+		user?: { id: string } | null
+	}
+
+	interface Props {
+		auth: Readable<AuthState>
+		backendUrl?: string
+		onSetupNow?: () => void
+	}
+
+	const {
 		auth,
 		backendUrl = '',
 		onSetupNow = () => {}
-	} = $props()
+	}: Props = $props()
 
 	// MFA status state
-	let mfaStatus = $state(null)
-	let loading = $state(true)
-	let error = $state(false)
+	let mfaStatus: MFAStatus | null = $state(null)
+	let loading: boolean = $state(true)
+	let error: boolean = $state(false)
 
 	// Auth state
-	let authState = $state({ customer: null, user: null })
+	let authState: AuthState = $state({ customer: null, user: null })
 
 	// Subscribe to auth store
 	$effect(() => {
@@ -39,13 +47,14 @@
 			})
 			return unsubAuth
 		}
+		return undefined
 	})
 
 	// Check if banner should be shown
-	let showBanner = $derived(
+	const showBanner: boolean = $derived(
 		!loading &&
 		!error &&
-		mfaStatus &&
+		mfaStatus !== null &&
 		shouldShowGracePeriodBanner(mfaStatus)
 	)
 
@@ -66,7 +75,7 @@
 		}
 	})
 
-	async function loadMFAStatus() {
+	async function loadMFAStatus(): Promise<void> {
 		loading = true
 		error = false
 
@@ -81,7 +90,7 @@
 		}
 	}
 
-	function handleSetupNow() {
+	function handleSetupNow(): void {
 		// Call parent callback
 		onSetupNow()
 

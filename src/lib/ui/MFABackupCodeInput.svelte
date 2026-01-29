@@ -1,29 +1,32 @@
-<script>
+<script lang="ts">
 	import { onMount } from 'svelte'
 
 	/**
 	 * MFABackupCodeInput - Backup code entry component
-	 *
-	 * @prop {Function} onVerify - Callback when code is submitted (code)
-	 * @prop {Function} [onBackToTOTP] - Callback to switch back to TOTP
-	 * @prop {string} [error] - Error message to display
-	 * @prop {boolean} [loading=false] - Loading state
 	 */
-	let {
+
+	interface Props {
+		onVerify: (code: string) => void | Promise<void>
+		onBackToTOTP?: (() => void) | null
+		error?: string
+		loading?: boolean
+	}
+
+	const {
 		onVerify,
 		onBackToTOTP = null,
 		error = '',
 		loading = false
-	} = $props()
+	}: Props = $props()
 
 	// State
-	let code = $state('')
-	let inputRef = $state(null)
+	let code: string = $state('')
+	let inputRef: HTMLInputElement | null = $state(null)
 
 	// Derived
-	let cleanCode = $derived(code.replace(/[-\s]/g, ''))
-	let isValid = $derived(cleanCode.length === 8)
-	let canSubmit = $derived(isValid && !loading)
+	const cleanCode: string = $derived(code.replace(/[-\s]/g, ''))
+	const isValid: boolean = $derived(cleanCode.length === 8)
+	const canSubmit: boolean = $derived(isValid && !loading)
 
 	onMount(() => {
 		// Focus input on mount
@@ -32,8 +35,9 @@
 		}
 	})
 
-	function handleInput(event) {
-		let value = event.target.value.toUpperCase()
+	function handleInput(event: Event): void {
+		const target = event.target as HTMLInputElement
+		let value = target.value.toUpperCase()
 
 		// Remove any characters that aren't alphanumeric
 		value = value.replace(/[^A-Z0-9]/g, '')
@@ -51,9 +55,9 @@
 		code = value
 	}
 
-	function handlePaste(event) {
+	function handlePaste(event: ClipboardEvent): void {
 		event.preventDefault()
-		const pastedText = event.clipboardData.getData('text')
+		const pastedText = event.clipboardData?.getData('text') || ''
 
 		// Extract alphanumeric characters
 		let cleaned = pastedText.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 8)
@@ -71,12 +75,12 @@
 		}
 	}
 
-	function handleSubmit() {
+	function handleSubmit(): void {
 		if (!canSubmit) return
 		onVerify(cleanCode)
 	}
 
-	function handleBackToTOTP() {
+	function handleBackToTOTP(): void {
 		if (onBackToTOTP) {
 			onBackToTOTP()
 		}

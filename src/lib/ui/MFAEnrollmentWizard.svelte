@@ -1,52 +1,60 @@
-<script>
+<script lang="ts">
 	import { Check, ChevronLeft, Download, Copy, CheckCircle2, Smartphone, QrCode, Shield } from '@lucide/svelte'
 	import { browser } from '$app/environment'
 	import QRCodeLib from 'qrcode'
-	import { getBackendUrl, getPublishableKey } from '../config/urls.js'
-	import { createLogger } from '../utils/logger.js'
+	import { getBackendUrl, getPublishableKey } from '../config/urls'
+	import { createLogger } from '../utils/logger'
 
 	const logger = createLogger('MFAEnrollmentWizard')
 
 	/**
 	 * MFAEnrollmentWizard - Multi-step wizard for MFA enrollment
-	 *
-	 * @prop {string} userId - User ID for enrollment
-	 * @prop {string} password - Pre-verified password for enrollment
-	 * @prop {Function} onComplete - Callback when enrollment is complete
-	 * @prop {Function} onCancel - Callback when user cancels
-	 * @prop {boolean} allowSkip - Whether user can skip enrollment
-	 * @prop {string} backendUrl - Backend API URL
 	 */
-	let {
-	userId,
+
+	interface AuthenticatorApp {
+		name: string
+		icon: 'smartphone' | 'shield'
+	}
+
+	interface Props {
+		userId?: string | null
+		password: string
+		onComplete?: (backupCodes: string[]) => void
+		onCancel?: () => void
+		allowSkip?: boolean
+		backendUrl?: string
+	}
+
+	const {
+	userId: _userId,
 	password,
 	onComplete,
 	onCancel,
 	allowSkip = true,
 	backendUrl = getBackendUrl()
-	} = $props()
+	}: Props = $props()
 
 	// State management
-	let currentStep = $state(1)
-	let loading = $state(false)
-	let error = $state(null)
+	let currentStep: number = $state(1)
+	let loading: boolean = $state(false)
+	let error: string | null = $state(null)
 
 	// Enrollment data
-	let qrCodeUrl = $state('')
-	let secretKey = $state('')
-	let totpUri = $state('')
-	let verificationCode = $state('')
-	let backupCodes = $state([])
-	let backupCodesSaved = $state(false)
+	let qrCodeUrl: string = $state('')
+	let secretKey: string = $state('')
+	let totpUri: string = $state('')
+	let verificationCode: string = $state('')
+	let backupCodes: string[] = $state([])
+	let backupCodesSaved: boolean = $state(false)
 
 	// Manual code entry
-	let showManualEntry = $state(false)
+	let showManualEntry: boolean = $state(false)
 
 	// Selected app
-	let selectedApp = $state(null)
+	let selectedApp: string | null = $state(null)
 
 	// Recommended authenticator apps
-	const authenticatorApps = [
+	const authenticatorApps: AuthenticatorApp[] = [
 	{ name: 'Google Authenticator', icon: 'smartphone' },
 	{ name: 'Authy', icon: 'smartphone' },
 	{ name: '1Password', icon: 'shield' },
@@ -54,7 +62,7 @@
 	]
 
 	// Initialize MFA enrollment
-	async function initializeEnrollment() {
+	async function initializeEnrollment(): Promise<void> {
 	if (currentStep !== 2 || !password) return
 
 	loading = true
@@ -101,14 +109,14 @@
 	})
 	}
 	} catch (err) {
-	error = err.message
+	error = (err as Error).message
 	} finally {
 	loading = false
 	}
 	}
 
 	// Complete enrollment with verification code
-	async function completeEnrollment() {
+	async function completeEnrollment(): Promise<void> {
 	if (!verificationCode || verificationCode.length !== 6) {
 	error = 'Please enter a valid 6-digit code'
 	return
@@ -138,7 +146,7 @@
 	// Move to final step to display them
 	currentStep = 4
 	} catch (err) {
-	error = err.message
+	error = (err as Error).message
 	verificationCode = ''
 	} finally {
 	loading = false
@@ -146,7 +154,7 @@
 	}
 
 	// Download backup codes
-	function downloadBackupCodes() {
+	function downloadBackupCodes(): void {
 	const content = backupCodes.map((code, i) => `${ i + 1 }. ${ code }`).join('\n')
 	const header = '=== MFA Backup Codes ===\n'
 	const footer = '\n\nKeep these codes safe! Each can only be used once.\n'
@@ -162,7 +170,7 @@
 	}
 
 	// Copy backup codes to clipboard
-	async function copyBackupCodes() {
+	async function copyBackupCodes(): Promise<void> {
 	const content = backupCodes.join('\n')
 	try {
 	await navigator.clipboard.writeText(content)
@@ -173,7 +181,7 @@
 	}
 
 	// Copy secret key to clipboard
-	async function copySecretKey() {
+	async function copySecretKey(): Promise<void> {
 	try {
 	await navigator.clipboard.writeText(secretKey)
 	} catch (err) {
@@ -182,7 +190,7 @@
 	}
 
 	// Navigate steps
-	function nextStep() {
+	function nextStep(): void {
 	if (currentStep === 1) {
 	currentStep = 2
 	// Initialize enrollment when moving to QR code step
@@ -200,14 +208,14 @@
 	}
 	}
 
-	function previousStep() {
+	function previousStep(): void {
 	if (currentStep > 1) {
 	currentStep--
 	error = null
 	}
 	}
 
-	function handleCancel() {
+	function handleCancel(): void {
 	onCancel?.()
 	}
 

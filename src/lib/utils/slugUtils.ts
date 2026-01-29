@@ -7,10 +7,10 @@
  * Generates a kebab-case slug from a file path segment.
  * Handles PascalCase, camelCase, and spaces.
  * Example: 'AboutUs' -> 'about-us', 'Privacy Policy' -> 'privacy-policy'
- * @param {string} part - The path segment.
- * @returns {string} The kebab-case slug segment.
+ * @param part - The path segment.
+ * @returns The kebab-case slug segment.
  */
-export function generateKebabCasePart(part) {
+export function generateKebabCasePart(part: string): string {
 	// Add hyphen before capital letter preceded by lowercase or number
 	let kebabPart = part.replace(/([a-z\d])([A-Z])/g, '$1-$2')
 	// Add hyphen between consecutive capitals followed by lowercase (e.g. FAQPage -> FAQ-Page)
@@ -21,10 +21,10 @@ export function generateKebabCasePart(part) {
 
 /**
  * Generates a URL-friendly slug from a relative markdown file path.
- * @param {string} relativePath - e.g., 'AboutUs' or 'Legal/Privacy Policy'
- * @returns {string} - e.g., 'about-us' or 'legal/privacy-policy'
+ * @param relativePath - e.g., 'AboutUs' or 'Legal/Privacy Policy'
+ * @returns - e.g., 'about-us' or 'legal/privacy-policy'
  */
-export function generateSlugFromPath(relativePath) {
+export function generateSlugFromPath(relativePath: string): string {
 	return relativePath
 		.split('/')
 		.map(generateKebabCasePart)
@@ -33,10 +33,10 @@ export function generateSlugFromPath(relativePath) {
 
 /**
  * Cleans a content file path by removing common prefixes and extensions
- * @param {string} path - Original path from import.meta.glob
- * @returns {string} - Cleaned relative path without prefixes or extensions
+ * @param path - Original path from import.meta.glob
+ * @returns Cleaned relative path without prefixes or extensions
  */
-export function cleanContentPath(path) {
+export function cleanContentPath(path: string): string {
 	return path
 		.replace(/^\/src\/content\//, '') // Remove /src/content/ prefix
 		.replace(/^@content\//, '')       // Remove @content/ prefix

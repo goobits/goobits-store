@@ -1,4 +1,4 @@
-<script>
+<script lang="ts">
 	import FormErrors from '@goobits/forms/ui/FormErrors.svelte'
 	import Button from '@goobits/forms/ui/modals/Button.svelte'
 
@@ -7,51 +7,72 @@
 	 *
 	 * @component
 	 * Allows super-admins to reset MFA for other admin users with proper confirmation
-	 *
-	 * @prop {boolean} show - Show/hide modal (bindable)
-	 * @prop {Object} user - User object with id, email, and MFA status
-	 * @prop {Function} onReset - Callback when reset is confirmed
-	 * @prop {Function} onCancel - Callback when modal is cancelled
 	 */
 
+	interface MFAUser {
+		id: string
+		email: string
+		enrolled_at?: string
+		last_verified_at?: string
+	}
+
+	interface ResetData {
+		userId: string
+		reason: string
+	}
+
+	interface Props {
+		show: boolean
+		user: MFAUser
+		onReset: (data: ResetData) => Promise<void>
+		onCancel?: () => void
+	}
+
+	/* eslint-disable prefer-const -- show is $bindable and requires let for entire destructuring */
 	let {
 		show = $bindable(),
 		user,
 		onReset,
 		onCancel
-	} = $props()
+	}: Props = $props()
+	/* eslint-enable prefer-const */
 
-	let reason = $state('')
-	let otherReason = $state('')
-	let confirmed = $state(false)
-	let submitting = $state(false)
-	let error = $state(null)
+	let reason: string = $state('')
+	let otherReason: string = $state('')
+	let confirmed: boolean = $state(false)
+	let submitting: boolean = $state(false)
+	let error: string | null = $state(null)
 
 	// Convert error to FormErrors format
-	let formErrors = $derived(error ? { _errors: [error] } : { _errors: [] })
+	const formErrors = $derived(error ? { _errors: [error] } : { _errors: [] })
 
-	const reasonOptions = [
+	interface ReasonOption {
+		value: string
+		label: string
+	}
+
+	const reasonOptions: ReasonOption[] = [
 		{ value: 'lost_device', label: 'Lost device' },
 		{ value: 'security_incident', label: 'Security incident' },
 		{ value: 'user_request', label: 'User request' },
 		{ value: 'other', label: 'Other' }
 	]
 
-	function handleClose() {
+	function handleClose(): void {
 		if (submitting) return
 		resetForm()
 		if (onCancel) onCancel()
 		show = false
 	}
 
-	function resetForm() {
+	function resetForm(): void {
 		reason = ''
 		otherReason = ''
 		confirmed = false
 		error = null
 	}
 
-	async function handleSubmit() {
+	async function handleSubmit(): Promise<void> {
 		if (!reason) {
 			error = 'Please select a reason for the reset'
 			return
@@ -80,7 +101,7 @@
 			resetForm()
 			show = false
 		} catch (err) {
-			error = err.message || 'Failed to reset MFA. Please try again.'
+			error = (err as Error).message || 'Failed to reset MFA. Please try again.'
 		} finally {
 			submitting = false
 		}
@@ -88,7 +109,6 @@
 </script>
 
 {#if show}
-	<!-- svelte-ignore a11y_no_static_element_interactions -->
 	<div
 		class="goo__modal-overlay"
 		role="button"

@@ -2,7 +2,7 @@
  * Standardized error handling utilities for @goobits/store
  */
 
-import { createLogger } from './logger.js'
+import { createLogger } from './logger'
 
 const logger = createLogger('ErrorHandler')
 
@@ -26,23 +26,39 @@ export const ErrorTypes = {
 	PRICE_ERROR: 'PRICE_ERROR',
 	INVENTORY_ERROR: 'INVENTORY_ERROR',
 	STRIPE_ERROR: 'STRIPE_ERROR'
+} as const
+
+export type ErrorType = typeof ErrorTypes[keyof typeof ErrorTypes]
+
+/**
+ * Error response structure
+ */
+interface ErrorResponse {
+	success: false;
+	error: {
+		message: string;
+		type: ErrorType;
+		details: Record<string, unknown>;
+		timestamp: string;
+	};
 }
 
 /**
  * Standardized error class for store package
- *
- * @class StoreError
- * @extends Error
  */
 export class StoreError extends Error {
+	public readonly type: ErrorType
+	public readonly details: Record<string, unknown>
+	public readonly timestamp: string
+
 	/**
 	 * Create a standardized store error
 	 *
-	 * @param {string} message - Error message
-	 * @param {string} [type=ErrorTypes.UNKNOWN] - Error type from ErrorTypes
-	 * @param {Object} [details={}] - Additional error details
+	 * @param message - Error message
+	 * @param type - Error type from ErrorTypes
+	 * @param details - Additional error details
 	 */
-	constructor(message, type = ErrorTypes.UNKNOWN, details = {}) {
+	constructor(message: string, type: ErrorType = ErrorTypes.UNKNOWN, details: Record<string, unknown> = {}) {
 		super(message)
 		this.name = 'StoreError'
 		this.type = type
@@ -54,12 +70,12 @@ export class StoreError extends Error {
 /**
  * Create standardized error response suitable for API returns
  *
- * @param {Error|string} error - The error to handle
- * @param {string} [type=ErrorTypes.UNKNOWN] - Error type from ErrorTypes
- * @param {Object} [details={}] - Additional error details
- * @returns {Object} Standardized error object
+ * @param error - The error to handle
+ * @param type - Error type from ErrorTypes
+ * @param details - Additional error details
+ * @returns Standardized error object
  */
-export function createErrorResponse(error, type = ErrorTypes.UNKNOWN, details = {}) {
+export function createErrorResponse(error: Error | string, type: ErrorType = ErrorTypes.UNKNOWN, details: Record<string, unknown> = {}): ErrorResponse {
 	const message = error instanceof Error ? error.message : String(error)
 
 	return {
@@ -76,14 +92,14 @@ export function createErrorResponse(error, type = ErrorTypes.UNKNOWN, details = 
 /**
  * Handle and log errors consistently
  *
- * @param {Error|string} error - The error to handle
- * @param {string} context - Context where error occurred
- * @param {Object} [metadata={}] - Additional metadata
- * @returns {StoreError} Standardized error instance
+ * @param error - The error to handle
+ * @param context - Context where error occurred
+ * @param metadata - Additional metadata
+ * @returns Standardized error instance
  */
-export function handleError(error, context, metadata = {}) {
+export function handleError(error: Error | string, context: string, metadata: Record<string, unknown> = {}): StoreError {
 	// Determine error type based on error content
-	let errorType = ErrorTypes.UNKNOWN
+	let errorType: ErrorType = ErrorTypes.UNKNOWN
 	const message = error instanceof Error ? error.message : String(error)
 
 	// Categorize error
@@ -114,7 +130,7 @@ export function handleError(error, context, metadata = {}) {
 	}
 
 	// Log error with context
-	logger.error(`[${ context }] ${ message }`, { errorType, metadata })
+	logger.error(`[${context}] ${message}`, { errorType, metadata })
 
 	// Return standardized error
 	return new StoreError(message, errorType, metadata)
@@ -123,10 +139,10 @@ export function handleError(error, context, metadata = {}) {
 /**
  * Extract user-friendly error message
  *
- * @param {Error|Object} error - The error object
- * @returns {string} User-friendly error message
+ * @param error - The error object
+ * @returns User-friendly error message
  */
-export function getUserFriendlyMessage(error) {
+export function getUserFriendlyMessage(error: Error | StoreError | { message?: string }): string {
 	if (error instanceof StoreError) {
 		switch (error.type) {
 		case ErrorTypes.VALIDATION:

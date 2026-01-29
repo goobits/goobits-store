@@ -1,18 +1,21 @@
-<script>
+<script lang="ts">
 	import { onMount } from 'svelte'
 
 	/**
 	 * MFAVerificationInput - 6-digit TOTP code input component
-	 *
-	 * @prop {Function} onVerify - Callback when code is submitted (code, rememberDevice)
-	 * @prop {Function} [onUseBackupCode] - Callback to switch to backup code entry
-	 * @prop {boolean} [showRememberDevice=true] - Show "remember device" checkbox
-	 * @prop {boolean} [autoSubmit=true] - Auto-submit when 6 digits entered
-	 * @prop {string} [error] - Error message to display
-	 * @prop {boolean} [loading=false] - Loading state
-	 * @prop {number} [timerSeconds=30] - Countdown timer duration
 	 */
-	let {
+
+	interface Props {
+		onVerify: (code: string, rememberDevice: boolean) => void | Promise<void>
+		onUseBackupCode?: (() => void) | null
+		showRememberDevice?: boolean
+		autoSubmit?: boolean
+		error?: string
+		loading?: boolean
+		timerSeconds?: number
+	}
+
+	const {
 		onVerify,
 		onUseBackupCode = null,
 		showRememberDevice = true,
@@ -20,21 +23,22 @@
 		error = '',
 		loading = false,
 		timerSeconds = 30
-	} = $props()
+	}: Props = $props()
 
 	// State
-	let digits = $state(['', '', '', '', '', ''])
-	let rememberDevice = $state(false)
-	let inputRefs = $state([])
-	let attempts = $state(0)
-	let isLocked = $state(false)
-	let timeRemaining = $state(timerSeconds)
-	let timerInterval = $state(null)
+	let digits: string[] = $state(['', '', '', '', '', ''])
+	let rememberDevice: boolean = $state(false)
+	const inputRefs: (HTMLInputElement | null)[] = $state([])
+	let attempts: number = $state(0)
+	let isLocked: boolean = $state(false)
+	// eslint-disable-next-line svelte/valid-compile -- intentionally capturing initial value for countdown timer
+	let timeRemaining: number = $state(timerSeconds)
+	let timerInterval: ReturnType<typeof setInterval> | null = $state(null)
 
 	// Derived
-	let code = $derived(digits.join(''))
-	let isComplete = $derived(code.length === 6)
-	let canSubmit = $derived(isComplete && !loading && !isLocked)
+	const code: string = $derived(digits.join(''))
+	const isComplete: boolean = $derived(code.length === 6)
+	const canSubmit: boolean = $derived(isComplete && !loading && !isLocked)
 
 	// Start countdown timer
 	onMount(() => {
@@ -51,7 +55,7 @@
 		}
 	})
 
-	function startTimer() {
+	function startTimer(): void {
 		if (timerInterval) {
 			clearInterval(timerInterval)
 		}
@@ -60,18 +64,19 @@
 		timerInterval = setInterval(() => {
 			timeRemaining--
 			if (timeRemaining <= 0) {
-				clearInterval(timerInterval)
+				clearInterval(timerInterval!)
 				timerInterval = null
 			}
 		}, 1000)
 	}
 
-	function handleInput(index, event) {
-		const value = event.target.value
+	function handleInput(index: number, event: Event): void {
+		const target = event.target as HTMLInputElement
+		const value = target.value
 
 		// Only allow digits
 		if (!/^\d*$/.test(value)) {
-			event.target.value = digits[index]
+			target.value = digits[index] ?? ''
 			return
 		}
 
@@ -95,7 +100,7 @@
 		}
 	}
 
-	function handleKeyDown(index, event) {
+	function handleKeyDown(index: number, event: KeyboardEvent): void {
 		// Backspace: clear current or move to previous
 		if (event.key === 'Backspace') {
 			if (!digits[index] && index > 0) {
@@ -116,13 +121,13 @@
 		}
 	}
 
-	function handlePaste(pastedText, startIndex) {
+	function handlePaste(pastedText: string, startIndex: number): void {
 		// Extract digits from pasted text
 		const pastedDigits = pastedText.replace(/\D/g, '').slice(0, 6)
 
 		// Fill inputs with pasted digits
 		for (let i = 0; i < pastedDigits.length && (startIndex + i) < 6; i++) {
-			digits[startIndex + i] = pastedDigits[i]
+			digits[startIndex + i] = pastedDigits[i] ?? ''
 		}
 
 		// Focus last filled input or submit if complete
@@ -135,7 +140,7 @@
 		}
 	}
 
-	async function handleSubmit() {
+	async function handleSubmit(): Promise<void> {
 		if (!canSubmit) return
 
 		attempts++
@@ -148,13 +153,14 @@
 		await onVerify(code, rememberDevice)
 	}
 
-	function handleBackupCode() {
+	function handleBackupCode(): void {
 		if (onUseBackupCode) {
 			onUseBackupCode()
 		}
 	}
 
-	function clearCode() {
+	/** Clear code and focus first input (exposed for external use) */
+	export function clearCode(): void {
 		digits = ['', '', '', '', '', '']
 		if (inputRefs[0]) {
 			inputRefs[0].focus()
@@ -162,7 +168,7 @@
 	}
 
 	// Format timer display (MM:SS)
-	function formatTime(seconds) {
+	function formatTime(seconds: number): string {
 		const mins = Math.floor(seconds / 60)
 		const secs = seconds % 60
 		return `${ mins }:${ secs.toString().padStart(2, '0') }`
@@ -200,7 +206,7 @@
 					onkeydown={(e) => handleKeyDown(i, e)}
 					onpaste={(e) => {
 						e.preventDefault()
-						handlePaste(e.clipboardData.getData('text'), i)
+						handlePaste(e.clipboardData?.getData('text') || '', i)
 					}}
 					disabled={loading || isLocked}
 					class="goo__mfa-digit-input"

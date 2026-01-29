@@ -1,15 +1,23 @@
-<script>
+<script lang="ts">
 	import ShopIndexPage from './ShopIndexPage.svelte'
 
-	/**
-	 * @typedef {Object} Props
-	 * @property {Object} data - Route data containing collection and products
-	 */
+	interface MedusaCollection {
+		title?: string;
+		description?: string;
+	}
 
-	/** @type {Props} */
-	let { data } = $props()
+	interface PageData {
+		collection?: MedusaCollection;
+		products?: MedusaProduct[];
+	}
 
-	let collection = $derived(data.collection || {})
+	interface Props {
+		data: PageData;
+	}
+
+	const { data }: Props = $props()
+
+	const collection: MedusaCollection = $derived(data.collection || {})
 </script>
 
 <section class="collection-header">

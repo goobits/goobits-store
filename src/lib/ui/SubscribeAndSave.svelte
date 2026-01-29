@@ -1,4 +1,4 @@
-<script>
+<script lang="ts">
 	/**
 	 * Subscribe & Save Component
 	 *
@@ -6,10 +6,18 @@
 	 * Works with any e-commerce store using the subscription module
 	 */
 
-	let {
+	interface Props {
+		product?: MedusaProduct;
+		selectedVariant?: MedusaVariant;
+		_onSubscribe?: (interval: string) => void;
+		defaultInterval?: string;
+		intervals?: SubscriptionInterval[];
+	}
+
+	const {
 		product = $bindable(),
 		selectedVariant = $bindable(),
-		onSubscribe = () => {},
+		_onSubscribe = () => {},
 		defaultInterval = 'month',
 		intervals = [
 			{ value: 'week', label: 'Weekly', discount: 5 },
@@ -17,19 +25,20 @@
 			{ value: 'month', count: 3, label: 'Quarterly', discount: 15 },
 			{ value: 'year', label: 'Annually', discount: 20 }
 		]
-	} = $props()
+	}: Props = $props()
 
 	// Subscription state
-	let isSubscription = $state(false)
-	let selectedInterval = $state(defaultInterval)
-	let selectedIntervalCount = $state(1)
-	let selectedDiscount = $state(0)
+	let isSubscription: boolean = $state(false)
+	// eslint-disable-next-line svelte/valid-compile -- intentionally capturing initial value for form state
+	let selectedInterval: string = $state(defaultInterval)
+	let _selectedIntervalCount: number = $state(1)
+	let selectedDiscount: number = $state(0)
 
 	// Get price
-	const productPrice = $derived(selectedVariant?.prices?.[0]?.amount || product?.variants?.[0]?.prices?.[0]?.amount || 0)
+	const productPrice: number = $derived(selectedVariant?.prices?.[0]?.amount || product?.variants?.[0]?.prices?.[0]?.amount || 0)
 
 	// Calculate subscription price with discount
-	const subscriptionPrice = $derived(() => {
+	const subscriptionPrice: number = $derived.by(() => {
 		if (!isSubscription) return productPrice
 
 		const discount = selectedDiscount / 100
@@ -37,41 +46,24 @@
 	})
 
 	// Calculate savings
-	const savings = $derived(() => {
+	const savings: number = $derived.by(() => {
 		if (!isSubscription) return 0
-		return productPrice - subscriptionPrice()
+		return productPrice - subscriptionPrice
 	})
 
 	// Handle interval change
-	function handleIntervalChange(event) {
-		const intervalData = intervals.find(i => i.value === event.target.value)
+	function handleIntervalChange(event: Event): void {
+		const target = event.target as HTMLSelectElement
+		const intervalData = intervals.find(i => i.value === target.value)
 		if (intervalData) {
 			selectedInterval = intervalData.value
-			selectedIntervalCount = intervalData.count || 1
+			_selectedIntervalCount = intervalData.count || 1
 			selectedDiscount = intervalData.discount || 0
 		}
 	}
 
-	// Handle subscribe toggle
-	function toggleSubscription() {
-		isSubscription = !isSubscription
-	}
-
-	// Handle subscribe click
-	function handleSubscribe() {
-		if (onSubscribe) {
-			onSubscribe({
-				isSubscription,
-				interval: selectedInterval,
-				intervalCount: selectedIntervalCount,
-				discount: selectedDiscount,
-				price: subscriptionPrice()
-			})
-		}
-	}
-
 	// Format currency
-	function formatCurrency(amount) {
+	function formatCurrency(amount: number): string {
 		return new Intl.NumberFormat('en-US', {
 			style: 'currency',
 			currency: 'USD'
@@ -122,13 +114,13 @@
 				<div class="subscribe-save__price">
 					<span class="subscribe-save__price-label">Subscription price:</span>
 					<span class="subscribe-save__price-value">
-						{formatCurrency(subscriptionPrice())}
+						{formatCurrency(subscriptionPrice)}
 					</span>
 				</div>
 
-				{#if savings() > 0}
+				{#if savings > 0}
 					<div class="subscribe-save__savings">
-						You save {formatCurrency(savings())} per delivery!
+						You save {formatCurrency(savings)} per delivery!
 					</div>
 				{/if}
 			</div>

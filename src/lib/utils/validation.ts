@@ -4,10 +4,10 @@
 
 /**
  * Validate email address
- * @param {string} email - Email address to validate
- * @returns {boolean} True if valid email
+ * @param email - Email address to validate
+ * @returns True if valid email
  */
-export function validateEmail(email) {
+export function validateEmail(email: string | null | undefined): boolean {
 	if (!email || typeof email !== 'string') {
 		return false
 	}
@@ -20,10 +20,10 @@ export function validateEmail(email) {
 
 /**
  * Sanitize string input
- * @param {string} input - String to sanitize
- * @returns {string} Sanitized string
+ * @param input - String to sanitize
+ * @returns Sanitized string
  */
-export function sanitizeString(input) {
+export function sanitizeString(input: unknown): string {
 	if (typeof input !== 'string') {
 		return ''
 	}

@@ -1,8 +1,8 @@
-<script>
-	import { get } from 'svelte/store'
+<script lang="ts">
+	import { get, type Readable } from 'svelte/store'
 	import Modal from '@goobits/forms/ui/modals/Modal.svelte'
-	import { getBackendUrl, getPublishableKey } from '../config/urls.js'
-	import { createLogger } from '../utils/logger.js'
+	import { getBackendUrl, getPublishableKey } from '../config/urls'
+	import { createLogger } from '../utils/logger'
 
 	const logger = createLogger('MFABackupCodes')
 
@@ -11,44 +11,53 @@
 	 *
 	 * Shows backup codes in a grid, allows downloading, copying,
 	 * and regenerating codes with proper warnings.
-	 *
-	 * @prop {Array<string>} [backupCodes] - Array of backup codes to display
-	 * @prop {Object} auth - Auth store instance
-	 * @prop {Function} onClose - Callback when modal should close
-	 * @prop {Function} [onRegenerate] - Callback when codes are regenerated
-	 * @prop {boolean} [isNewEnrollment] - True if showing codes from enrollment
 	 */
-	let {
+
+	interface AuthState {
+		customer?: { id: string; email?: string }
+		user?: { id: string; email?: string }
+	}
+
+	interface Props {
+		backupCodes?: string[] | null
+		auth: Readable<AuthState>
+		onClose: () => void
+		onRegenerate?: ((codes: string[]) => void) | null
+		isNewEnrollment?: boolean
+	}
+
+	const {
 		backupCodes = null,
 		auth,
 		onClose,
 		onRegenerate = null,
 		isNewEnrollment = false
-	} = $props()
+	}: Props = $props()
 
 	// Component state
-	let loading = $state(false)
-	let error = $state(null)
-	let password = $state('')
-	let showRegenerateConfirm = $state(false)
-	let isRegenerating = $state(false)
-	let copiedIndex = $state(null)
-	let copiedAll = $state(false)
-	let confirmChecked = $state(false)
+	const loading: boolean = $state(false)
+	let error: string | null = $state(null)
+	let password: string = $state('')
+	let showRegenerateConfirm: boolean = $state(false)
+	let isRegenerating: boolean = $state(false)
+	let copiedIndex: number | null = $state(null)
+	let copiedAll: boolean = $state(false)
+	let confirmChecked: boolean = $state(false)
 
-	const backendUrl = $derived(getBackendUrl())
-	const publishableKey = $derived(getPublishableKey())
+	const backendUrl = getBackendUrl()
+	const publishableKey = getPublishableKey()
 
 	// Codes state initialized from prop (no effect needed - ensures SSR consistency)
 	// Uses $state because codes can be mutated when regenerated
-	let codes = $state(backupCodes)
+	// eslint-disable-next-line svelte/valid-compile -- intentionally capturing initial value for local state
+	let codes: string[] | null = $state(backupCodes)
 
 	// Note: Better Auth stores backup codes hashed for security,
 	// so they can only be viewed once when first generated.
 	// If codes aren't provided, user must regenerate new codes.
 
 	// Copy individual code
-	async function copyCode(code, index) {
+	async function copyCode(code: string, index: number): Promise<void> {
 		try {
 			await navigator.clipboard.writeText(code)
 			copiedIndex = index
@@ -61,7 +70,7 @@
 	}
 
 	// Copy all codes
-	async function copyAllCodes() {
+	async function copyAllCodes(): Promise<void> {
 		if (!codes || codes.length === 0) return
 
 		try {
@@ -77,12 +86,12 @@
 	}
 
 	// Download codes as text file
-	function downloadCodes() {
+	function downloadCodes(): void {
 		if (!codes || codes.length === 0) return
 
-		const authState = auth ? get(auth) : null
+		const authState: AuthState | null = auth ? get(auth) : null
 		const currentUser = authState?.customer || authState?.user
-		const email = currentUser?.email || 'user'
+		const email: string = currentUser?.email || 'user'
 		const timestamp = new Date().toISOString().split('T')[0]
 
 		const content = [
@@ -110,7 +119,7 @@
 	}
 
 	// Regenerate backup codes
-	async function handleRegenerate() {
+	async function handleRegenerate(): Promise<void> {
 		if (!password) {
 			return
 		}
@@ -119,7 +128,7 @@
 		error = null
 
 		try {
-			const authState = auth ? get(auth) : null
+			const authState: AuthState | null = auth ? get(auth) : null
 			const customer = authState?.customer || authState?.user
 
 			if (!customer) {
@@ -152,18 +161,18 @@
 			confirmChecked = false
 
 			// Call callback
-			if (onRegenerate) {
+			if (onRegenerate && codes) {
 				onRegenerate(codes)
 			}
 		} catch (err) {
-			error = err.message
+			error = (err as Error).message
 		} finally {
 			isRegenerating = false
 		}
 	}
 
 	// Handle close with confirmation
-	function handleClose() {
+	function handleClose(): void {
 		if (isNewEnrollment && !confirmChecked) {
 			return // Require confirmation for new enrollment
 		}
@@ -172,7 +181,7 @@
 	}
 
 	// Format code for display (add hyphen in middle)
-	function formatCode(code) {
+	function formatCode(code: string): string {
 		if (code.length === 8) {
 			return `${ code.slice(0, 4) }-${ code.slice(4) }`
 		}

@@ -6,13 +6,46 @@
 
 import { storeConfig } from '../config/index.js'
 
+export interface I18nHandleEvent {
+	url: URL;
+	locals: {
+		lang?: string;
+		[key: string]: unknown;
+	};
+	[key: string]: unknown;
+}
+
+export interface I18nHandler {
+	(event: I18nHandleEvent): Promise<void> | void;
+}
+
+export interface I18nLoadData {
+	i18n?: {
+		lang: string;
+		supportedLanguages: string[];
+	};
+	[key: string]: unknown;
+}
+
+export interface I18nLoadEvent {
+	url: URL;
+	locals: {
+		lang?: string;
+		[key: string]: unknown;
+	};
+	[key: string]: unknown;
+}
+
+export interface I18nOriginalLoad {
+	(event: I18nLoadEvent): Promise<I18nLoadData> | I18nLoadData;
+}
+
 /**
  * Server hook for handling i18n in incoming requests
  * This should be called from your main hooks.server.js handle function
  *
- * @param {Object} event - SvelteKit handle event
- * @param {Function} [handler] - Optional custom i18n handler
- * @returns {Promise<void>}
+ * @param event - SvelteKit handle event
+ * @param handler - Optional custom i18n handler
  *
  * @example
  * // In hooks.server.js
@@ -28,13 +61,13 @@ import { storeConfig } from '../config/index.js'
  *   return await resolve(event)
  * }
  */
-export async function handleStoreI18n(event, handler) {
+export async function handleStoreI18n(event: I18nHandleEvent, handler?: I18nHandler): Promise<void> {
 	// Only run if i18n is enabled and the URL is related to the store
 	// Using startsWith for path-based check instead of includes for better security
 	if (storeConfig.i18n?.enabled &&
 		event.url.pathname &&
 		(event.url.pathname === storeConfig.shopUri ||
-		 event.url.pathname.startsWith(storeConfig.shopUri + '/'))) {
+		 event.url.pathname.startsWith(`${storeConfig.shopUri  }/`))) {
 
 		// Only call handler if it's actually a function
 		if (typeof handler === 'function') {
@@ -44,7 +77,7 @@ export async function handleStoreI18n(event, handler) {
 				// Import logger inline to avoid circular dependencies
 				const { createLogger } = await import('../utils/logger.js')
 				const logger = createLogger('StoreI18n')
-				logger.error('Error in store i18n handler:', error.message)
+				logger.error('Error in store i18n handler:', (error as Error).message)
 				// Don't rethrow to avoid breaking the request flow
 			}
 		}
@@ -53,9 +86,9 @@ export async function handleStoreI18n(event, handler) {
 
 /**
  * Page server load hook for handling i18n in page server loads
- * @param {Object} event - SvelteKit page server load event
- * @param {Function} [originalLoad] - The original load function if any
- * @returns {Promise<Object>} The load function result with i18n data
+ * @param event - SvelteKit page server load event
+ * @param originalLoad - The original load function if any
+ * @returns The load function result with i18n data
  *
  * @example
  * // In +page.server.js
@@ -71,9 +104,12 @@ export async function handleStoreI18n(event, handler) {
  *   return await loadWithStoreI18n(event, originalLoad)
  * }
  */
-export async function loadWithStoreI18n(event, originalLoad) {
+export async function loadWithStoreI18n(
+	event: I18nLoadEvent,
+	originalLoad?: I18nOriginalLoad
+): Promise<I18nLoadData> {
 	// Call the original load function if provided and it's a function
-	const originalData = (typeof originalLoad === 'function') ?
+	const originalData: I18nLoadData = (typeof originalLoad === 'function') ?
 		await originalLoad(event) : {}
 
 	// Skip if i18n is not enabled
@@ -96,13 +132,16 @@ export async function loadWithStoreI18n(event, originalLoad) {
 
 /**
  * Layout server load hook for adding i18n data to layouts
- * @param {Object} event - SvelteKit layout server load event
- * @param {Function} [originalLoad] - The original load function if any
- * @returns {Promise<Object>} The load function result with i18n data
+ * @param event - SvelteKit layout server load event
+ * @param originalLoad - The original load function if any
+ * @returns The load function result with i18n data
  */
-export async function layoutLoadWithStoreI18n(event, originalLoad) {
+export function layoutLoadWithStoreI18n(
+	event: I18nLoadEvent,
+	originalLoad?: I18nOriginalLoad
+): Promise<I18nLoadData> {
 	// This is similar to loadWithStoreI18n but typically used in +layout.server.js
-	return await loadWithStoreI18n(event, originalLoad)
+	return loadWithStoreI18n(event, originalLoad)
 }
 
 export default {
