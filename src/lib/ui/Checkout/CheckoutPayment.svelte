@@ -1,27 +1,70 @@
-<script>
+<script lang="ts">
 	import { browser } from '$app/environment'
 	import StripePaymentForm from './StripePaymentForm.svelte'
 
-	/**
-	 * @typedef {Object} Props
-	 * @property {Object} medusaCart - The Medusa cart object
-	 * @property {Object} shippingOptions - Available shipping options
-	 * @property {string} selectedShippingOption - ID of the selected shipping option
-	 * @property {Object} shippingAddress - The current shipping address
-	 * @property {Object} customerInfo - Customer contact information
-	 * @property {Object} form - Form data from the action
-	 * @property {boolean} formSubmitting - Whether the form is currently submitting
-	 * @property {Object} paymentErrors - Payment-related errors
-	 * @property {Function} handleShippingMethodSubmit - Function for shipping method submission
-	 * @property {Function} handlePaymentUpdate - Function for payment update submission
-	 * @property {Function} handlePaymentSuccess - Function for payment success event
-	 * @property {Function} handlePaymentError - Function for payment error event
-	 * @property {Function} goToStep - Function to navigate between steps
-	 * @property {Function} formatPrice - Function to format price values
-	 * @property {string} STEPS_SHIPPING - The shipping step identifier
-	 */
+	interface PaymentSession {
+		provider_id: string;
+		data?: {
+			client_secret?: string;
+		};
+	}
 
-	/** @type {Props} */
+	interface ShippingOption {
+		id: string;
+		name: string;
+		amount: number;
+	}
+
+	interface MedusaCartData {
+		id: string;
+		payment_session?: PaymentSession;
+		payment_sessions?: PaymentSession[];
+	}
+
+	interface ShippingAddress {
+		first_name: string;
+		last_name: string;
+		address_1: string;
+		address_2?: string;
+		city: string;
+		province?: string;
+		postal_code: string;
+		country_code: string;
+	}
+
+	interface CustomerInfo {
+		email: string;
+		first_name: string;
+		last_name: string;
+	}
+
+	interface FormResult {
+		success: boolean;
+		error?: string;
+	}
+
+	interface PaymentErrors {
+		message?: string;
+	}
+
+	interface Props {
+		medusaCart: MedusaCartData;
+		shippingOptions: ShippingOption[];
+		selectedShippingOption?: string;
+		shippingAddress: ShippingAddress;
+		customerInfo: CustomerInfo;
+		_form?: FormResult | null;
+		formSubmitting: boolean;
+		_paymentErrors?: PaymentErrors | null;
+		handleShippingMethodSubmit: (event: SubmitEvent) => void;
+		handlePaymentUpdate: (event: SubmitEvent) => void;
+		handlePaymentSuccess: (event: CustomEvent) => void;
+		handlePaymentError: (event: CustomEvent) => void;
+		goToStep: (step: string) => void;
+		formatPrice: (amount: number) => string;
+		STEPS_SHIPPING: string;
+	}
+
 	/* eslint-disable prefer-const -- Svelte 5 requires `let` when using $bindable() in destructuring */
 	let {
 		medusaCart,
@@ -39,17 +82,17 @@
 		goToStep,
 		formatPrice,
 		STEPS_SHIPPING
-	} = $props()
+	}: Props = $props()
 	/* eslint-enable prefer-const */
 </script>
 
 <div class="goo__checkout-section">
 	<h2>Payment Method</h2>
-	
+
 	<!-- Shipping Method Selection -->
-	<form method="POST" action="?/addShippingMethod" onsubmit={(e) => { e.preventDefault(); handleShippingMethodSubmit(e); }}>
+	<form method="POST" action="?/addShippingMethod" onsubmit={(e: SubmitEvent) => { e.preventDefault(); handleShippingMethodSubmit(e); }}>
 		<input type="hidden" name="cart_id" value={medusaCart.id} />
-		
+
 		<div class="goo__shipping-options">
 			<h3>Shipping Method</h3>
 			{#if shippingOptions.length === 0}
@@ -60,7 +103,7 @@
 				{#each shippingOptions as option}
 					<div class="goo__shipping-option">
 						<label class="goo__shipping-option-label">
-							<input type="radio" name="shipping_option_id" value={option.id} 
+							<input type="radio" name="shipping_option_id" value={option.id}
 								bind:group={selectedShippingOption} checked={selectedShippingOption === option.id} />
 							<div class="goo__shipping-option-info">
 								<span class="goo__shipping-option-name">{option.name}</span>
@@ -71,23 +114,23 @@
 				{/each}
 			{/if}
 		</div>
-		
+
 		<div class="goo__form-actions">
 			<button type="button" class="goo__back-button" onclick={() => goToStep(STEPS_SHIPPING)}>
 				Return to Shipping
 			</button>
-			<button type="submit" class="goo__continue-button" 
+			<button type="submit" class="goo__continue-button"
 				disabled={formSubmitting || shippingOptions.length === 0}>
 				{formSubmitting ? 'Processing...' : 'Select Shipping Method'}
 			</button>
 		</div>
 	</form>
-	
+
 	<!-- Stripe Payment Form -->
 	{#if medusaCart.payment_session && medusaCart.payment_session.data?.client_secret}
 		<div class="goo__payment-section">
 			<h3>Payment Details</h3>
-			
+
 			<div class="goo__stripe-container">
 				<!-- Stripe Elements Payment Form -->
 				<StripePaymentForm
@@ -116,21 +159,21 @@
 	{:else if medusaCart.payment_sessions && medusaCart.payment_sessions.length > 0}
 		<div class="goo__payment-section">
 			<h3>Payment Details</h3>
-			
-			<form method="POST" action="?/updatePayment" onsubmit={(e) => { e.preventDefault(); handlePaymentUpdate(e); }}>
+
+			<form method="POST" action="?/updatePayment" onsubmit={(e: SubmitEvent) => { e.preventDefault(); handlePaymentUpdate(e); }}>
 				<input type="hidden" name="cart_id" value={medusaCart.id} />
 				<input type="hidden" name="provider_id" value="stripe" />
-				
+
 				<p>Select a payment method to continue:</p>
-				
+
 				<div class="goo__payment-providers">
 					{#each medusaCart.payment_sessions as session}
 						<div class="goo__payment-provider">
 							<label>
-								<input 
-									type="radio" 
-									name="provider_id" 
-									value={session.provider_id} 
+								<input
+									type="radio"
+									name="provider_id"
+									value={session.provider_id}
 									checked={session.provider_id === 'stripe'}
 								/>
 								<span>{session.provider_id === 'stripe' ? 'Credit Card' : session.provider_id}</span>
@@ -138,7 +181,7 @@
 						</div>
 					{/each}
 				</div>
-				
+
 				<div class="goo__form-actions">
 					<button type="submit" class="goo__continue-button" disabled={formSubmitting}>
 						{formSubmitting ? 'Processing...' : 'Continue with Payment Method'}

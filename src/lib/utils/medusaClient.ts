@@ -1,6 +1,6 @@
 import Medusa from '@medusajs/medusa-js'
 import { browser } from '$app/environment'
-import { createLogger } from './logger.js'
+import { createLogger } from './logger'
 import {
 	PUBLIC_MEDUSA_BACKEND_URL,
 	PUBLIC_MEDUSA_PUBLISHABLE_KEY
@@ -8,9 +8,19 @@ import {
 
 const logger = createLogger('MedusaClient')
 
+/**
+ * Extended Medusa client with config property
+ */
+interface MedusaClientWithConfig extends Medusa {
+	config?: {
+		baseUrl: string;
+		publishableApiKey: string;
+	};
+}
+
 // Client-side only Medusa client
 // This is used for browser-only operations
-let client = null
+let client: MedusaClientWithConfig | null = null
 
 // Initialize the client only in the browser
 if (browser) {
@@ -20,9 +30,9 @@ if (browser) {
 
 	// Validate required environment variables
 	if (!MEDUSA_BACKEND_URL || !PUBLISHABLE_API_KEY) {
-		const missing = []
-		if (!MEDUSA_BACKEND_URL) {missing.push('PUBLIC_MEDUSA_BACKEND_URL')}
-		if (!PUBLISHABLE_API_KEY) {missing.push('PUBLIC_MEDUSA_PUBLISHABLE_KEY')}
+		const missing: string[] = []
+		if (!MEDUSA_BACKEND_URL) { missing.push('PUBLIC_MEDUSA_BACKEND_URL') }
+		if (!PUBLISHABLE_API_KEY) { missing.push('PUBLIC_MEDUSA_PUBLISHABLE_KEY') }
 
 		logger.error(
 			`Missing required environment variables for Medusa client: ${missing.join(', ')}`,
@@ -36,7 +46,7 @@ if (browser) {
 		baseUrl: MEDUSA_BACKEND_URL,
 		maxRetries: 3,
 		publishableApiKey: PUBLISHABLE_API_KEY
-	})
+	}) as MedusaClientWithConfig
 
 	// Store config on the client for easy access
 	// The Medusa SDK doesn't expose these values, so we add them manually

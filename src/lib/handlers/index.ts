@@ -12,8 +12,65 @@ import {
 	loadCollection,
 	loadCheckout,
 	loadCart,
-	generateShopEntries
-} from './routeUtils.js'
+	generateShopEntries,
+	type ShopIndexData,
+	type ProductPageData,
+	type CategoryPageData,
+	type CollectionPageData,
+	type CheckoutPageData,
+	type CartPageData,
+	type ShopEntry
+} from './routeUtils'
+
+// Handler options interfaces
+interface ShopIndexHandlerOptions {
+	prerender?: boolean
+	getLanguage?: (locals: App.Locals) => string
+	config?: ShopConfig | null
+}
+
+interface ShopSlugHandlerOptions {
+	prerender?: boolean
+	trailingSlash?: 'ignore' | 'always' | 'never'
+	getLanguage?: (locals: App.Locals) => string
+	languages?: string[]
+	config?: ShopConfig | null
+}
+
+// Simple page data for static pages
+interface SimplePageData {
+	pageType: string
+	lang: string
+}
+
+// Route params
+interface ShopParams {
+	slug?: string
+	url?: URL
+}
+
+// Load event with locals
+interface ShopLoadEvent {
+	params: ShopParams
+	locals: App.Locals
+}
+
+// Union type for all possible page data
+type ShopPageData = ShopIndexData | ProductPageData | CategoryPageData | CollectionPageData | CheckoutPageData | CartPageData | SimplePageData
+
+// Shop index handler return type
+interface ShopIndexHandler {
+	prerender: boolean
+	load: (event: ShopLoadEvent) => Promise<ShopIndexData>
+}
+
+// Shop slug handler return type
+interface ShopSlugHandler {
+	prerender: boolean
+	trailingSlash: 'ignore' | 'always' | 'never'
+	entries?: () => Promise<ShopEntry[]>
+	load: (event: ShopLoadEvent) => Promise<ShopPageData>
+}
 
 /**
  * Creates a shop index handler for +page.server.js
@@ -22,23 +79,17 @@ import {
  * // In your routes/shop/+page.server.js
  * import { createShopIndexHandler } from '@goobits/store/handlers'
  * export const { load, prerender } = createShopIndexHandler({ prerender: false })
- *
- * @param {Object} options - Configuration options
- * @param {boolean} [options.prerender=false] - Whether to prerender the page
- * @param {Function} [options.getLanguage] - Function to get language from locals
- * @param {Object} [options.config] - Shop configuration overrides
- * @returns {Object} Object with load function and prerender setting
  */
-export function createShopIndexHandler(options = {}) {
+export function createShopIndexHandler(options: ShopIndexHandlerOptions = {}): ShopIndexHandler {
 	const {
 		prerender = false, // Shop pages need dynamic data by default
-		getLanguage = (locals) => locals?.paraglideLocale || 'en',
+		getLanguage = (locals: App.Locals) => (locals as { paraglideLocale?: string })?.paraglideLocale || 'en',
 		config = null
 	} = options
 
 	return {
 		prerender,
-		load: ({ params: _params, locals }) => {
+		load: ({ params: _params, locals }: ShopLoadEvent): Promise<ShopIndexData> => {
 			const lang = getLanguage(locals)
 			return loadShopIndex(lang, config, { initialLoad: true })
 		}
@@ -53,20 +104,12 @@ export function createShopIndexHandler(options = {}) {
  * // In your routes/shop/[...slug]/+page.server.js
  * import { createShopSlugHandler } from '@goobits/store/handlers'
  * export const { load, prerender } = createShopSlugHandler({ prerender: false })
- *
- * @param {Object} options - Configuration options
- * @param {boolean} [options.prerender=false] - Whether to prerender pages
- * @param {string} [options.trailingSlash='ignore'] - Trailing slash behavior
- * @param {Function} [options.getLanguage] - Function to get language from locals
- * @param {string[]} [options.languages] - List of supported languages
- * @param {Object} [options.config] - Shop configuration overrides
- * @returns {Object} Object with load function and settings
  */
-export function createShopSlugHandler(options = {}) {
+export function createShopSlugHandler(options: ShopSlugHandlerOptions = {}): ShopSlugHandler {
 	const {
 		prerender = false, // Shop pages need dynamic data by default
 		trailingSlash = 'ignore',
-		getLanguage = (locals) => locals?.paraglideLocale || 'en',
+		getLanguage = (locals: App.Locals) => (locals as { paraglideLocale?: string })?.paraglideLocale || 'en',
 		languages = [ 'en' ],
 		config = null
 	} = options
@@ -75,7 +118,7 @@ export function createShopSlugHandler(options = {}) {
 		prerender,
 		trailingSlash,
 		entries: prerender ? () => generateShopEntries(languages, config) : undefined,
-		load: ({ params, locals }) => {
+		load: ({ params, locals }: ShopLoadEvent): Promise<ShopPageData> => {
 			const { slug } = params
 			const lang = getLanguage(locals)
 
@@ -109,7 +152,7 @@ export function createShopSlugHandler(options = {}) {
 			}
 
 			if (normalizedSlug === 'account') {
-				return { pageType: 'account', lang }
+				return Promise.resolve({ pageType: 'account', lang })
 			}
 
 			if (normalizedSlug === 'cart') {
@@ -117,15 +160,15 @@ export function createShopSlugHandler(options = {}) {
 			}
 
 			if (normalizedSlug === 'login') {
-				return { pageType: 'login', lang }
+				return Promise.resolve({ pageType: 'login', lang })
 			}
 
 			if (normalizedSlug === 'register' || normalizedSlug === 'signup') {
-				return { pageType: 'register', lang }
+				return Promise.resolve({ pageType: 'register', lang })
 			}
 
 			if (normalizedSlug === 'plans') {
-				return { pageType: 'plans', lang }
+				return Promise.resolve({ pageType: 'plans', lang })
 			}
 
 			if (normalizedSlug === 'checkout') {

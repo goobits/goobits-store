@@ -1,43 +1,40 @@
-<script>
+<script lang="ts">
 	import { addToCart, getCartCount } from '@goobits/store'
 	import { goto } from '$app/navigation'
 	import { formatPrice } from '@goobits/store/utils/checkoutUtils'
 
-	/**
-	 * ShopIndexPage - Generic shop homepage layout
-	 *
-	 * Accepts all content via props for maximum reusability
-	 *
-	 * @typedef {Object} Props
-	 * @property {Object} data - Route data containing products and other shop data
-	 * @property {Object} [hero] - Hero section content
-	 * @property {Object} [features] - Feature highlight content
-	 * @property {Object} [footer] - Contact/footer content
-	 * @property {Object} [config] - UI configuration
-	 */
+	interface PageData {
+		products?: MedusaProduct[];
+		[key: string]: unknown;
+	}
 
-	/** @type {Props} */
+	interface Props {
+		data: PageData;
+		hero?: HeroSection | null;
+		features?: FeaturesSection | null;
+		footer?: FooterSection | null;
+		config?: ShopConfig;
+	}
+
 	const {
 		data,
 		hero = null,
 		features = null,
 		footer = null,
 		config = {}
-	} = $props()
+	}: Props = $props()
 
-	const products = $derived(data.products || [])
-	let addedProductId = $state(null)
+	const products: MedusaProduct[] = $derived(data.products || [])
+	let addedProductId: string | null = $state(null)
 
 	// Get fallback image from config or use generic placeholder
-	const fallbackImage = $derived(config?.ui?.placeholders?.product ||
+	const fallbackImage: string = $derived(config?.ui?.placeholders?.product ||
 		'https://placehold.co/250x200/E5E5E5/999?text=Product')
 
 	/**
 	 * Calculates and formats the price for a product
-	 * @param {Object} product - The product object
-	 * @returns {string} Formatted price string or 'N/A' if no variants
 	 */
-	function getProductPrice(product) {
+	function getProductPrice(product: MedusaProduct): string {
 		if (!product.variants?.length) return 'N/A'
 		// Get calculated_amount from the calculated_price object
 		const calculatedPrice = product.variants[0].calculated_price
@@ -50,10 +47,8 @@
 
 	/**
 	 * Gets the primary image URL for a product
-	 * @param {Object} product - The product object
-	 * @returns {string} URL of the product image or fallback
 	 */
-	function getProductImage(product) {
+	function getProductImage(product: MedusaProduct): string {
 		if (product.thumbnail) return product.thumbnail
 		if (product.images?.length) return product.images[0].url
 		return fallbackImage
@@ -61,10 +56,8 @@
 
 	/**
 	 * Generates appropriate alt text for product images
-	 * @param {Object} product - The product object
-	 * @returns {string} Alt text for the product image
 	 */
-	function getProductAlt(product) {
+	function getProductAlt(product: MedusaProduct): string {
 		if (product.description) {
 			return `${ product.title } - ${ product.description.slice(0, 60) }${ product.description.length > 60 ? '...' : '' }`
 		}
@@ -73,19 +66,17 @@
 
 	/**
 	 * Handles adding a product to the cart
-	 * @param {Object} product - The product to add
-	 * @param {Event} event - Click event
 	 */
-	function handleAddToCart(product, event) {
+	function handleAddToCart(product: MedusaProduct, event: MouseEvent): void {
 		if (event) event.stopPropagation()
 
-		const cartProduct = {
+		const cartProduct: CartProduct = {
 			id: product.id,
 			name: product.title,
 			handle: product.handle,
 			price: parseFloat(getProductPrice(product)),
 			image: getProductImage(product),
-			variant_id: product.variants[0].id
+			variant_id: product.variants![0].id
 		}
 
 		addToCart(cartProduct)
@@ -97,17 +88,15 @@
 
 	/**
 	 * Checks if a product has multiple variants or options
-	 * @param {Object} product - The product to check
-	 * @returns {boolean} True if product has options
 	 */
-	function hasOptions(product) {
-		return product.options?.length > 0
+	function hasOptions(product: MedusaProduct): boolean {
+		return (product.options?.length ?? 0) > 0
 	}
 
 	/**
 	 * Navigates to the checkout page
 	 */
-	function goToCheckout() {
+	function goToCheckout(): void {
 		goto('/shop/cart')
 	}
 </script>
@@ -159,7 +148,7 @@
 						</div>
 					</a>
 					<div class="product-actions">
-						{#if hasOptions(product) || product.variants.length > 1}
+						{#if hasOptions(product) || (product.variants?.length ?? 0) > 1}
 							<a href="/shop/{product.handle}" class="btn btn-primary">View Options</a>
 						{:else}
 							<button

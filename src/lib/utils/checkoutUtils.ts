@@ -2,20 +2,30 @@
  * Utility functions for formatting prices and calculating checkout totals
  */
 
-import { createLogger } from './logger.js'
+import { createLogger } from './logger'
 
 const logger = createLogger('CheckoutUtils')
 
+/**
+ * Shipping option type for checkout
+ */
+interface ShippingOption {
+	id: string;
+	name?: string;
+	amount?: number;
+	[key: string]: unknown;
+}
+
 // Local error handling implementation
-function handleError(moduleName, error) {
+function handleError(_moduleName: string, error: unknown): unknown {
 	logger.error('Error:', error)
 	return error
 }
 
-function validateType(value, type, name, isOptional = true) {
+function validateType(value: unknown, type: string, name: string, isOptional = true): void {
 	if (value === undefined || value === null) {
 		if (!isOptional) {
-			throw new TypeError(`${ name } is required`)
+			throw new TypeError(`${name} is required`)
 		}
 		return
 	}
@@ -23,10 +33,10 @@ function validateType(value, type, name, isOptional = true) {
 	const actualType = typeof value
 	if (type === 'array') {
 		if (!Array.isArray(value)) {
-			throw new TypeError(`${ name } must be an array, got ${ actualType }`)
+			throw new TypeError(`${name} must be an array, got ${actualType}`)
 		}
 	} else if (actualType !== type) {
-		throw new TypeError(`${ name } must be a ${ type }, got ${ actualType }`)
+		throw new TypeError(`${name} must be a ${type}, got ${actualType}`)
 	}
 }
 
@@ -36,18 +46,18 @@ const MODULE_NAME = 'CheckoutUtils'
 /**
  * Formats a price from cents to dollars with two decimal places
  *
- * @param {number|string} price - Price in cents
- * @param {string} [currencySymbol='$'] - Currency symbol to prepend
- * @param {boolean} [includeSymbol=false] - Whether to include currency symbol
- * @returns {string} Formatted price as a string with two decimal places
- * @throws {TypeError} If price is not a number or cannot be converted to one
+ * @param price - Price in cents
+ * @param currencySymbol - Currency symbol to prepend
+ * @param includeSymbol - Whether to include currency symbol
+ * @returns Formatted price as a string with two decimal places
+ * @throws TypeError If price is not a number or cannot be converted to one
  *
  * @example
  * formatPrice(1999) // '19.99'
  * formatPrice(1999, '$', true) // '$19.99'
  * formatPrice(0) // '0.00'
  */
-export function formatPrice(price, currencySymbol = '$', includeSymbol = false) {
+export function formatPrice(price: number | string, currencySymbol = '$', includeSymbol = false): string {
 	try {
 		const priceNum = Number(price)
 
@@ -57,11 +67,11 @@ export function formatPrice(price, currencySymbol = '$', includeSymbol = false) 
 		}
 
 		if (!price || price === 0) {
-			return includeSymbol ? `${ currencySymbol }0.00` : '0.00'
+			return includeSymbol ? `${currencySymbol}0.00` : '0.00'
 		}
 
 		const formatted = (priceNum / 100).toFixed(2)
-		return includeSymbol ? `${ currencySymbol }${ formatted }` : formatted
+		return includeSymbol ? `${currencySymbol}${formatted}` : formatted
 	} catch (error) {
 		handleError(MODULE_NAME, error)
 		return '0.00'
@@ -71,17 +81,17 @@ export function formatPrice(price, currencySymbol = '$', includeSymbol = false) 
 /**
  * Format currency with proper symbol
  *
- * @param {number} amount - Amount in cents
- * @param {string} [currencyCode='USD'] - Currency code (USD, EUR, etc.)
- * @returns {string} Formatted currency string
+ * @param amount - Amount in cents
+ * @param currencyCode - Currency code (USD, EUR, etc.)
+ * @returns Formatted currency string
  *
  * @example
  * formatCurrency(1999, 'USD') // '$19.99'
  * formatCurrency(1999, 'EUR') // '€19.99'
  */
-export function formatCurrency(amount, currencyCode = 'USD') {
+export function formatCurrency(amount: number, currencyCode = 'USD'): string {
 	try {
-		const symbols = {
+		const symbols: Record<string, string> = {
 			'USD': '$',
 			'EUR': '€',
 			'GBP': '£',
@@ -99,13 +109,11 @@ export function formatCurrency(amount, currencyCode = 'USD') {
 /**
  * Calculates the total for a line item by multiplying unit price by quantity
  *
- * @param {Object} item - Cart line item
- * @param {number} item.unit_price - Item price in cents
- * @param {number} item.quantity - Item quantity
- * @returns {string} Formatted line item total with two decimal places
- * @throws {TypeError} If item is missing required properties
+ * @param item - Cart line item
+ * @returns Formatted line item total with two decimal places
+ * @throws TypeError If item is missing required properties
  */
-export function getLineItemTotal(item) {
+export function getLineItemTotal(item: MedusaLineItem): string {
 	try {
 		// Validate item is an object
 		validateType(item, 'object', 'item', false)
@@ -129,12 +137,12 @@ export function getLineItemTotal(item) {
 /**
  * Finds the selected shipping option from the list of available options
  *
- * @param {Array<Object>} shippingOptions - Available shipping options
- * @param {string} selectedId - ID of the selected option
- * @returns {Object|undefined} The selected shipping option or undefined if not found
- * @throws {TypeError} If shippingOptions is not an array
+ * @param shippingOptions - Available shipping options
+ * @param selectedId - ID of the selected option
+ * @returns The selected shipping option or undefined if not found
+ * @throws TypeError If shippingOptions is not an array
  */
-export function getSelectedShippingOption(shippingOptions, selectedId) {
+export function getSelectedShippingOption(shippingOptions: ShippingOption[], selectedId: string): ShippingOption | undefined {
 	try {
 		// Validate shipping options is an array
 		validateType(shippingOptions, 'array', 'shippingOptions', false)
@@ -149,19 +157,17 @@ export function getSelectedShippingOption(shippingOptions, selectedId) {
 /**
  * Gets the cart subtotal formatted as currency
  *
- * @param {Object} cart - The cart object
- * @param {number} [cart.subtotal] - Subtotal in cents
- * @param {Array} [cart.items] - Cart items
- * @returns {string} Formatted subtotal with two decimal places
- * @throws {TypeError} If cart is not an object
+ * @param cart - The cart object
+ * @returns Formatted subtotal with two decimal places
+ * @throws TypeError If cart is not an object
  */
-export function getCartSubtotal(cart) {
+export function getCartSubtotal(cart: MedusaCart): string {
 	try {
 		// Validate cart is an object
 		validateType(cart, 'object', 'cart', false)
 
-		if (!cart.items) {return '0.00'}
-		return formatPrice(cart.subtotal)
+		if (!cart.items) { return '0.00' }
+		return formatPrice(cart.subtotal ?? 0)
 	} catch (error) {
 		handleError(MODULE_NAME, error)
 		return '0.00'
@@ -171,17 +177,16 @@ export function getCartSubtotal(cart) {
 /**
  * Gets the shipping total formatted as currency
  *
- * @param {Object} cart - The cart object
- * @param {number} [cart.shipping_total] - Shipping total in cents
- * @returns {string} Formatted shipping total with two decimal places
- * @throws {TypeError} If cart is not an object
+ * @param cart - The cart object
+ * @returns Formatted shipping total with two decimal places
+ * @throws TypeError If cart is not an object
  */
-export function getShippingTotal(cart) {
+export function getShippingTotal(cart: MedusaCart): string {
 	try {
 		// Validate cart is an object
 		validateType(cart, 'object', 'cart', false)
 
-		if (!cart.shipping_total) {return '0.00'}
+		if (!cart.shipping_total) { return '0.00' }
 		return formatPrice(cart.shipping_total)
 	} catch (error) {
 		handleError(MODULE_NAME, error)
@@ -192,17 +197,16 @@ export function getShippingTotal(cart) {
 /**
  * Gets the tax total formatted as currency
  *
- * @param {Object} cart - The cart object
- * @param {number} [cart.tax_total] - Tax total in cents
- * @returns {string} Formatted tax total with two decimal places
- * @throws {TypeError} If cart is not an object
+ * @param cart - The cart object
+ * @returns Formatted tax total with two decimal places
+ * @throws TypeError If cart is not an object
  */
-export function getTaxTotal(cart) {
+export function getTaxTotal(cart: MedusaCart): string {
 	try {
 		// Validate cart is an object
 		validateType(cart, 'object', 'cart', false)
 
-		if (!cart.tax_total) {return '0.00'}
+		if (!cart.tax_total) { return '0.00' }
 		return formatPrice(cart.tax_total)
 	} catch (error) {
 		handleError(MODULE_NAME, error)
@@ -213,17 +217,16 @@ export function getTaxTotal(cart) {
 /**
  * Gets the order total formatted as currency
  *
- * @param {Object} cart - The cart object
- * @param {number} [cart.total] - Order total in cents
- * @returns {string} Formatted order total with two decimal places
- * @throws {TypeError} If cart is not an object
+ * @param cart - The cart object
+ * @returns Formatted order total with two decimal places
+ * @throws TypeError If cart is not an object
  */
-export function getOrderTotal(cart) {
+export function getOrderTotal(cart: MedusaCart): string {
 	try {
 		// Validate cart is an object
 		validateType(cart, 'object', 'cart', false)
 
-		if (!cart.total) {return '0.00'}
+		if (!cart.total) { return '0.00' }
 		return formatPrice(cart.total)
 	} catch (error) {
 		handleError(MODULE_NAME, error)

@@ -1,5 +1,5 @@
 import Medusa from '@medusajs/medusa-js'
-import { createLogger } from './logger.js'
+import { createLogger } from './logger'
 import {
 	PUBLIC_MEDUSA_BACKEND_URL,
 	PUBLIC_MEDUSA_PUBLISHABLE_KEY
@@ -7,19 +7,28 @@ import {
 
 const logger = createLogger('MedusaServer')
 
+/**
+ * Medusa client configuration
+ */
+interface MedusaClientConfig {
+	baseUrl: string;
+	maxRetries: number;
+	publishableApiKey?: string;
+}
+
 // Use SvelteKit public environment variables
-const backendUrl = PUBLIC_MEDUSA_BACKEND_URL || 'http://localhost:3282'
-const publishableKey = PUBLIC_MEDUSA_PUBLISHABLE_KEY
+const backendUrl: string = PUBLIC_MEDUSA_BACKEND_URL || 'http://localhost:3282'
+const publishableKey: string | undefined = PUBLIC_MEDUSA_PUBLISHABLE_KEY
 
 // Validate backend URL
 if (!backendUrl) {
 	throw new Error('Missing Medusa backend URL. Set PUBLIC_MEDUSA_BACKEND_URL in .env')
 }
 
-logger.info(`Connecting to Medusa at: ${ backendUrl }`)
+logger.info(`Connecting to Medusa at: ${backendUrl}`)
 
 // Initialize Medusa client for server-side operations
-const clientConfig = {
+const clientConfig: MedusaClientConfig = {
 	baseUrl: backendUrl,
 	maxRetries: 3
 }

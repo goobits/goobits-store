@@ -1,10 +1,33 @@
-import { writable, get } from 'svelte/store'
+import { writable, get, type Writable } from 'svelte/store'
 import { browser } from '$app/environment'
 import { createLogger } from '../utils/logger.js'
 import { medusaClient } from '../utils/medusaClient.js'
 
 const logger = createLogger('Cart')
 const CART_ID_KEY = 'medusa_cart_id'
+
+export interface CartItem {
+	id: string;
+	name: string;
+	price: number;
+	quantity: number;
+	variant_id?: string;
+	image?: string;
+	[key: string]: unknown;
+}
+
+export interface CartStore {
+	subscribe: Writable<CartItem[]>['subscribe'];
+	addToCart: (product: CartItem) => void;
+	removeFromCart: (productId: string) => void;
+	updateQuantity: (productId: string, quantity: number) => void;
+	clearCart: () => void;
+	getCartItems: () => CartItem[];
+	getCartTotal: () => number;
+	getCartCount: () => number;
+	associateWithCustomer: () => Promise<void>;
+	reset: () => void;
+}
 
 /**
  * Loads cart data from browser storage.
@@ -14,21 +37,21 @@ const CART_ID_KEY = 'medusa_cart_id'
  * 2. localStorage (persists even when browser is closed)
  * 3. Empty array (fallback)
  *
- * @returns {Array} The cart items array or an empty array if nothing found
+ * @returns The cart items array or an empty array if nothing found
  */
-function getStoredCart() {
+function getStoredCart(): CartItem[] {
 	if (!browser) {return []}
 
 	try {
 		// Try to get cart from sessionStorage first (more recent)
 		const sessionCart = sessionStorage.getItem('cart')
-		if (sessionCart) {return JSON.parse(sessionCart)}
+		if (sessionCart) {return JSON.parse(sessionCart) as CartItem[]}
 
 		// Fall back to localStorage
 		const localCart = localStorage.getItem('cart')
 		if (localCart) {
 			// Copy from localStorage to sessionStorage
-			const parsedCart = JSON.parse(localCart)
+			const parsedCart = JSON.parse(localCart) as CartItem[]
 			sessionStorage.setItem('cart', localCart)
 			return parsedCart
 		}
@@ -41,9 +64,9 @@ function getStoredCart() {
 
 /**
  * Helper function to persist cart to storage synchronously
- * @param {Array} cartItems - Cart items to persist
+ * @param cartItems - Cart items to persist
  */
-function persistCart(cartItems) {
+function persistCart(cartItems: CartItem[]): void {
 	if (!browser) {return}
 
 	try {
@@ -57,9 +80,8 @@ function persistCart(cartItems) {
 
 /**
  * Cart store containing all cart items
- * @type {import('svelte/store').Writable<Array>}
  */
-export const cart = writable(getStoredCart())
+export const cart: Writable<CartItem[]> = writable(getStoredCart())
 
 // Persist cart state to browser storage when changes occur
 if (browser) {
@@ -68,10 +90,10 @@ if (browser) {
 	})
 
 	// Listen for storage events from other tabs/windows or synthetic events from tests
-	window.addEventListener('storage', (event) => {
+	window.addEventListener('storage', (event: StorageEvent) => {
 		if (event.key === 'cart' && event.newValue !== null) {
 			try {
-				const newCart = JSON.parse(event.newValue)
+				const newCart = JSON.parse(event.newValue) as CartItem[]
 				// Update the store without triggering another persist cycle
 				cart.set(newCart)
 			} catch (e) {
@@ -87,20 +109,16 @@ if (browser) {
 /**
  * Adds a product to the cart. If the product already exists, increases quantity.
  *
- * @param {Object} product - The product to add to the cart
- * @param {string} product.id - The unique product ID
- * @param {string} [product.variant_id] - Optional variant ID if applicable
- * @param {number} [product.quantity=1] - Optional quantity (defaults to 1)
- * @returns {void}
+ * @param product - The product to add to the cart
  */
-export function addToCart(product) {
+export function addToCart(product: CartItem): void {
 	cart.update(items => {
 		// Use variant_id if available, otherwise use product id
 		const productId = product.variant_id || product.id
 
 		const existingItem = items.find(item => (item.variant_id || item.id) === productId)
 
-		let updatedCart
+		let updatedCart: CartItem[]
 		if (existingItem) {
 			// Update quantity of existing cart item
 			updatedCart = items.map(item =>
@@ -109,7 +127,7 @@ export function addToCart(product) {
 					: item
 			)
 		} else {
-			const newProduct = { ...product }
+			const newProduct: CartItem = { ...product }
 			if (!newProduct.quantity) {
 				newProduct.quantity = 1
 			}
@@ -127,10 +145,9 @@ export function addToCart(product) {
 /**
  * Removes a product from the cart.
  *
- * @param {string} productId - The ID of the product to remove
- * @returns {void}
+ * @param productId - The ID of the product to remove
  */
-export function removeFromCart(productId) {
+export function removeFromCart(productId: string): void {
 	cart.update(items => {
 		const updatedCart = items.filter(item => (item.variant_id || item.id) !== productId)
 		// Persist synchronously BEFORE returning (fixes race condition)
@@ -143,11 +160,10 @@ export function removeFromCart(productId) {
  * Updates the quantity of a product in the cart.
  * If quantity is 0 or negative, the product is removed from the cart.
  *
- * @param {string} productId - The ID of the product to update
- * @param {number} quantity - The new quantity
- * @returns {void}
+ * @param productId - The ID of the product to update
+ * @param quantity - The new quantity
  */
-export function updateQuantity(productId, quantity) {
+export function updateQuantity(productId: string, quantity: number): void {
 	if (quantity <= 0) {
 		removeFromCart(productId)
 		return
@@ -167,10 +183,8 @@ export function updateQuantity(productId, quantity) {
 
 /**
  * Removes all items from the cart.
- *
- * @returns {void}
  */
-export function clearCart() {
+export function clearCart(): void {
 	cart.set([])
 	// Immediately persist empty cart
 	persistCart([])
@@ -179,9 +193,9 @@ export function clearCart() {
 /**
  * Gets the current items in the cart.
  *
- * @returns {Array} Current cart items or empty array for server-side rendering
+ * @returns Current cart items or empty array for server-side rendering
  */
-export function getCartItems() {
+export function getCartItems(): CartItem[] {
 	// Handle server-side rendering where stores aren't available
 	if (!browser) {return []}
 
@@ -191,9 +205,9 @@ export function getCartItems() {
 /**
  * Calculates the total price of all items in the cart.
  *
- * @returns {number} The total price of all items
+ * @returns The total price of all items
  */
-export function getCartTotal() {
+export function getCartTotal(): number {
 	const items = getCartItems()
 	return items.reduce((total, item) => total + (item.price * item.quantity), 0)
 }
@@ -201,19 +215,23 @@ export function getCartTotal() {
 /**
  * Counts the total number of items in the cart (sum of quantities).
  *
- * @returns {number} The total count of items
+ * @returns The total count of items
  */
-export function getCartCount() {
+export function getCartCount(): number {
 	const items = getCartItems()
 	return items.reduce((count, item) => count + item.quantity, 0)
 }
 
 /**
  * Associates the current cart with a logged-in customer
- * @returns {Promise<void>}
  */
-export async function associateWithCustomer() {
+export async function associateWithCustomer(): Promise<void> {
 	if (!browser) {
+		return
+	}
+
+	if (!medusaClient) {
+		logger.error('Medusa client not initialized')
 		return
 	}
 
@@ -231,9 +249,8 @@ export async function associateWithCustomer() {
 
 /**
  * Resets the cart (used on logout)
- * @returns {Promise<void>}
  */
-export function reset() {
+export function reset(): void {
 	if (!browser) {
 		return
 	}
@@ -249,7 +266,7 @@ export function reset() {
 }
 
 // Export cart object with methods
-export const cartStore = {
+export const cartStore: CartStore = {
 	subscribe: cart.subscribe,
 	addToCart,
 	removeFromCart,

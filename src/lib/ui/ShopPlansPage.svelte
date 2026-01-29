@@ -1,10 +1,24 @@
-<script>
-	/**
-	 * ShopPlansPage - Generic plans/subscriptions redirect page
-	 *
-	 * @prop {Object} data - Route data
-	 * @prop {Object} [content] - Page content (title, description, links)
-	 */
+<script lang="ts">
+	interface ContentLink {
+		url: string;
+		label: string;
+	}
+
+	interface PlansContent {
+		title: string;
+		description: string;
+		links: ContentLink[];
+	}
+
+	interface PageData {
+		[key: string]: unknown;
+	}
+
+	interface Props {
+		_data?: PageData;
+		content?: PlansContent;
+	}
+
 	const {
 		_data,
 		content = {
@@ -12,7 +26,7 @@
 			description: 'Our service plans and subscription options have moved to make them easier to find!',
 			links: []
 		}
-	} = $props()
+	}: Props = $props()
 </script>
 
 <section class="plans-redirect">

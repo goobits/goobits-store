@@ -172,6 +172,13 @@ declare interface MFAEnrollment {
 }
 
 // Subscription types
+declare interface SubscriptionInterval {
+	value: string;
+	label: string;
+	discount: number;
+	count?: number;
+}
+
 declare interface Subscription {
 	id: string;
 	status: string;
@@ -180,6 +187,24 @@ declare interface Subscription {
 	current_period_start?: string;
 	current_period_end?: string;
 	product?: MedusaProduct;
+	next_billing_date?: string;
+	amount?: number;
+	currency_code?: string;
+	discount_type?: 'none' | 'percentage' | 'fixed';
+	discount_value?: number;
+	start_date?: string;
+	trial_end_date?: string;
+	ended_at?: string;
+	cancelled_at?: string;
+	payment_retry_count?: number;
+	last_payment_error?: string;
+	metadata?: Record<string, unknown>;
+}
+
+declare interface SubscriptionUpdateEvent {
+	action: 'pause' | 'resume' | 'cancel';
+	subscription: Subscription;
+	immediately?: boolean;
 }
 
 // Global module declarations
@@ -197,4 +222,67 @@ declare module '@goobits/store/stores' {
 		updateQuantity: (id: string, quantity: number) => void;
 		clear: () => void;
 	};
+}
+
+// SvelteKit module declarations
+declare module '$app/environment' {
+	export const browser: boolean;
+	export const dev: boolean;
+	export const building: boolean;
+	export const version: string;
+}
+
+declare module '$env/static/public' {
+	export const PUBLIC_MEDUSA_BACKEND_URL: string;
+	export const PUBLIC_MEDUSA_PUBLISHABLE_KEY: string;
+}
+
+declare module '@goobits/forms/ui/FormErrors.svelte' {
+	export { SvelteComponent as default } from 'svelte';
+}
+
+declare module '@goobits/forms/ui/modals/Button.svelte' {
+	export { SvelteComponent as default } from 'svelte';
+}
+
+declare module '@goobits/forms/ui/modals/Modal.svelte' {
+	export { SvelteComponent as default } from 'svelte';
+}
+
+declare module '@lib/utils/Logger' {
+	export class Logger {
+		info(...args: unknown[]): void;
+		warn(...args: unknown[]): void;
+		error(...args: unknown[]): void;
+		debug(...args: unknown[]): void;
+	}
+}
+
+declare module '@lib/stores/auth-simple' {
+	import { Readable } from 'svelte/store';
+	export const user: Readable<unknown>;
+}
+
+declare module 'qrcode' {
+	export function toDataURL(text: string, options?: object): Promise<string>;
+	export function toString(text: string, options?: object): Promise<string>;
+}
+
+// Logger module declaration
+declare module '@goobits/logger' {
+	export interface Logger {
+		error: (...args: unknown[]) => void;
+		warn: (...args: unknown[]) => void;
+		info: (...args: unknown[]) => void;
+		debug: (...args: unknown[]) => void;
+	}
+
+	export interface LoggerConfigType {
+		setGlobalPrefix: (prefix: string) => void;
+		configure: (options: Record<string, unknown>) => void;
+	}
+
+	export function createLogger(module: string): Logger;
+	export const LogLevels: Record<string, string>;
+	export const LoggerConfig: LoggerConfigType;
 }

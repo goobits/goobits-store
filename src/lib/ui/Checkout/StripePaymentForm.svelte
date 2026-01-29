@@ -1,14 +1,52 @@
-<script>
+<script lang="ts">
 	import { onMount, createEventDispatcher } from 'svelte'
 	import { browser } from '$app/environment'
 	import StripeElements from './StripeElements.svelte'
 	import { Loader2 } from '@lucide/svelte'
 
+	import type { Stripe, StripeElements as StripeElementsType, PaymentIntent } from '@stripe/stripe-js'
+
 	// Use console for logging within the package
 	const logger = console
-	
-	const dispatch = createEventDispatcher()
-	
+
+	interface StripeError {
+		message: string;
+	}
+
+	interface StripeElementsData {
+		elements: StripeElementsType;
+		stripe: Stripe;
+	}
+
+	interface BillingDetails {
+		name?: string;
+		email?: string;
+		address?: {
+			line1?: string;
+			line2?: string;
+			city?: string;
+			state?: string;
+			postal_code?: string;
+			country?: string;
+		};
+	}
+
+	interface Props {
+		clientSecret?: string;
+		cartId?: string;
+		billingDetails?: BillingDetails;
+		returnUrl?: string;
+		submitButtonText?: string;
+		isProcessing?: boolean;
+		onsuccess?: (event: CustomEvent<{ paymentIntent: PaymentIntent; paymentStatus: string }>) => void;
+		onerror?: (event: CustomEvent<StripeError>) => void;
+	}
+
+	const dispatch = createEventDispatcher<{
+		success: { paymentIntent: PaymentIntent; paymentStatus: string };
+		error: StripeError;
+	}>()
+
 	// Props
 	const {
 		clientSecret = '',
@@ -27,17 +65,19 @@
 		},
 		returnUrl = '/shop/checkout/confirmation',
 		submitButtonText = 'Pay now',
-		isProcessing = false
-	} = $props()
-	
+		isProcessing = false,
+		onsuccess,
+		onerror
+	}: Props = $props()
+
 	// State
-	let isLoading = $state(true)
-	let stripeError = $state(null)
-	let stripeElements = $state(null)
-	let _paymentIntentStatus = $state('')
+	let isLoading: boolean = $state(true)
+	let stripeError: StripeError | null = $state(null)
+	let stripeElements: StripeElementsData | null = $state(null)
+	let _paymentIntentStatus: string = $state('')
 	// Processing state: use prop if provided, otherwise manage locally
 	// eslint-disable-next-line svelte/valid-compile -- intentionally capturing initial value for local state management
-	let processing = $state(isProcessing)
+	let processing: boolean = $state(isProcessing)
 
 	// Set up Elements when component mounts
 	onMount(() => {
@@ -52,7 +92,7 @@
 
 		isLoading = false
 	})
-	
+
 	// Update Elements when the client secret changes
 	$effect(() => {
 		if (browser && clientSecret) {
@@ -61,18 +101,20 @@
 			isLoading = false
 		}
 	})
-	
+
 	// Handle form submission
-	async function handleSubmit() {
+	async function handleSubmit(event: SubmitEvent): Promise<void> {
+		event.preventDefault()
+
 		if (!stripeElements || !browser) return
-		
+
 		// Set processing state
 		processing = true
-		
+
 		try {
 			// Get the stripe object from the elements
 			const { stripe } = stripeElements
-			
+
 			// Confirm the payment using client-side confirmation
 			const result = await stripe.confirmPayment({
 				elements: stripeElements.elements,
@@ -84,23 +126,31 @@
 				},
 				redirect: 'if_required'
 			})
-			
+
 			// Handle the result
 			if (result.error) {
 				// Show error to customer
-				stripeError = result.error
+				stripeError = result.error as StripeError
 				processing = false
+
+				// Dispatch error event
+				const errorEvent = new CustomEvent('error', { detail: stripeError })
+				dispatch('error', stripeError)
+				if (onerror) onerror(errorEvent as CustomEvent<StripeError>)
 			} else {
 				// The payment has been processed!
 				if (result.paymentIntent) {
 					_paymentIntentStatus = result.paymentIntent.status
 
 					// Dispatch the success event with payment info
-					dispatch('success', {
+					const successData = {
 						paymentIntent: result.paymentIntent,
 						paymentStatus: result.paymentIntent.status
-					})
-					
+					}
+					const successEvent = new CustomEvent('success', { detail: successData })
+					dispatch('success', successData)
+					if (onsuccess) onsuccess(successEvent as CustomEvent<{ paymentIntent: PaymentIntent; paymentStatus: string }>)
+
 					// Reset processing state if the payment doesn't require further action
 					if (result.paymentIntent.status !== 'requires_action') {
 						processing = false
@@ -111,11 +161,16 @@
 			logger.error('Payment error:', error)
 			stripeError = { message: 'Something went wrong with your payment. Please try again.' }
 			processing = false
+
+			// Dispatch error event
+			const errorEvent = new CustomEvent('error', { detail: stripeError })
+			dispatch('error', stripeError)
+			if (onerror) onerror(errorEvent as CustomEvent<StripeError>)
 		}
 	}
-	
+
 	// Handle successful setup of the Elements
-	function handleElementsReady(event) {
+	function handleElementsReady(event: CustomEvent<StripeElementsData>): void {
 		stripeElements = event.detail
 	}
 </script>

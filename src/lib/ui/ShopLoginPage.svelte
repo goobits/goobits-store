@@ -1,4 +1,4 @@
-<script>
+<script lang="ts">
 	import { goto } from '$app/navigation'
 	import { page } from '$app/stores'
 	import { browser } from '$app/environment'
@@ -6,45 +6,83 @@
 	import MFABackupCodeInput from './MFABackupCodeInput.svelte'
 	import FormErrors from '@goobits/forms/ui/FormErrors.svelte'
 	import Button from '@goobits/forms/ui/modals/Button.svelte'
-	import { getPublishableKey } from '../config/urls.js'
+	import { getPublishableKey } from '../config/urls'
 
-	/**
-	 * ShopLoginPage - Generic authentication page
-	 *
-	 * @prop {Object} auth - Auth store instance
-	 * @prop {Object} [demoCredentials] - Optional demo credentials for dev
-	 * @prop {string} [initialMode] - 'login' or 'register'
-	 * @prop {Object} [branding] - Site branding configuration
-	 */
+	interface AuthState {
+		customer: MedusaCustomer | null;
+		token: string | null;
+		loading: boolean;
+		error: string | null;
+	}
+
+	interface AuthStore {
+		subscribe: (fn: (state: AuthState) => void) => () => void;
+		login: (email: string, password: string) => Promise<{ success: boolean; mfaRequired?: boolean }>;
+		register: (data: {
+			first_name: string;
+			last_name: string;
+			email: string;
+			password: string;
+			phone?: string;
+		}) => Promise<{ success: boolean }>;
+		clearError?: () => void;
+		checkSession?: () => Promise<void>;
+	}
+
+	interface DemoCredentials {
+		email: string;
+		password: string;
+	}
+
+	interface Branding {
+		siteName?: string;
+		loginTitle?: string;
+		loginSubtitle?: string;
+		registerTitle?: string;
+		registerSubtitle?: string;
+	}
+
+	interface PageData {
+		[key: string]: unknown;
+	}
+
+	interface Props {
+		data?: PageData;
+		auth?: AuthStore;
+		demoCredentials?: DemoCredentials | null;
+		initialMode?: 'login' | 'register';
+		branding?: Branding;
+	}
+
 	const {
 		auth,
 		demoCredentials = null,
 		initialMode = 'login',
 		branding = { siteName: 'Store' }
-	} = $props()
+	}: Props = $props()
 
-	let email = $state('')
-	let password = $state('')
+	let email: string = $state('')
+	let password: string = $state('')
 	// eslint-disable-next-line svelte/valid-compile -- intentionally capturing initial value for form mode toggle
-	const showRegister = $state(initialMode === 'register')
-	let firstName = $state('')
-	let lastName = $state('')
-	let phone = $state('')
-	let confirmPassword = $state('')
+	const showRegister: boolean = $state(initialMode === 'register')
+	let firstName: string = $state('')
+	let lastName: string = $state('')
+	let phone: string = $state('')
+	let confirmPassword: string = $state('')
 
 	// MFA state
-	let mfaRequired = $state(false)
-	let mfaError = $state('')
-	let mfaLoading = $state(false)
-	let useBackupCode = $state(false)
+	let mfaRequired: boolean = $state(false)
+	let mfaError: string = $state('')
+	let mfaLoading: boolean = $state(false)
+	let useBackupCode: boolean = $state(false)
 
 	// Subscribe to auth store
-	let authState = $state({ customer: null, token: null, loading: false, error: null })
+	let authState: AuthState = $state({ customer: null, token: null, loading: false, error: null })
 
 	$effect(() => {
 		if (auth) {
 			// Subscribe to auth store updates
-			const unsubscribe = auth.subscribe((state) => {
+			const unsubscribe = auth.subscribe((state: AuthState) => {
 				authState = state
 			})
 			return unsubscribe
@@ -76,12 +114,12 @@
 		}
 	})
 
-	const returnUrl = $derived($page.url.searchParams.get('return') || '/shop/account')
+	const returnUrl: string = $derived($page.url.searchParams.get('return') || '/shop/account')
 
 	// Convert auth error to FormErrors format
-	const formErrors = $derived(authState.error ? { _errors: [authState.error] } : { _errors: [] })
+	const formErrors: { _errors: string[] } = $derived(authState.error ? { _errors: [authState.error] } : { _errors: [] })
 
-	async function handleLogin(e) {
+	async function handleLogin(e: Event): Promise<void> {
 		e.preventDefault()
 		if (!auth) return
 
@@ -96,7 +134,7 @@
 		}
 	}
 
-	async function handleMFAVerify(code, rememberDevice) {
+	async function handleMFAVerify(code: string, rememberDevice: boolean): Promise<void> {
 		mfaLoading = true
 		mfaError = ''
 
@@ -129,14 +167,15 @@
 
 			// Navigate to the return URL
 			goto(returnUrl)
-		} catch (error) {
-			mfaError = error.message || 'Verification failed'
+		} catch (error: unknown) {
+			const err = error as Error
+			mfaError = err.message || 'Verification failed'
 		} finally {
 			mfaLoading = false
 		}
 	}
 
-	async function handleBackupCodeVerify(code) {
+	async function handleBackupCodeVerify(code: string): Promise<void> {
 		mfaLoading = true
 		mfaError = ''
 
@@ -166,24 +205,25 @@
 
 			// Navigate to the return URL
 			goto(returnUrl)
-		} catch (error) {
-			mfaError = error.message || 'Verification failed'
+		} catch (error: unknown) {
+			const err = error as Error
+			mfaError = err.message || 'Verification failed'
 		} finally {
 			mfaLoading = false
 		}
 	}
 
-	function handleUseBackupCode() {
+	function handleUseBackupCode(): void {
 		useBackupCode = true
 		mfaError = ''
 	}
 
-	function handleBackToTOTP() {
+	function handleBackToTOTP(): void {
 		useBackupCode = false
 		mfaError = ''
 	}
 
-	async function handleRegister(e) {
+	async function handleRegister(e: Event): Promise<void> {
 		e.preventDefault()
 		if (!auth) return
 
@@ -206,7 +246,7 @@
 		}
 	}
 
-	function toggleMode() {
+	function toggleMode(): void {
 		// Clear error when switching modes
 		if (auth && auth.clearError) {
 			auth.clearError()
@@ -270,7 +310,7 @@
 							disabled={authState.loading}
 						/>
 					</div>
-					
+
 					<div class="goo__form-group">
 						<label for="lastName">Last Name</label>
 						<input
@@ -282,7 +322,7 @@
 						/>
 					</div>
 				</div>
-				
+
 				<div class="goo__form-group">
 					<label for="email">Email Address</label>
 					<input
@@ -293,7 +333,7 @@
 						disabled={authState.loading}
 					/>
 				</div>
-				
+
 				<div class="goo__form-group">
 					<label for="phone">Phone Number (Optional)</label>
 					<input
@@ -303,7 +343,7 @@
 						disabled={authState.loading}
 					/>
 				</div>
-				
+
 				<div class="goo__form-group">
 					<label for="password">Password</label>
 					<input
@@ -315,7 +355,7 @@
 						disabled={authState.loading}
 					/>
 				</div>
-				
+
 				<div class="goo__form-group">
 					<label for="confirmPassword">Confirm Password</label>
 					<input
@@ -349,7 +389,7 @@
 						disabled={authState.loading}
 					/>
 				</div>
-				
+
 				<div class="goo__form-group">
 					<label for="password">Password</label>
 					<input
@@ -371,7 +411,7 @@
 				</Button>
 			</form>
 		{/if}
-		
+
 			<div class="goo__auth-toggle">
 				{#if showRegister}
 					<p>Already have an account?</p>
@@ -391,7 +431,7 @@
 
 <style lang="scss">
 	@use './variables.scss' as *;
-	
+
 	.goo__auth-page {
 		flex: 1;
 		display: flex;
@@ -400,7 +440,7 @@
 		padding: 2rem $spacing-medium;
 		min-height: 0; // Allow flex shrinking if needed
 	}
-	
+
 	.goo__auth-container {
 		background: var(--color-surface);
 		border-radius: $border-radius-large;
@@ -429,17 +469,17 @@
 	.goo__auth-form {
 		margin-bottom: $spacing-large;
 	}
-	
+
 	.goo__form-row {
 		display: grid;
 		grid-template-columns: 1fr 1fr;
 		gap: $spacing-medium;
-		
+
 		@media (max-width: 480px) {
 			grid-template-columns: 1fr;
 		}
 	}
-	
+
 	.goo__form-group {
 		margin-bottom: $spacing-medium;
 

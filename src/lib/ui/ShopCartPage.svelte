@@ -1,36 +1,47 @@
-<script>
+<script lang="ts">
 	// We'll import the existing cart page content and eventually refactor
 	// For now, this is a wrapper around the existing cart functionality
 	import { cart, updateQuantity, removeFromCart } from '@goobits/store'
 	import { goto } from '$app/navigation'
 	import { medusaClient } from '@goobits/store'
 	import { browser } from '$app/environment'
-	import { Logger } from '@lib/utils/Logger.js'
+	import { Logger } from '@lib/utils/Logger'
+	import type { CartItem } from '../stores/cart'
 
-	const { data, config = {} } = $props()
+	interface PageData {
+		defaultRegion?: MedusaRegion;
+		[key: string]: unknown;
+	}
+
+	interface Props {
+		data: PageData;
+		config?: ShopConfig;
+	}
+
+	const { data, config = {} }: Props = $props()
 
 	// Get placeholder image from config or use generic fallback
-	const fallbackImage = $derived(config?.ui?.placeholders?.product ||
+	const fallbackImage: string = $derived(config?.ui?.placeholders?.product ||
 		'https://placehold.co/100x100/E5E5E5/999?text=Product')
 
 	const logger = new Logger('ShopCart')
 
 	// Extract region data from server
-	const defaultRegion = $derived(data?.defaultRegion)
-	
+	const defaultRegion: MedusaRegion | undefined = $derived(data?.defaultRegion)
+
 	// Utility function to get product ID consistently
-	function getProductId(product) {
+	function getProductId(product: CartItem): string {
 		return product.variant_id || product.id
 	}
 
-	let isSubmitting = $state(false)
-	let errorMessage = $state('')
+	let isSubmitting: boolean = $state(false)
+	let errorMessage: string = $state('')
 
 	// Derived state for subtotal - automatically updates when cart changes
 	// Note: Cart prices are stored as actual dollar amounts, not cents
-	const subtotal = $derived(
+	const subtotal: number = $derived(
 		!$cart || $cart.length === 0 ? 0 :
-		$cart.reduce((total, item) => {
+		$cart.reduce((total: number, item: CartItem) => {
 			const price = typeof item.price === 'number' ? item.price : 0
 			const quantity = typeof item.quantity === 'number' ? item.quantity : 0
 			return total + (price * quantity)
@@ -38,37 +49,37 @@
 	)
 
 	// Helper function to format prices for display
-	function formatCartPrice(price) {
+	function formatCartPrice(price: number): string {
 		// Cart stores prices as dollars already, not cents
 		// Just format to 2 decimal places
 		return typeof price === 'number' ? price.toFixed(2) : '0.00'
 	}
-	
+
 	// Derived state for cleaner template logic
-	const hasItems = $derived($cart && $cart.length > 0)
-	
-	function handleQuantityChange(product, newQuantity) {
+	const hasItems: boolean = $derived($cart && $cart.length > 0)
+
+	function handleQuantityChange(product: CartItem, newQuantity: number): void {
 		if (newQuantity < 1) newQuantity = 1
 		updateQuantity(getProductId(product), newQuantity)
 	}
 
-	function handleRemoveItem(product) {
+	function handleRemoveItem(product: CartItem): void {
 		removeFromCart(getProductId(product))
 	}
 
-	function handleContinueShopping() {
+	function handleContinueShopping(): void {
 		goto('/shop')
 	}
 
 	// Helper function to generate a slug from a product name
-	function getProductHandle(item) {
+	function getProductHandle(item: CartItem): string {
 		return item.name
 			.toLowerCase()
 			.replace(/[^\w\s]/g, '') // Remove special chars
 			.replace(/\s+/g, '-') // Replace spaces with hyphens
 	}
 
-	async function handleCheckout() {
+	async function handleCheckout(): Promise<void> {
 		if ($cart.length === 0) {
 			errorMessage = 'My cart is empty'
 			return
@@ -88,7 +99,7 @@
 
 			try {
 			// Create a cart in Medusa with region
-			const cartParams = {}
+			const cartParams: { region_id?: string } = {}
 			if (defaultRegion?.id) {
 				cartParams.region_id = defaultRegion.id
 			}
@@ -96,7 +107,7 @@
 			const { cart: medusaCart } = await medusaClient.carts.create(cartParams)
 
 				// Add line items to the cart
-				const itemsToAdd = $cart.map(item => {
+				const itemsToAdd = $cart.map((item: CartItem) => {
 					return {
 						variant_id: item.variant_id,
 						quantity: item.quantity
@@ -104,7 +115,7 @@
 				})
 
 				// Track failed items
-				const failedItems = []
+				const failedItems: Array<{ variant_id?: string; quantity: number }> = []
 
 				for (const item of itemsToAdd) {
 					logger.info('Adding line item:', { variant_id: item.variant_id, quantity: item.quantity })
@@ -113,12 +124,13 @@
 							variant_id: item.variant_id,
 							quantity: item.quantity
 						})
-					} catch (lineItemError) {
+					} catch (lineItemError: unknown) {
+						const error = lineItemError as { response?: { data?: { message?: string } }; message?: string }
 						logger.error('Failed to add line item:', lineItemError)
-						logger.error('Error response:', lineItemError.response?.data)
+						logger.error('Error response:', error.response?.data)
 
 						// Check if it's a variant not found error
-						const errorMsg = lineItemError.response?.data?.message || ''
+						const errorMsg = error.response?.data?.message || ''
 						if (errorMsg.includes('do not exist') || errorMsg.includes('not published')) {
 							logger.warn('Variant no longer exists or is unpublished, skipping:', item.variant_id)
 							failedItems.push(item)
@@ -135,7 +147,7 @@
 				if (failedItems.length > 0) {
 					logger.info('Removing invalid items from cart:', failedItems.length)
 					for (const failedItem of failedItems) {
-						const cartItems = $cart.filter(item => item.variant_id !== failedItem.variant_id)
+						const cartItems = $cart.filter((item: CartItem) => item.variant_id !== failedItem.variant_id)
 						cart.set(cartItems)
 					}
 
@@ -154,12 +166,13 @@
 					isSubmitting = false
 					return
 				}
-			} catch (apiError) {
+			} catch (apiError: unknown) {
+				const error = apiError as { message?: string }
 				logger.error('API Error:', apiError)
 
 				// Check for CORS error
-				if (apiError.message && apiError.message.includes('NetworkError') ||
-					apiError.message && apiError.message.includes('Failed to fetch')) {
+				if (error.message && error.message.includes('NetworkError') ||
+					error.message && error.message.includes('Failed to fetch')) {
 					errorMessage = 'Connection to checkout server failed. The server may need to be configured for CORS. Please restart the Medusa server.'
 				} else {
 					errorMessage = 'Something went wrong connecting to checkout. Please try again.'
@@ -205,7 +218,7 @@
 							</a>
 							<div class="goo__cart-item-details">
 								<a href="/shop/{item.handle || getProductHandle(item)}" class="goo__cart-item-name">{item.name}</a>
-								{#if item.options && item.options.length > 0 && item.options.some(opt => opt.title && (opt.title.toLowerCase() === 'color' || opt.title.toLowerCase() === 'size'))}
+								{#if item.options && item.options.length > 0 && item.options.some((opt: { title?: string }) => opt.title && (opt.title.toLowerCase() === 'color' || opt.title.toLowerCase() === 'size'))}
 									{#each item.options as option}
 										{#if option.title && option.value}
 											{#if option.title.toLowerCase() === 'color'}

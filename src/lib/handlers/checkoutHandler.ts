@@ -5,20 +5,155 @@
  * to handle the complete checkout flow with Medusa.
  */
 
-import { redirect, error } from '@sveltejs/kit'
+import { redirect, error, type RequestEvent } from '@sveltejs/kit'
+ 
+// @ts-ignore - medusaServerClient module lacks type declarations
 import { medusaServerClient } from '../utils/medusaServerClient.js'
 import { createLogger } from '../utils/logger.js'
 import { getBackendUrl } from '../config/urls.js'
 
 const logger = createLogger('CheckoutHandler')
 
-/**
- * Creates a subscription record for an order containing subscription items
- *
- * @param {Object} order - The completed Medusa order
- * @param {Object} cart - The original cart with subscription metadata
- */
-async function createSubscriptionForOrder(order, cart) {
+// Medusa cart item with subscription metadata
+interface CartItem {
+	variant_id: string
+	product_id?: string
+	quantity: number
+	metadata?: {
+		subscription?: boolean
+		period?: string
+		interval_count?: number
+		trial_period_days?: number
+	}
+	variant?: {
+		product_id?: string
+	}
+}
+
+// Medusa cart with items
+interface CartWithItems {
+	id: string
+	items: CartItem[]
+	payment_sessions?: Array<{ provider_id: string }> | null
+	shipping_methods?: Array<{ id: string }>
+}
+
+// Medusa order structure
+interface MedusaOrderData {
+	id: string
+	customer_id: string
+	email: string
+	total: number
+	currency_code: string
+	region_id: string
+	shipping_address?: {
+		id?: string
+	}
+	payment_collection?: {
+		payments?: Array<{
+			provider_id: string
+			data?: {
+				payment_method?: string
+			}
+		}>
+	}
+}
+
+// Subscription data to be sent to backend
+interface SubscriptionData {
+	customer_id: string
+	interval: string
+	interval_count: number
+	amount: number
+	currency_code: string
+	product_ids: (string | undefined)[]
+	variant_ids: string[]
+	quantities: Record<string, number>
+	region_id: string
+	shipping_address_id: string | null
+	payment_method_id: string | null
+	trial_period_days: number
+	metadata: {
+		initial_order_id: string
+		customer_email: string
+		created_via: string
+		billing_cycle_count: number
+	}
+}
+
+// Subscription creation response
+interface SubscriptionResponse {
+	subscription: {
+		id: string
+	}
+}
+
+// Error data for subscription failures
+interface SubscriptionErrorData {
+	error: string
+	stack?: string
+	orderId: string
+	customerEmail: string
+	customerId: string
+	orderTotal: number
+	currencyCode: string
+	subscriptionItems: Array<{
+		variant_id: string
+		product_id?: string
+		quantity: number
+		period?: string
+	}>
+	timestamp: string
+	recovery: {
+		instructions: string
+		endpoint: string
+		requiredData: string
+	}
+}
+
+// Checkout handler options
+interface CheckoutHandlerOptions {
+	cartRedirectPath?: string
+}
+
+// Checkout load result
+interface CheckoutLoadResult {
+	cart: MedusaCart
+	regions: MedusaRegion[]
+	defaultRegion: MedusaRegion | null
+	shippingOptions: Array<{ id: string; name: string; amount: number }>
+}
+
+// Action result types
+interface ActionSuccessResult {
+	success: true
+	cart?: MedusaCart
+	order?: MedusaOrderData
+}
+
+interface ActionErrorResult {
+	success: false
+	error: string
+	requiresAction?: boolean
+	cart?: MedusaCart
+}
+
+type ActionResult = ActionSuccessResult | ActionErrorResult
+
+// Shipping address form data
+interface ShippingAddressData {
+	first_name: FormDataEntryValue | null
+	last_name: FormDataEntryValue | null
+	address_1: FormDataEntryValue | null
+	address_2: FormDataEntryValue | null
+	city: FormDataEntryValue | null
+	province: FormDataEntryValue | null
+	postal_code: FormDataEntryValue | null
+	country_code: FormDataEntryValue | null
+	phone: FormDataEntryValue | null
+}
+
+async function createSubscriptionForOrder(order: MedusaOrderData, cart: CartWithItems): Promise<SubscriptionResponse['subscription'] | undefined> {
 	logger.info('Creating subscription for order:', order.id)
 
 	// Extract subscription items from cart
@@ -32,13 +167,15 @@ async function createSubscriptionForOrder(order, cart) {
 	// Extract variant IDs, product IDs, and quantities
 	const variant_ids = subscriptionItems.map(item => item.variant_id)
 	const product_ids = subscriptionItems.map(item => item.product_id || item.variant?.product_id)
-	const quantities = {}
+	const quantities: Record<string, number> = {}
 	subscriptionItems.forEach(item => {
 		quantities[item.variant_id] = item.quantity
 	})
 
 	// Get subscription details from first item (assumes all items have same period)
-	const subscriptionMetadata = subscriptionItems[0].metadata
+	// We already checked subscriptionItems.length > 0 above
+	const firstItem = subscriptionItems[0]!
+	const subscriptionMetadata = firstItem.metadata!
 	const interval = subscriptionMetadata.period || 'month'
 	const interval_count = subscriptionMetadata.interval_count || 1
 	const trial_period_days = subscriptionMetadata.trial_period_days || 0
@@ -48,23 +185,24 @@ async function createSubscriptionForOrder(order, cart) {
 	const start_date = now
 
 	// Calculate trial end date if applicable
-	let trial_end_date = null
+	let trial_end_date: Date | null = null
 	if (trial_period_days > 0) {
 		trial_end_date = new Date(start_date)
 		trial_end_date.setDate(trial_end_date.getDate() + trial_period_days)
 	}
 
-	// Calculate next billing date
+	// Calculate next billing date (used for subscription record)
 	const billing_start = trial_end_date || start_date
-	const next_billing_date = calculateNextBillingDate(billing_start, interval, interval_count)
-	const _current_period_end = next_billing_date
+	// Note: next_billing_date calculated for future use in subscription metadata
+	void calculateNextBillingDate(billing_start, interval, interval_count)
 
 	// Extract payment method from order's payment collection
-	let payment_method_id = null
-	if (order.payment_collection?.payments && order.payment_collection.payments.length > 0) {
-		const payment = order.payment_collection.payments[0]
+	let payment_method_id: string | null = null
+	const payments = order.payment_collection?.payments
+	if (payments && payments.length > 0) {
+		const payment = payments[0]
 		// Extract Stripe payment method ID if available
-		if (payment.provider_id === 'stripe' && payment.data?.payment_method) {
+		if (payment && payment.provider_id === 'stripe' && payment.data?.payment_method) {
 			payment_method_id = payment.data.payment_method
 		}
 	}
@@ -73,7 +211,7 @@ async function createSubscriptionForOrder(order, cart) {
 	const amount = order.total
 
 	// Prepare subscription data
-	const subscriptionData = {
+	const subscriptionData: SubscriptionData = {
 		customer_id: order.customer_id,
 		interval,
 		interval_count,
@@ -108,28 +246,25 @@ async function createSubscriptionForOrder(order, cart) {
 		})
 
 		if (!response.ok) {
-			const errorData = await response.json()
+			const errorData = await response.json() as { message?: string }
 			throw new Error(`Failed to create subscription: ${errorData.message || response.statusText}`)
 		}
 
-		const result = await response.json()
+		const result = await response.json() as SubscriptionResponse
 		logger.info('Successfully created subscription:', result.subscription.id)
 		return result.subscription
-	} catch (error) {
-		logger.error('Failed to create subscription via API:', error)
-		throw error
+	} catch (err) {
+		logger.error('Failed to create subscription via API:', err)
+		throw err
 	}
 }
 
-/**
- * Send alert to admin about subscription creation failure
- *
- * @param {Object} order - The completed order
- * @param {Object} cart - The original cart
- * @param {Error} error - The subscription error
- * @param {Object} errorData - Structured error data
- */
-async function sendSubscriptionFailureAlert(order, cart, error, errorData) {
+async function sendSubscriptionFailureAlert(
+	order: MedusaOrderData,
+	_cart: CartWithItems,
+	err: Error,
+	errorData: SubscriptionErrorData
+): Promise<void> {
 	const backendUrl = getBackendUrl()
 
 	try {
@@ -140,7 +275,7 @@ async function sendSubscriptionFailureAlert(order, cart, error, errorData) {
 			},
 			body: JSON.stringify({
 				subject: `Subscription Creation Failed for Order ${order.id}`,
-				message: `Payment succeeded but subscription creation failed for customer ${order.email}.\n\nOrder ID: ${order.id}\nError: ${error.message}\n\nIMMediate action required: Create subscription manually using recovery data below.`,
+				message: `Payment succeeded but subscription creation failed for customer ${order.email}.\n\nOrder ID: ${order.id}\nError: ${err.message}\n\nIMMediate action required: Create subscription manually using recovery data below.`,
 				severity: 'critical',
 				data: errorData
 			})
@@ -150,20 +285,12 @@ async function sendSubscriptionFailureAlert(order, cart, error, errorData) {
 	} catch (alertError) {
 		// Silently fail - this is a best-effort alert
 		logger.warn('Could not send admin alert', {
-			error: alertError.message
+			error: (alertError as Error).message
 		})
 	}
 }
 
-/**
- * Calculate next billing date based on interval
- *
- * @param {Date} fromDate - Starting date
- * @param {string} interval - 'day', 'week', 'month', or 'year'
- * @param {number} count - Interval multiplier
- * @returns {Date}
- */
-function calculateNextBillingDate(fromDate, interval, count = 1) {
+function calculateNextBillingDate(fromDate: Date, interval: string, count: number = 1): Date {
 	const nextDate = new Date(fromDate)
 
 	switch (interval.toLowerCase()) {
@@ -194,18 +321,23 @@ function calculateNextBillingDate(fromDate, interval, count = 1) {
  * // In your routes/shop/checkout/+page.server.js
  * import { createCheckoutHandler } from '@goobits/store/handlers'
  * export const { load, actions } = createCheckoutHandler()
- *
- * @param {Object} options - Configuration options
- * @param {string} [options.cartRedirectPath='/shop/cart'] - Where to redirect if no cart
- * @returns {Object} Object with load function and actions
  */
-export function createCheckoutHandler(options = {}) {
+export function createCheckoutHandler(options: CheckoutHandlerOptions = {}): {
+	load: (event: { url: URL }) => Promise<CheckoutLoadResult>
+	actions: {
+		updateCustomer: (event: RequestEvent) => Promise<ActionResult>
+		addShippingAddress: (event: RequestEvent) => Promise<ActionResult>
+		addShippingMethod: (event: RequestEvent) => Promise<ActionResult>
+		updatePayment: (event: RequestEvent) => Promise<ActionResult>
+		completeCart: (event: RequestEvent) => Promise<ActionResult>
+	}
+} {
 	const {
 		cartRedirectPath = '/shop/cart'
 	} = options
 
 	return {
-		load: async ({ url }) => {
+		load: async ({ url }): Promise<CheckoutLoadResult> => {
 			const cartId = url.searchParams.get('cart_id')
 
 			if (!cartId) {
@@ -215,7 +347,7 @@ export function createCheckoutHandler(options = {}) {
 			try {
 				logger.info('Loading checkout for cart:', cartId)
 				// Get the cart from Medusa
-				const { cart } = await medusaServerClient.carts.retrieve(cartId)
+				const { cart } = await medusaServerClient.carts.retrieve(cartId) as { cart: MedusaCart }
 				logger.info('Retrieved cart successfully:', cart.id)
 
 				if (!cart) {
@@ -224,51 +356,53 @@ export function createCheckoutHandler(options = {}) {
 
 				// Get regions for shipping
 				logger.info('Fetching regions...')
-				const { regions } = await medusaServerClient.regions.list()
+				const { regions } = await medusaServerClient.regions.list() as { regions: MedusaRegion[] }
 				logger.info('Fetched regions:', regions?.length)
 
 				// Default to first region
-				const defaultRegion = regions && regions.length > 0 ? regions[0] : null
+				const defaultRegion: MedusaRegion | null = regions && regions.length > 0 ? regions[0] ?? null : null
 
 				// Get shipping options for the cart
 				logger.info('Fetching shipping options...')
-				let shippingOptions = []
+				let shippingOptions: Array<{ id: string; name: string; amount: number }> = []
 				if (defaultRegion && cart.id) {
 					try {
 						// Use query parameter to filter shipping options by cart_id
 						const { shipping_options } = await medusaServerClient.shippingOptions.list({
 							cart_id: cart.id
-						})
+						} as Record<string, unknown>) as { shipping_options: Array<{ id: string; name: string; amount: number }> }
 						shippingOptions = shipping_options || []
 						logger.info('Fetched shipping options:', shippingOptions.length)
 					} catch (err) {
-						logger.warn('Could not fetch shipping options:', err.message)
+						logger.warn('Could not fetch shipping options:', (err as Error).message)
 						// Continue without shipping options - they may not be configured yet
 						shippingOptions = []
 					}
 				}
 
 				logger.info('About to check payment sessions...')
-				logger.info('Cart payment_sessions:', cart.payment_sessions)
-				logger.info('Cart shipping_methods:', cart.shipping_methods?.length || 0)
+				const cartWithSessions = cart as unknown as CartWithItems
+				logger.info('Cart payment_sessions:', cartWithSessions.payment_sessions)
+				logger.info('Cart shipping_methods:', cartWithSessions.shipping_methods?.length || 0)
 				// Check if payment sessions exist, initialize if needed
-				if (cart.payment_sessions === null && cart.shipping_methods && cart.shipping_methods.length > 0) {
+				if (cartWithSessions.payment_sessions === null && cartWithSessions.shipping_methods && cartWithSessions.shipping_methods.length > 0) {
 					logger.info('Creating payment sessions...')
 					try {
 						// Create payment sessions
 						await medusaServerClient.carts.createPaymentSessions(cartId)
 
 						// Get updated cart with payment sessions
-						const { cart: updatedCart } = await medusaServerClient.carts.retrieve(cartId)
+						const { cart: updatedCart } = await medusaServerClient.carts.retrieve(cartId) as { cart: MedusaCart }
+						const updatedCartWithSessions = updatedCart as unknown as CartWithItems
 
 						// If Stripe payment method is available, select it
-						if (updatedCart.payment_sessions && updatedCart.payment_sessions.some(s => s.provider_id === 'stripe')) {
+						if (updatedCartWithSessions.payment_sessions && updatedCartWithSessions.payment_sessions.some(s => s.provider_id === 'stripe')) {
 							await medusaServerClient.carts.setPaymentSession(cartId, {
 								provider_id: 'stripe'
 							})
 
 							// Get final cart with selected payment session
-							const { cart: finalCart } = await medusaServerClient.carts.retrieve(cartId)
+							const { cart: finalCart } = await medusaServerClient.carts.retrieve(cartId) as { cart: MedusaCart }
 							return {
 								cart: finalCart,
 								regions,
@@ -298,24 +432,24 @@ export function createCheckoutHandler(options = {}) {
 				}
 			} catch (err) {
 				logger.error('Error loading cart:', err)
-				logger.error('Error stack:', err.stack)
-				logger.error('Error response:', err.response?.data)
+				logger.error('Error stack:', (err as Error).stack)
+				logger.error('Error response:', (err as { response?: { data?: unknown } }).response?.data)
 
 				throw error(500, {
 					message: 'Error loading checkout information',
-					details: err.message
-				})
+					details: (err as Error).message
+				} as App.Error)
 			}
 		},
 
 		actions: {
 			// Action to update cart with customer information
-			updateCustomer: async ({ request }) => {
+			updateCustomer: async ({ request }: RequestEvent): Promise<ActionResult> => {
 				const formData = await request.formData()
-				const cartId = formData.get('cart_id')
-				const email = formData.get('email')
-				const firstName = formData.get('first_name')
-				const lastName = formData.get('last_name')
+				const cartId = formData.get('cart_id') as string | null
+				const email = formData.get('email') as string | null
+				const firstName = formData.get('first_name') as string | null
+				const lastName = formData.get('last_name') as string | null
 
 				if (!cartId || !email) {
 					return { success: false, error: 'Missing required fields' }
@@ -330,21 +464,25 @@ export function createCheckoutHandler(options = {}) {
 							first_name: firstName,
 							last_name: lastName
 						}
-					})
+					} as Record<string, unknown>) as { cart: MedusaCart }
 
 					return { success: true, cart }
 				} catch (err) {
 					logger.error('Error updating customer:', err)
-					return { success: false, error: err.message }
+					return { success: false, error: (err as Error).message }
 				}
 			},
 
 			// Action to add shipping address
-			addShippingAddress: async ({ request }) => {
+			addShippingAddress: async ({ request }: RequestEvent): Promise<ActionResult> => {
 				const formData = await request.formData()
-				const cartId = formData.get('cart_id')
+				const cartId = formData.get('cart_id') as string | null
 
-				const shipping = {
+				if (!cartId) {
+					return { success: false, error: 'Missing cart ID' }
+				}
+
+				const shipping: ShippingAddressData = {
 					first_name: formData.get('first_name'),
 					last_name: formData.get('last_name'),
 					address_1: formData.get('address_1'),
@@ -360,20 +498,20 @@ export function createCheckoutHandler(options = {}) {
 					// Update cart with shipping address
 					const { cart } = await medusaServerClient.carts.update(cartId, {
 						shipping_address: shipping
-					})
+					} as Record<string, unknown>) as { cart: MedusaCart }
 
 					return { success: true, cart }
 				} catch (err) {
 					logger.error('Error adding shipping address:', err)
-					return { success: false, error: err.message }
+					return { success: false, error: (err as Error).message }
 				}
 			},
 
 			// Action to add shipping method
-			addShippingMethod: async ({ request }) => {
+			addShippingMethod: async ({ request }: RequestEvent): Promise<ActionResult> => {
 				const formData = await request.formData()
-				const cartId = formData.get('cart_id')
-				const shippingOptionId = formData.get('shipping_option_id')
+				const cartId = formData.get('cart_id') as string | null
+				const shippingOptionId = formData.get('shipping_option_id') as string | null
 
 				if (!cartId || !shippingOptionId) {
 					return { success: false, error: 'Missing required fields' }
@@ -383,23 +521,24 @@ export function createCheckoutHandler(options = {}) {
 					// Add shipping method to cart
 					const { cart } = await medusaServerClient.carts.addShippingMethod(cartId, {
 						option_id: shippingOptionId
-					})
+					}) as { cart: MedusaCart }
 
 					// Create payment sessions after adding shipping method
 					try {
 						await medusaServerClient.carts.createPaymentSessions(cartId)
 
 						// Get updated cart with payment sessions
-						const { cart: updatedCart } = await medusaServerClient.carts.retrieve(cartId)
+						const { cart: updatedCart } = await medusaServerClient.carts.retrieve(cartId) as { cart: MedusaCart }
+						const updatedCartWithSessions = updatedCart as unknown as CartWithItems
 
 						// Select Stripe as the payment provider if available
-						if (updatedCart.payment_sessions && updatedCart.payment_sessions.some(s => s.provider_id === 'stripe')) {
+						if (updatedCartWithSessions.payment_sessions && updatedCartWithSessions.payment_sessions.some(s => s.provider_id === 'stripe')) {
 							await medusaServerClient.carts.setPaymentSession(cartId, {
 								provider_id: 'stripe'
 							})
 
 							// Get final cart with selected payment
-							const { cart: finalCart } = await medusaServerClient.carts.retrieve(cartId)
+							const { cart: finalCart } = await medusaServerClient.carts.retrieve(cartId) as { cart: MedusaCart }
 							return { success: true, cart: finalCart }
 						}
 
@@ -411,15 +550,15 @@ export function createCheckoutHandler(options = {}) {
 					}
 				} catch (err) {
 					logger.error('Error adding shipping method:', err)
-					return { success: false, error: err.message }
+					return { success: false, error: (err as Error).message }
 				}
 			},
 
 			// Action to update payment session
-			updatePayment: async ({ request }) => {
+			updatePayment: async ({ request }: RequestEvent): Promise<ActionResult> => {
 				const formData = await request.formData()
-				const cartId = formData.get('cart_id')
-				const providerId = formData.get('provider_id') || 'stripe'
+				const cartId = formData.get('cart_id') as string | null
+				const providerId = (formData.get('provider_id') as string | null) || 'stripe'
 
 				if (!cartId) {
 					return { success: false, error: 'Missing cart ID' }
@@ -427,9 +566,10 @@ export function createCheckoutHandler(options = {}) {
 
 				try {
 					// Ensure we have payment sessions
-					const { cart } = await medusaServerClient.carts.retrieve(cartId)
+					const { cart } = await medusaServerClient.carts.retrieve(cartId) as { cart: MedusaCart }
+					const cartWithSessions = cart as unknown as CartWithItems
 
-					if (!cart.payment_sessions || cart.payment_sessions.length === 0) {
+					if (!cartWithSessions.payment_sessions || cartWithSessions.payment_sessions.length === 0) {
 						// Create payment sessions if they don't exist
 						await medusaServerClient.carts.createPaymentSessions(cartId)
 					}
@@ -440,19 +580,19 @@ export function createCheckoutHandler(options = {}) {
 					})
 
 					// Get updated cart
-					const { cart: updatedCart } = await medusaServerClient.carts.retrieve(cartId)
+					const { cart: updatedCart } = await medusaServerClient.carts.retrieve(cartId) as { cart: MedusaCart }
 
 					return { success: true, cart: updatedCart }
 				} catch (err) {
 					logger.error('Error updating payment session:', err)
-					return { success: false, error: err.message }
+					return { success: false, error: (err as Error).message }
 				}
 			},
 
 			// Action to complete cart and create an order
-			completeCart: async ({ request }) => {
+			completeCart: async ({ request }: RequestEvent): Promise<ActionResult> => {
 				const formData = await request.formData()
-				const cartId = formData.get('cart_id')
+				const cartId = formData.get('cart_id') as string | null
 
 				if (!cartId) {
 					return { success: false, error: 'Missing cart ID' }
@@ -460,28 +600,33 @@ export function createCheckoutHandler(options = {}) {
 
 				try {
 					// Get cart details before completion to check for subscription metadata
-					const { cart } = await medusaServerClient.carts.retrieve(cartId)
-					const hasSubscription = cart?.items?.some(item => item.metadata?.subscription === true)
+					const { cart } = await medusaServerClient.carts.retrieve(cartId) as { cart: MedusaCart }
+					const cartWithItems = cart as unknown as CartWithItems
+					const hasSubscription = cartWithItems?.items?.some(item => item.metadata?.subscription === true)
 
 					// Complete the cart and create an order
-					const { type, data } = await medusaServerClient.carts.complete(cartId)
+					const { type, data } = await medusaServerClient.carts.complete(cartId) as {
+						type: 'order' | 'cart'
+						data: MedusaOrderData | MedusaCart
+					}
 
 					if (type === 'order' && data) {
+						const orderData = data as MedusaOrderData
 						// If order contains subscription items, create subscription record
 						if (hasSubscription) {
 							try {
-								await createSubscriptionForOrder(data, cart)
+								await createSubscriptionForOrder(orderData, cartWithItems)
 							} catch (subscriptionError) {
 								// Prepare comprehensive error data for logging and alerting
-								const errorData = {
-									error: subscriptionError.message,
-									stack: subscriptionError.stack,
-									orderId: data.id,
-									customerEmail: data.email,
-									customerId: data.customer_id,
-									orderTotal: data.total,
-									currencyCode: data.currency_code,
-									subscriptionItems: cart.items
+								const errorData: SubscriptionErrorData = {
+									error: (subscriptionError as Error).message,
+									stack: (subscriptionError as Error).stack,
+									orderId: orderData.id,
+									customerEmail: orderData.email,
+									customerId: orderData.customer_id,
+									orderTotal: orderData.total,
+									currencyCode: orderData.currency_code,
+									subscriptionItems: cartWithItems.items
 										.filter(item => item.metadata?.subscription === true)
 										.map(item => ({
 											variant_id: item.variant_id,
@@ -502,9 +647,9 @@ export function createCheckoutHandler(options = {}) {
 								logger.error('CRITICAL: Failed to create subscription for order', errorData)
 
 								// Send admin alert (fire-and-forget, don't block checkout)
-								sendSubscriptionFailureAlert(data, cart, subscriptionError, errorData).catch(alertError => {
+								sendSubscriptionFailureAlert(orderData, cartWithItems, subscriptionError as Error, errorData).catch(alertError => {
 									logger.error('Failed to send subscription failure alert', {
-										error: alertError.message
+										error: (alertError as Error).message
 									})
 								})
 							}
@@ -512,7 +657,7 @@ export function createCheckoutHandler(options = {}) {
 
 						return {
 							success: true,
-							order: data
+							order: orderData
 						}
 					} else if (type === 'cart') {
 						// Payment requires additional action (like 3D Secure)
@@ -520,7 +665,7 @@ export function createCheckoutHandler(options = {}) {
 							success: false,
 							requiresAction: true,
 							error: 'Additional payment authentication required',
-							cart: data
+							cart: data as MedusaCart
 						}
 					} else {
 						return {
@@ -530,7 +675,7 @@ export function createCheckoutHandler(options = {}) {
 					}
 				} catch (err) {
 					logger.error('Error completing cart:', err)
-					return { success: false, error: err.message }
+					return { success: false, error: (err as Error).message }
 				}
 			}
 		}

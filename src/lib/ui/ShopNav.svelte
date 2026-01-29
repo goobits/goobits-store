@@ -1,19 +1,21 @@
-<script>
+<script lang="ts">
 	import { page } from '$app/stores'
-	import { createMessageGetter } from '../utils/messages.js'
-	import { defaultMessages } from '../config/defaultMessages.js'
-	
-	/**
-	 * @typedef {Object} ShopNavProps
-	 * @property {Object} [messages] - Custom messages for i18n
-	 * @property {string} [shopName] - Custom shop name
-	 * @property {string} [backUrl] - URL for back to main site link
-	 * @property {Function} [getCartCount] - Function to get cart item count
-	 * @property {string} [shopUrl] - URL for the shop page
-	 * @property {string} [cartUrl] - URL for the cart page
-	 */
-	
-	/** @type {ShopNavProps} */
+	import { createMessageGetter } from '../utils/messages'
+	import { defaultMessages } from '../config/defaultMessages'
+
+	interface Messages {
+		[key: string]: string;
+	}
+
+	interface Props {
+		messages?: Messages;
+		shopName?: string;
+		backUrl?: string;
+		getCartCount?: () => number;
+		shopUrl?: string;
+		cartUrl?: string;
+	}
+
 	const {
 		messages = {},
 		shopName,
@@ -21,16 +23,16 @@
 		getCartCount = () => 0,
 		shopUrl = '/shop',
 		cartUrl = '/shop/cart'
-	} = $props()
-	
+	}: Props = $props()
+
 	// Create message getter
-	const getMessage = $derived(createMessageGetter({ ...defaultMessages, ...messages }))
+	const getMessage: (key: string, fallback?: string) => string = $derived(createMessageGetter({ ...defaultMessages, ...messages }))
 
 	// Get cart item count
-	const cartCount = $derived(getCartCount())
+	const cartCount: number = $derived(getCartCount())
 
 	// Get the shop name to display
-	const displayShopName = $derived(shopName || getMessage('shopName', 'Shop'))
+	const displayShopName: string = $derived(shopName || getMessage('shopName', 'Shop'))
 </script>
 
 <nav class="goo__shop-nav">
@@ -38,22 +40,22 @@
 		<div class="goo__shop-nav-logo">
 			<a href={shopUrl}>{displayShopName}</a>
 		</div>
-		
+
 		<div class="goo__shop-nav-links">
-			<a 
-				href={shopUrl} 
+			<a
+				href={shopUrl}
 				class="goo__shop-nav-link" class:active={$page.url.pathname === shopUrl}
 			>
 				{getMessage('products', 'Products')}
 			</a>
-			<a 
+			<a
 				href={cartUrl}
 				class="goo__shop-nav-link goo__cart-link" class:active={$page.url.pathname === cartUrl}
 			>
 				{getMessage('cart', 'Cart')} {cartCount > 0 ? `(${cartCount})` : ''}
 			</a>
 		</div>
-		
+
 		<div class="goo__shop-nav-main-site">
 			<a href={backUrl}>{getMessage('backToMainSite', '← Back to Main Site')}</a>
 		</div>
@@ -76,7 +78,7 @@
 		&__shop-nav {
 			background-color: $color-primary;
 			padding: $spacing-medium 0;
-			
+
 			&-container {
 				max-width: 1200px;
 				margin: 0 auto;
@@ -84,63 +86,63 @@
 				display: flex;
 				justify-content: space-between;
 				align-items: center;
-				
+
 				@media (max-width: 768px) {
 					flex-direction: column;
 					gap: $spacing-medium;
 				}
 			}
-			
+
 			&-logo {
 				a {
 					text-decoration: none;
 					color: $white;
 					font-size: $font-size-large;
 					font-weight: bold;
-					
+
 					&:hover {
 						text-decoration: underline;
 					}
 				}
 			}
-			
+
 			&-links {
 				display: flex;
 				gap: $spacing-large;
-				
+
 				@media (max-width: 768px) {
 					gap: $spacing-medium;
 				}
 			}
-			
+
 			&-link {
 				text-decoration: none;
 				color: $white;
 				transition: color 0.2s ease;
-				
+
 				&.active {
 					font-weight: bold;
 					text-decoration: underline;
 				}
-				
+
 				&:hover {
 					color: color.adjust($white, $alpha: -0.2);
 				}
 			}
-			
+
 			&-main-site {
 				a {
 					text-decoration: none;
 					color: $white;
 					font-size: $font-size-small;
-					
+
 					&:hover {
 						text-decoration: underline;
 					}
 				}
 			}
 		}
-		
+
 		&__cart-link {
 			position: relative;
 		}

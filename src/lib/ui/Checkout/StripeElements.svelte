@@ -1,22 +1,42 @@
-<script>
+<script lang="ts">
 	import { onMount, onDestroy, createEventDispatcher } from 'svelte'
 	import { Loader2 } from '@lucide/svelte'
-	import { getStripe as defaultGetStripe, createElements as defaultCreateElements, createPaymentElementOptions as defaultCreatePaymentElementOptions } from '../../payment/stripeService.js'
+	import { getStripe as defaultGetStripe, createElements as defaultCreateElements, createPaymentElementOptions as defaultCreatePaymentElementOptions, type ElementsOptions } from '../../payment/stripeService'
+
+	import type { Stripe, StripeElements as StripeElementsType, StripePaymentElement, Appearance } from '@stripe/stripe-js'
 
 	// Use console for logging within the package
 	const logger = console
 
-	const dispatch = createEventDispatcher()
+	const dispatch = createEventDispatcher<{
+		ready: { elements: StripeElementsType; stripe: Stripe };
+		change: unknown;
+		blur: void;
+		focus: void;
+		escape: void;
+	}>()
+
+	interface Props {
+		clientSecret?: string;
+		stripePublicKey?: string;
+		getStripe?: (publicKey?: string) => Promise<Stripe | null>;
+		createElements?: (stripe: Stripe | null, options?: ElementsOptions) => StripeElementsType | null;
+		createPaymentElementOptions?: typeof defaultCreatePaymentElementOptions;
+		appearance?: Appearance;
+		onready?: (event: CustomEvent<{ elements: StripeElementsType; stripe: Stripe }>) => void;
+		onchange?: (event: CustomEvent<unknown>) => void;
+		onblur?: (event: CustomEvent<void>) => void;
+		onfocus?: (event: CustomEvent<void>) => void;
+		onescape?: (event: CustomEvent<void>) => void;
+	}
 
 	// Props
 	const {
 		clientSecret = '',
-		_returnUrl = '',
-		_billingDetails = {},
 		stripePublicKey = '', // Stripe public key
 		getStripe = defaultGetStripe, // Function to get Stripe instance
 		createElements = defaultCreateElements, // Function to create Stripe Elements
-		_createPaymentElementOptions = defaultCreatePaymentElementOptions, // Function to create payment element options
+		createPaymentElementOptions = defaultCreatePaymentElementOptions, // Function to create payment element options
 		appearance = {
 			theme: 'stripe',
 			variables: {
@@ -42,19 +62,28 @@
 					borderColor: '#ef4444'
 				}
 			}
-		}
-	} = $props()
+		},
+		onready,
+		onchange,
+		onblur,
+		onfocus,
+		onescape
+	}: Props = $props()
+
+	// Suppress unused variable warning - kept for potential future use
+	// eslint-disable-next-line svelte/valid-compile -- intentionally capturing initial value
+	void createPaymentElementOptions
 
 	// State
-	let elements = $state(null)
-	let stripe = $state(null)
-	let isLoading = $state(true)
-	let _elementsReady = $state(false)
-	let elementsError = $state(null)
-	let elementsContainer = $state(null)
+	let elements: StripeElementsType | null = $state(null)
+	let stripe: Stripe | null = $state(null)
+	let isLoading: boolean = $state(true)
+	let _elementsReady: boolean = $state(false)
+	let elementsError: Error | null = $state(null)
+	let elementsContainer: HTMLDivElement | null = $state(null)
 
 	// Variables to store the payment element reference
-	let paymentElement = null
+	let paymentElement: StripePaymentElement | null = null
 
 	// Mount: Initialize Stripe when the component mounts
 	onMount(async () => {
@@ -62,67 +91,79 @@
 		try {
 			// Initialize Stripe with the public key
 			stripe = await getStripe(stripePublicKey)
-			
+
 			if (!stripe) {
 				elementsError = new Error('Failed to load Stripe')
 				isLoading = false
 				return
 			}
-			
+
 			// Create Elements instance
 			if (clientSecret) {
 				// Create elements instance using the provided function
-				elements = await createElements(stripe, {
+				elements = createElements(stripe, {
 					clientSecret,
-					appearance
+					appearance: appearance as Record<string, unknown>
 				})
-				
+
+				if (!elements) {
+					elementsError = new Error('Failed to create Stripe Elements')
+					isLoading = false
+					return
+				}
+
 				// Create the Payment Element
 				paymentElement = elements.create('payment')
-				
+
 				// Mount the Payment Element to the container
 				paymentElement.mount('#stripe-payment-element')
-				
+
 				// Listen for ready event
-				paymentElement.on('ready', (_event) => {
+				paymentElement.on('ready', () => {
 					_elementsReady = true
 					isLoading = false
 
 					// Dispatch the ready event with the elements and stripe objects
-					dispatch('ready', { elements, stripe })
+					const detail = { elements: elements!, stripe: stripe! }
+					dispatch('ready', detail)
+					if (onready) onready(new CustomEvent('ready', { detail }))
 				})
-				
+
 				// Listen for change events
 				paymentElement.on('change', (event) => {
 					dispatch('change', event)
+					if (onchange) onchange(new CustomEvent('change', { detail: event }))
 				})
-				
+
 				// Listen for blur events
 				paymentElement.on('blur', () => {
 					dispatch('blur')
+					if (onblur) onblur(new CustomEvent('blur'))
 				})
-				
+
 				// Listen for focus events
 				paymentElement.on('focus', () => {
 					dispatch('focus')
+					if (onfocus) onfocus(new CustomEvent('focus'))
 				})
-				
+
 				// Listen for escape events
 				paymentElement.on('escape', () => {
 					dispatch('escape')
+					if (onescape) onescape(new CustomEvent('escape'))
 				})
-				
+
 			} else {
 				elementsError = new Error('Client secret is required')
 				isLoading = false
 			}
 		} catch (error) {
 			logger.error('Error initializing Stripe Elements:', error)
-			elementsError = error
+			elementsError = error as Error
 			isLoading = false
 		}
 	})
-	
+
 	// Cleanup on component destroy
 	onDestroy(() => {
 		if (paymentElement) {

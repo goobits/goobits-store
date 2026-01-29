@@ -1,38 +1,80 @@
-<script>
+<script lang="ts">
 	// This component contains the existing product detail functionality
 	import { addToCart } from '@goobits/store'
 	import { goto } from '$app/navigation'
+	// @ts-ignore - OptimizedImage component from external package
 	import OptimizedImage from '@components/OptimizedImage/OptimizedImage.svelte'
-	import { Logger } from '@lib/utils/Logger.js'
+	import { Logger } from '@lib/utils/Logger'
 	import { formatPrice } from '@goobits/store/utils/checkoutUtils'
 
-	const { data } = $props()
+	interface ProductImage {
+		id?: string;
+		url: string;
+	}
+
+	interface VariantOption {
+		option_id: string;
+		value: string;
+	}
+
+	interface ProductVariant extends MedusaVariant {
+		options?: VariantOption[];
+	}
+
+	interface ProductOption extends MedusaOption {
+		id: string;
+		title: string;
+	}
+
+	interface Product extends MedusaProduct {
+		variants?: ProductVariant[];
+		options?: ProductOption[];
+		images?: ProductImage[];
+		metadata?: Record<string, unknown>;
+	}
+
+	interface SelectedOptions {
+		[optionId: string]: string;
+	}
+
+	interface PageData {
+		product?: Product;
+		relatedProducts?: Product[];
+		defaultRegion?: MedusaRegion;
+		[key: string]: unknown;
+	}
+
+	interface Props {
+		data: PageData;
+	}
+
+	const { data }: Props = $props()
 
 	const logger = new Logger('ProductDetail')
 
 	// Extract product data
-	const product = $derived(data.product || {})
-	const relatedProducts = $derived(data.relatedProducts || [])
-	const defaultRegion = $derived(data.defaultRegion)
+	const product: Product = $derived(data.product || {} as Product)
+	const relatedProducts: Product[] = $derived(data.relatedProducts || [])
+	const defaultRegion: MedusaRegion | undefined = $derived(data.defaultRegion)
 
 	// State
-	let quantity = $state(1)
-	let addedToCart = $state(false)
-	let userSelectedImage = $state(null) // User's manual image selection
-	let selectedOptions = $state({}) // Stores { optionId: optionValue }
-	let showOptionWarning = $state(false) // State for showing option selection warning
+	let quantity: number = $state(1)
+	let addedToCart: boolean = $state(false)
+	let userSelectedImage: ProductImage | null = $state(null) // User's manual image selection
+	let selectedOptions: SelectedOptions = $state({}) // Stores { optionId: optionValue }
+	let showOptionWarning: boolean = $state(false) // State for showing option selection warning
 
 	// Reactive updates when product data changes
-	const variants = $derived(product.variants || [])
-	const options = $derived(product.options || [])
+	const variants: ProductVariant[] = $derived(product.variants || [])
+	const options: ProductOption[] = $derived(product.options || [])
 
 	// Initialize selectedOptions based on options and variants (runs during SSR)
-	const initialSelectedOptions = $derived.by(() => {
-		const initialOptions = {}
+	const initialSelectedOptions: SelectedOptions = $derived.by(() => {
+		const initialOptions: SelectedOptions = {}
 		if (options && options.length > 0 && variants && variants.length > 0) {
-			options.forEach(option => {
+			options.forEach((option: ProductOption) => {
 				// Calculate available values for this option
-				const availableValues = [ ...new Set(variants.map(v => v.options?.find(o => o.option_id === option.id)?.value).filter(Boolean)) ]
+				const availableValues = [ ...new Set(variants.map((v: ProductVariant) => v.options?.find((o: VariantOption) => o.option_id === option.id)?.value).filter(Boolean)) ] as string[]
 				if (availableValues.length > 0) {
 					initialOptions[option.id] = availableValues[0]
 				}
@@ -42,7 +84,7 @@
 	})
 
 	// Calculate selected variant based on options (runs during SSR)
-	const selectedVariant = $derived.by(() => {
+	const selectedVariant: ProductVariant | null = $derived.by(() => {
 		// If no options and only one variant, select it by default
 		if (options.length === 0 && variants.length === 1) {
 			return variants[0]
@@ -53,9 +95,9 @@
 
 		// Find variant matching all selected options
 		if (options.length > 0 && Object.keys(optionsToUse).length === options.length) {
-			return variants.find(variant => {
-				return options.every(option => {
-					const variantOption = variant.options.find(vo => vo.option_id === option.id)
+			return variants.find((variant: ProductVariant) => {
+				return options.every((option: ProductOption) => {
+					const variantOption = variant.options?.find((vo: VariantOption) => vo.option_id === option.id)
 					return variantOption && variantOption.value === optionsToUse[option.id]
 				})
 			}) || null
@@ -66,13 +108,13 @@
 
 	// Selected image (derived to ensure SSR consistency)
 	// Uses user selection if available, otherwise defaults to first product image
-	const selectedImage = $derived(
+	const selectedImage: ProductImage | null = $derived(
 		userSelectedImage ||
-		(product?.images?.length > 0 ? product.images[0] : null)
+		(product?.images?.length ? product.images[0] : null)
 	)
 
 	// Get price from variant
-	function getVariantPrice(variant, region = defaultRegion) {
+	function getVariantPrice(variant: ProductVariant | null, region: MedusaRegion | undefined = defaultRegion): number | null {
 		if (!variant) return null
 
 		// Try calculated_price first (if available from API)
@@ -95,18 +137,18 @@
 	}
 
 	// Handle image selection
-	function selectImage(image) {
+	function selectImage(image: ProductImage): void {
 		userSelectedImage = image
 	}
 
 	// Handle option selection
-	function selectOption(optionId, value) {
+	function selectOption(optionId: string, value: string): void {
 		// Create a new object to trigger reactivity
 		selectedOptions = { ...selectedOptions, [optionId]: value }
 	}
 
 	// Handle add to cart
-	function handleAddToCart() {
+	function handleAddToCart(): void {
 		// Check if a valid variant matching all selected options exists
 		if (!selectedVariant) {
 			showOptionWarning = true // Show warning if options are missing/invalid
@@ -119,13 +161,11 @@
 
 		// Construct cart item
 		const variantPrice = getVariantPrice(selectedVariant)
-		const cartItem = {
+		const cartItem: CartProduct = {
 			id: product.id, // Use product ID for grouping in cart logic if needed
 			name: product.title,
 			handle: product.handle,
 			variant_id: selectedVariant.id,
-			variant_title: selectedVariant.title, // Use the specific variant title
-			options: selectedVariant.options || [], // Pass the selected variant's options
 			price: variantPrice ? parseFloat(formatPrice(variantPrice)) : 0,
 			image: product.thumbnail || (product.images && product.images.length > 0 ? product.images[0].url : ''),
 			quantity: quantity
@@ -140,18 +180,18 @@
 	}
 
 	// Increment/decrement quantity
-	function incrementQuantity() {
+	function incrementQuantity(): void {
 		quantity++
 	}
 
-	function decrementQuantity() {
+	function decrementQuantity(): void {
 		if (quantity > 1) {
 			quantity--
 		}
 	}
 
 	// Navigate back to products
-	function goBack() {
+	function goBack(): void {
 		goto('/shop')
 	}
 </script>
@@ -214,7 +254,7 @@
 				<h1>{product.title}</h1>
 
 				{#if selectedVariant}
-					<p class="goo__product-price">${formatPrice(getVariantPrice(selectedVariant))}</p>
+					<p class="goo__product-price">${formatPrice(getVariantPrice(selectedVariant) || 0)}</p>
 				{:else if variants.length > 0 && variants[0].calculated_price}
 					<p class="goo__product-price">From ${formatPrice(variants[0].calculated_price.calculated_amount)}</p>
 				{/if}
@@ -230,7 +270,7 @@
 					<div class="goo__product-variants">
 						{#each options as option (option.id)}
 							<!-- Calculate available values for this option *inside* the each block -->
-							{@const availableValues = [ ...new Set(variants.map(v => v.options?.find(o => o.option_id === option.id)?.value).filter(Boolean)) ]}
+							{@const availableValues = [ ...new Set(variants.map((v: ProductVariant) => v.options?.find((o: VariantOption) => o.option_id === option.id)?.value).filter(Boolean)) ] as string[]}
 							{@const currentSelection = selectedOptions[option.id] || initialSelectedOptions[option.id]}
 							<div class="goo__option-group">
 								<h3>
@@ -341,7 +381,7 @@
 									{/if}
 									<h3>{relatedProduct.title || 'Product'}</h3>
 									{#if relatedProduct.variants && relatedProduct.variants.length > 0 && relatedProduct.variants[0].calculated_price}
-										<p>${formatPrice(relatedProduct.variants[0].calculated_price)}</p>
+										<p>${formatPrice(relatedProduct.variants[0].calculated_price.calculated_amount)}</p>
 									{/if}
 								</a>
 							</div>

@@ -1,4 +1,4 @@
-<script>
+<script lang="ts">
 	import { browser } from '$app/environment'
 
 	/**
@@ -6,19 +6,24 @@
 	 *
 	 * Shows color-coded warnings based on days remaining in grace period.
 	 * Allows dismissal when >7 days, mandatory when <7 days.
-	 *
-	 * @prop {number} daysRemaining - Days remaining in grace period
-	 * @prop {string} gracePeriodEndsAt - ISO date string when grace period ends
-	 * @prop {Function} onSetupNow - Callback when "Set up now" is clicked
 	 */
+
+	type UrgencyLevel = 'critical' | 'urgent' | 'warning' | 'info'
+
+	interface Props {
+		daysRemaining?: number
+		gracePeriodEndsAt?: string | null
+		onSetupNow?: () => void
+	}
+
 	const {
 		daysRemaining = 30,
 		gracePeriodEndsAt = null,
 		onSetupNow = () => {}
-	} = $props()
+	}: Props = $props()
 
 	// Calculate urgency level
-	const urgencyLevel = $derived(
+	const urgencyLevel: UrgencyLevel = $derived(
 		daysRemaining < 3 ? 'critical' :
 		daysRemaining < 7 ? 'urgent' :
 		daysRemaining < 14 ? 'warning' :
@@ -26,10 +31,10 @@
 	)
 
 	// Check if banner can be dismissed (only when >7 days)
-	const isDismissible = $derived(daysRemaining >= 7)
+	const isDismissible: boolean = $derived(daysRemaining >= 7)
 
 	// Check localStorage for dismissal state (SSR-safe)
-	function checkDismissalState() {
+	function checkDismissalState(): boolean {
 		if (!browser || !isDismissible) return false
 
 		const dismissalKey = `mfa-banner-dismissed-${ daysRemaining }`
@@ -47,10 +52,10 @@
 	}
 
 	// Dismissal state (initialized with localStorage check)
-	let dismissed = $state(checkDismissalState())
+	let dismissed: boolean = $state(checkDismissalState())
 
 	// Get urgency-specific message
-	const message = $derived(() => {
+	const message: () => string = $derived(() => {
 		if (daysRemaining <= 1) {
 			return 'Two-factor authentication required by tomorrow! Set up MFA immediately to maintain access.'
 		} else if (daysRemaining <= 3) {
@@ -65,7 +70,7 @@
 	})
 
 	// Get formatted end date
-	const formattedEndDate = $derived(() => {
+	const formattedEndDate: () => string = $derived(() => {
 		if (!gracePeriodEndsAt) return ''
 		try {
 			const date = new Date(gracePeriodEndsAt)
@@ -79,7 +84,7 @@
 		}
 	})
 
-	function handleDismiss() {
+	function handleDismiss(): void {
 		if (!isDismissible) return
 
 		dismissed = true
@@ -91,7 +96,7 @@
 		localStorage.setItem(dismissalKey, expiryDate.toISOString())
 	}
 
-	function handleSetupNow() {
+	function handleSetupNow(): void {
 		onSetupNow()
 	}
 </script>

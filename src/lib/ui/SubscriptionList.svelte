@@ -1,10 +1,11 @@
-<script>
+<script lang="ts">
 	/**
 	 * Subscription List Component
 	 *
 	 * Displays subscriptions grouped by status (active, paused, past)
 	 * Reusable across different storefronts
 	 */
+	import type { Snippet } from 'svelte'
 	import {
 		formatCurrency,
 		formatDate,
@@ -13,24 +14,31 @@
 		getActiveSubscriptions,
 		getPausedSubscriptions,
 		getPastSubscriptions
-	} from '../utils/subscription-helpers.js'
+	} from '../utils/subscription-helpers'
+
+	interface Props {
+		subscriptions?: Subscription[];
+		detailUrlPattern?: string;
+		emptyMessage?: string;
+		emptyAction?: Snippet | null;
+	}
 
 	const {
 		subscriptions = [],
 		detailUrlPattern = '/shop/subscriptions/{id}',
 		emptyMessage = 'No subscriptions yet',
 		emptyAction = null
-	} = $props()
+	}: Props = $props()
 
 	// Filter subscriptions by status
-	const activeSubscriptions = $derived(getActiveSubscriptions(subscriptions))
-	const pausedSubscriptions = $derived(getPausedSubscriptions(subscriptions))
-	const pastSubscriptions = $derived(getPastSubscriptions(subscriptions))
+	const activeSubscriptions: Subscription[] = $derived(getActiveSubscriptions(subscriptions))
+	const pausedSubscriptions: Subscription[] = $derived(getPausedSubscriptions(subscriptions))
+	const pastSubscriptions: Subscription[] = $derived(getPastSubscriptions(subscriptions))
 
 	/**
 	 * Get detail URL for a subscription
 	 */
-	function getDetailUrl(subscriptionId) {
+	function getDetailUrl(subscriptionId: string): string {
 		return detailUrlPattern.replace('{id}', subscriptionId)
 	}
 </script>
@@ -63,7 +71,7 @@
 							<div class="subscription-card__detail">
 								<span class="subscription-card__label">Amount:</span>
 								<span class="subscription-card__value">
-									{formatCurrency(subscription.amount, subscription.currency_code)}
+									{formatCurrency(subscription.amount ?? 0, subscription.currency_code)}
 									{#if subscription.discount_type !== 'none'}
 										<span class="subscription-card__discount">
 											({subscription.discount_value}% off)
@@ -123,7 +131,7 @@
 							<div class="subscription-card__detail">
 								<span class="subscription-card__label">Amount:</span>
 								<span class="subscription-card__value">
-									{formatCurrency(subscription.amount, subscription.currency_code)}
+									{formatCurrency(subscription.amount ?? 0, subscription.currency_code)}
 								</span>
 							</div>
 
@@ -131,7 +139,7 @@
 								<div class="subscription-card__detail">
 									<span class="subscription-card__label">Paused until:</span>
 									<span class="subscription-card__value">
-										{formatDate(subscription.metadata.pause_until)}
+										{formatDate(subscription.metadata.pause_until as string)}
 									</span>
 								</div>
 							{/if}
@@ -171,7 +179,7 @@
 							<div class="subscription-card__detail">
 								<span class="subscription-card__label">Amount:</span>
 								<span class="subscription-card__value">
-									{formatCurrency(subscription.amount, subscription.currency_code)}
+									{formatCurrency(subscription.amount ?? 0, subscription.currency_code)}
 								</span>
 							</div>
 

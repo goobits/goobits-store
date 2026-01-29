@@ -8,17 +8,55 @@
  * @version 1.0.0
  */
 
-import { createLogger } from '../utils/logger.js'
+import { createLogger } from '../utils/logger'
 
 const logger = createLogger('MFAStatus')
 
 /**
- * Fetch MFA status from the API
- * @param {string} backendUrl - Medusa backend URL
- * @param {string} publishableKey - Medusa publishable API key
- * @returns {Promise<Object>} MFA status object
+ * MFA Status object returned from API
  */
-export async function fetchMFAStatus(backendUrl, publishableKey) {
+export interface MFAStatus {
+	required: boolean
+	enabled: boolean
+	inGracePeriod: boolean
+	daysRemaining?: number
+	gracePeriodEndsAt?: string | null
+	error?: boolean
+}
+
+/**
+ * MFA Status Store state
+ */
+export interface MFAStatusStoreState extends MFAStatus {
+	loading: boolean
+}
+
+/**
+ * Subscriber function type
+ */
+type Subscriber = (status: MFAStatusStoreState) => void
+
+/**
+ * Urgency level type
+ */
+export type UrgencyLevel = 'critical' | 'urgent' | 'warning' | 'info'
+
+/**
+ * MFA Status Store interface
+ */
+export interface MFAStatusStore {
+	subscribe: (subscriber: Subscriber) => () => void
+	set: (newStatus: Partial<MFAStatusStoreState>) => void
+	load: (backendUrl: string, publishableKey: string) => Promise<void>
+}
+
+/**
+ * Fetch MFA status from the API
+ * @param backendUrl - Medusa backend URL
+ * @param publishableKey - Medusa publishable API key
+ * @returns MFA status object
+ */
+export async function fetchMFAStatus(backendUrl: string, publishableKey: string): Promise<MFAStatus> {
 	try {
 		const response = await fetch(`${ backendUrl }/store/auth/mfa/status`, {
 			method: 'GET',
@@ -47,7 +85,7 @@ export async function fetchMFAStatus(backendUrl, publishableKey) {
 		const data = await response.json()
 
 		if (data.success && data.status) {
-			return data.status
+			return data.status as MFAStatus
 		}
 
 		return {
@@ -58,7 +96,7 @@ export async function fetchMFAStatus(backendUrl, publishableKey) {
 		}
 	} catch (error) {
 		// Only log unexpected errors (not auth-related)
-		if (!error.message.includes('401') && !error.message.includes('500')) {
+		if (!(error instanceof Error) || (!error.message.includes('401') && !error.message.includes('500'))) {
 			logger.error('Error fetching MFA status:', error)
 		}
 		return {
@@ -72,10 +110,10 @@ export async function fetchMFAStatus(backendUrl, publishableKey) {
 
 /**
  * Check if MFA grace period banner should be shown
- * @param {Object} mfaStatus - MFA status from API
- * @returns {boolean} True if banner should be shown
+ * @param mfaStatus - MFA status from API
+ * @returns True if banner should be shown
  */
-export function shouldShowGracePeriodBanner(mfaStatus) {
+export function shouldShowGracePeriodBanner(mfaStatus: MFAStatus | null): boolean {
 	if (!mfaStatus) {return false}
 
 	// Show banner if MFA is required but not enabled, and in grace period
@@ -87,10 +125,10 @@ export function shouldShowGracePeriodBanner(mfaStatus) {
 
 /**
  * Get urgency level based on days remaining
- * @param {number} daysRemaining - Days remaining in grace period
- * @returns {string} Urgency level: 'critical', 'urgent', 'warning', or 'info'
+ * @param daysRemaining - Days remaining in grace period
+ * @returns Urgency level: 'critical', 'urgent', 'warning', or 'info'
  */
-export function getUrgencyLevel(daysRemaining) {
+export function getUrgencyLevel(daysRemaining: number): UrgencyLevel {
 	if (daysRemaining < 3) {return 'critical'}
 	if (daysRemaining < 7) {return 'urgent'}
 	if (daysRemaining < 14) {return 'warning'}
@@ -99,10 +137,10 @@ export function getUrgencyLevel(daysRemaining) {
 
 /**
  * Format grace period end date
- * @param {string} gracePeriodEndsAt - ISO date string
- * @returns {string} Formatted date string
+ * @param gracePeriodEndsAt - ISO date string
+ * @returns Formatted date string
  */
-export function formatGracePeriodEndDate(gracePeriodEndsAt) {
+export function formatGracePeriodEndDate(gracePeriodEndsAt: string | null | undefined): string {
 	if (!gracePeriodEndsAt) {return ''}
 
 	try {
@@ -119,26 +157,26 @@ export function formatGracePeriodEndDate(gracePeriodEndsAt) {
 
 /**
  * Create MFA status store (Svelte-compatible)
- * @returns {Object} Store with subscribe method
+ * @returns Store with subscribe method
  */
-export function createMFAStatusStore() {
-	let subscribers = []
-	let status = {
+export function createMFAStatusStore(): MFAStatusStore {
+	let subscribers: Subscriber[] = []
+	let status: MFAStatusStoreState = {
 		required: false,
 		enabled: false,
 		inGracePeriod: false,
-		daysRemaining: null,
+		daysRemaining: undefined,
 		gracePeriodEndsAt: null,
 		loading: true,
 		error: false
 	}
 
-	function set(newStatus) {
+	function set(newStatus: Partial<MFAStatusStoreState>): void {
 		status = { ...status, ...newStatus }
 		subscribers.forEach(subscriber => subscriber(status))
 	}
 
-	function subscribe(subscriber) {
+	function subscribe(subscriber: Subscriber): () => void {
 		subscribers.push(subscriber)
 		subscriber(status)
 
@@ -147,7 +185,7 @@ export function createMFAStatusStore() {
 		}
 	}
 
-	async function load(backendUrl, publishableKey) {
+	async function load(backendUrl: string, publishableKey: string): Promise<void> {
 		set({ loading: true, error: false })
 
 		try {
@@ -175,10 +213,10 @@ export function createMFAStatusStore() {
 
 /**
  * Check dismissal status from localStorage
- * @param {number} daysRemaining - Days remaining in grace period
- * @returns {boolean} True if banner is currently dismissed
+ * @param daysRemaining - Days remaining in grace period
+ * @returns True if banner is currently dismissed
  */
-export function isBannerDismissed(daysRemaining) {
+export function isBannerDismissed(daysRemaining: number): boolean {
 	if (typeof window === 'undefined') {return false}
 
 	try {
@@ -202,9 +240,9 @@ export function isBannerDismissed(daysRemaining) {
 
 /**
  * Dismiss banner (store in localStorage with 24h expiry)
- * @param {number} daysRemaining - Days remaining in grace period
+ * @param daysRemaining - Days remaining in grace period
  */
-export function dismissBanner(daysRemaining) {
+export function dismissBanner(daysRemaining: number): void {
 	if (typeof window === 'undefined') {return}
 
 	try {

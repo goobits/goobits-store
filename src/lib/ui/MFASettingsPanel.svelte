@@ -1,12 +1,12 @@
-<script>
+<script lang="ts">
 	import { onMount } from 'svelte'
-	import { get } from 'svelte/store'
+	import { get, type Readable } from 'svelte/store'
 	import Modal from '@goobits/forms/ui/modals/Modal.svelte'
 	import Button from '@goobits/forms/ui/modals/Button.svelte'
 	import MFABackupCodes from './MFABackupCodes.svelte'
 	import MFAEnrollmentWizard from './MFAEnrollmentWizard.svelte'
-	import { getBackendUrl, getPublishableKey } from '../config/urls.js'
-	import { createLogger } from '../utils/logger.js'
+	import { getBackendUrl, getPublishableKey } from '../config/urls'
+	import { createLogger } from '../utils/logger'
 
 	const logger = createLogger('MFASettingsPanel')
 
@@ -15,40 +15,55 @@
 	 *
 	 * Displays MFA status and provides controls to enable/disable MFA
 	 * and manage backup codes.
-	 *
-	 * @prop {Object} auth - Auth store instance
-	 * @prop {Function} [onEnrollComplete] - Callback when enrollment is complete
 	 */
+
+	interface AuthState {
+		customer?: { id: string; email?: string }
+		user?: { id: string; email?: string }
+	}
+
+	interface MFAStatusData {
+		enabled: boolean
+		inGracePeriod: boolean
+		daysRemaining: number
+		backupCodesRemaining?: number
+	}
+
+	interface Props {
+		auth: Readable<AuthState>
+		onEnrollComplete?: (() => void) | null
+	}
+
 	const {
 		auth,
 		onEnrollComplete = null
-	} = $props()
+	}: Props = $props()
 
 	// Component state
-	let mfaStatus = $state(null)
-	let loading = $state(true)
-	let error = $state(null)
-	let showDisableModal = $state(false)
-	let showBackupCodesModal = $state(false)
-	let showEnrollmentWizard = $state(false)
-	let showPasswordPrompt = $state(false)
-	let verificationCode = $state('')
-	let isDisabling = $state(false)
-	let backupCodes = $state(null)
-	let enrollmentPassword = $state('')
-	let passwordError = $state(null)
-	let isVerifyingPassword = $state(false)
+	let mfaStatus: MFAStatusData | null = $state(null)
+	let loading: boolean = $state(true)
+	let error: string | null = $state(null)
+	let showDisableModal: boolean = $state(false)
+	let showBackupCodesModal: boolean = $state(false)
+	let showEnrollmentWizard: boolean = $state(false)
+	let showPasswordPrompt: boolean = $state(false)
+	let verificationCode: string = $state('')
+	let isDisabling: boolean = $state(false)
+	let backupCodes: string[] | null = $state(null)
+	let enrollmentPassword: string = $state('')
+	let passwordError: string | null = $state(null)
+	let isVerifyingPassword: boolean = $state(false)
 
-	const backendUrl = getBackendUrl()
-	const publishableKey = getPublishableKey()
+	const backendUrl: string = getBackendUrl()
+	const publishableKey: string = getPublishableKey()
 
 	// Fetch MFA status
-	async function fetchMFAStatus() {
+	async function fetchMFAStatus(): Promise<void> {
 		loading = true
 		error = null
 
 		try {
-			const authState = auth ? get(auth) : null
+			const authState: AuthState | null = auth ? get(auth) : null
 			const customer = authState?.customer || authState?.user
 
 			if (!customer) {
@@ -72,9 +87,9 @@
 			mfaStatus = data.status || { enabled: false, inGracePeriod: false }
 		} catch (err) {
 			logger.error('MFA status fetch error:', err)
-			error = err.message
+			error = (err as Error).message
 			// Set a default status so UI still renders
-			mfaStatus = { enabled: false, inGracePeriod: false }
+			mfaStatus = { enabled: false, inGracePeriod: false, daysRemaining: 0 }
 		} finally{
 			loading = false
 		}
@@ -86,14 +101,14 @@
 	})
 
 	// Handle enable MFA - show password prompt first
-	async function handleEnableMFA() {
+	async function handleEnableMFA(): Promise<void> {
 		enrollmentPassword = ''
 		passwordError = null
 		showPasswordPrompt = true
 	}
 
 	// Verify password and proceed to wizard
-	async function verifyPasswordAndProceed() {
+	async function verifyPasswordAndProceed(): Promise<void> {
 		if (!enrollmentPassword) return
 
 		isVerifyingPassword = true
@@ -121,7 +136,7 @@
 			showPasswordPrompt = false
 			showEnrollmentWizard = true
 		} catch (err) {
-			passwordError = err.message
+			passwordError = (err as Error).message
 			enrollmentPassword = ''
 		} finally {
 			isVerifyingPassword = false
@@ -129,7 +144,7 @@
 	}
 
 	// Handle enrollment wizard completion
-	async function handleEnrollmentComplete(codes) {
+	async function handleEnrollmentComplete(codes: string[]): Promise<void> {
 		showEnrollmentWizard = false
 		backupCodes = codes
 		enrollmentPassword = ''
@@ -144,20 +159,20 @@
 	}
 
 	// Handle enrollment wizard cancellation
-	function handleEnrollmentCancel() {
+	function handleEnrollmentCancel(): void {
 		showEnrollmentWizard = false
 		enrollmentPassword = ''
 	}
 
 	// Handle password prompt cancellation
-	function handlePasswordPromptCancel() {
+	function handlePasswordPromptCancel(): void {
 		showPasswordPrompt = false
 		enrollmentPassword = ''
 		passwordError = null
 	}
 
 	// Handle disable MFA
-	async function handleDisableMFA() {
+	async function handleDisableMFA(): Promise<void> {
 		if (!verificationCode) {
 			return
 		}
@@ -166,7 +181,7 @@
 		error = null
 
 		try {
-			const authState = auth ? get(auth) : null
+			const authState: AuthState | null = auth ? get(auth) : null
 			const customer = authState?.customer || authState?.user
 
 			if (!customer) {
@@ -195,25 +210,25 @@
 			verificationCode = ''
 			await fetchMFAStatus()
 		} catch (err) {
-			error = err.message
+			error = (err as Error).message
 		} finally {
 			isDisabling = false
 		}
 	}
 
 	// Handle regenerate backup codes
-	function handleRegenerateBackupCodes() {
+	function handleRegenerateBackupCodes(): void {
 		showBackupCodesModal = true
 	}
 
 	// Close modals
-	function closeDisableModal() {
+	function closeDisableModal(): void {
 		showDisableModal = false
 		verificationCode = ''
 		error = null
 	}
 
-	function closeBackupCodesModal() {
+	function closeBackupCodesModal(): void {
 		showBackupCodesModal = false
 		backupCodes = null
 	}

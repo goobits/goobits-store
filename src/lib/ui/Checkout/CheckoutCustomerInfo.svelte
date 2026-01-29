@@ -1,15 +1,24 @@
-<script>
-	/**
-	 * @typedef {Object} Props
-	 * @property {Object} customerInfo - The current customer information
-	 * @property {string} cartId - The cart ID
-	 * @property {Object} form - Form data from the action
-	 * @property {boolean} formSubmitting - Whether the form is currently submitting
-	 * @property {Function} handleCustomerInfoSubmit - Function to handle submission
-	 * @property {Function} continueShopping - Function to navigate back to shopping
-	 */
+<script lang="ts">
+	interface CustomerInfo {
+		email: string;
+		first_name: string;
+		last_name: string;
+	}
 
-	/** @type {Props} */
+	interface FormResult {
+		success: boolean;
+		error?: string;
+	}
+
+	interface Props {
+		customerInfo: CustomerInfo;
+		cartId: string;
+		form: FormResult | null;
+		formSubmitting: boolean;
+		handleCustomerInfoSubmit: (event: SubmitEvent) => void;
+		continueShopping: () => void;
+	}
+
 	const {
 		customerInfo,
 		cartId,
@@ -17,9 +26,9 @@
 		formSubmitting,
 		handleCustomerInfoSubmit,
 		continueShopping
-	} = $props()
+	}: Props = $props()
 
-	function handleSubmit(event) {
+	function handleSubmit(event: SubmitEvent): void {
 		event.preventDefault()
 		handleCustomerInfoSubmit(event)
 	}
@@ -30,30 +39,30 @@
 
 	<form method="POST" action="?/updateCustomer" onsubmit={handleSubmit}>
 		<input type="hidden" name="cart_id" value={cartId} />
-		
+
 		<div class="goo__form-group">
 			<label for="email">Email <span class="required">*</span></label>
 			<input type="email" id="email" name="email" required bind:value={customerInfo.email} />
 		</div>
-		
+
 		<div class="goo__form-row">
 			<div class="goo__form-group">
 				<label for="first_name">First Name <span class="required">*</span></label>
 				<input type="text" id="first_name" name="first_name" required bind:value={customerInfo.first_name} />
 			</div>
-			
+
 			<div class="goo__form-group">
 				<label for="last_name">Last Name <span class="required">*</span></label>
 				<input type="text" id="last_name" name="last_name" required bind:value={customerInfo.last_name} />
 			</div>
 		</div>
-		
+
 		{#if form && !form.success}
 			<div class="goo__form-error">
 				{form.error || 'An error occurred. Please try again.'}
 			</div>
 		{/if}
-		
+
 		<div class="goo__form-actions">
 			<button type="button" class="goo__back-button" onclick={continueShopping}>
 				Return to Cart

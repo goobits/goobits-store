@@ -39,6 +39,7 @@ export default [
 			'@typescript-eslint/no-inferrable-types': 'off',
 
 			// General strict rules
+			'no-undef': 'off', // TypeScript handles this
 			'no-unused-vars': 'off', // Use TypeScript's version
 			'no-console': 'warn',
 			'no-debugger': 'error',
@@ -110,6 +111,7 @@ export default [
 
 			// Same rules as JS/TS
 			'@typescript-eslint/no-unused-vars': ['error', { argsIgnorePattern: '^_', varsIgnorePattern: '^_' }],
+			'no-undef': 'off', // TypeScript handles this
 			'no-unused-vars': 'off',
 			'no-console': 'warn',
 			'no-debugger': 'error',

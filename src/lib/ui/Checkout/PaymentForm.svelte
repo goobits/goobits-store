@@ -1,4 +1,4 @@
-<script>
+<script lang="ts">
 	import { Loader2 } from '@lucide/svelte'
 	import { createEventDispatcher } from 'svelte'
 
@@ -10,6 +10,33 @@
 	 * what NOT to do with payment card data. See CheckoutPayment.svelte for proper usage.
 	 */
 
+	interface FormData {
+		card_number: string;
+		expiry_date: string;
+		cvv: string;
+		card_name: string;
+	}
+
+	interface FormErrors {
+		card_number?: string | null;
+		expiry_date?: string | null;
+		cvv?: string | null;
+		card_name?: string | null;
+	}
+
+	interface TouchedFields {
+		card_number: boolean;
+		expiry_date: boolean;
+		cvv: boolean;
+		card_name: boolean;
+	}
+
+	interface Props {
+		formData?: FormData;
+		errors?: FormErrors;
+		isSubmitting?: boolean;
+	}
+
 	// Props
 	const {
 		formData = {
@@ -20,17 +47,22 @@
 		},
 		errors = {},
 		isSubmitting = false
-	} = $props()
+	}: Props = $props()
 
-	const dispatch = createEventDispatcher()
+	const dispatch = createEventDispatcher<{
+		change: { field: string; value: string };
+		submit: FormData;
+		'validation-error': FormErrors;
+		blur: { field: string; touched: boolean };
+	}>()
 
 	// SECURITY WARNING: This component is for demonstration only.
 	// NEVER handle real card details in client-side JavaScript.
 	// Use Stripe Elements or your payment provider's SDK instead.
-	
+
 	// Form state - for demo purposes only
 	/* eslint-disable svelte/valid-compile -- intentionally capturing initial values, synced via $effect below */
-	let localFormData = $state({
+	let localFormData: FormData = $state({
 		card_number: formData.card_number,
 		expiry_date: formData.expiry_date,
 		cvv: formData.cvv,
@@ -39,7 +71,7 @@
 	/* eslint-enable svelte/valid-compile */
 
 	// Track touched fields for validation
-	let touched = $state({
+	let touched: TouchedFields = $state({
 		card_number: false,
 		expiry_date: false,
 		cvv: false,
@@ -57,7 +89,7 @@
 	})
 
 	// Validation functions
-	function validateCardNumber(value) {
+	function validateCardNumber(value: string): string | null {
 		// WARNING: This is basic validation only.
 		// Real payment processing must happen server-side.
 		// Use tokenization from Stripe/payment provider.
@@ -67,52 +99,54 @@
 		return null
 	}
 
-	function validateExpiryDate(value) {
+	function validateExpiryDate(value: string): string | null {
 		if (!value) return 'Expiry date is required'
-		
+
 		// Check format
 		if (!/^\d{2}\/\d{2}$/.test(value)) return 'Invalid format (MM/YY)'
-		
-		const [month, year] = value.split('/')
+
+		const parts = value.split('/')
+		const month = parts[0] ?? ''
+		const year = parts[1] ?? ''
 		const currentYear = new Date().getFullYear() % 100 // Get last 2 digits
 		const currentMonth = new Date().getMonth() + 1 // 1-12
-		
+
 		// Convert to numbers
 		const monthNum = parseInt(month, 10)
 		const yearNum = parseInt(year, 10)
-		
+
 		// Validate month
 		if (monthNum < 1 || monthNum > 12) return 'Invalid month'
-		
+
 		// Validate year and expiration
 		if (yearNum < currentYear || (yearNum === currentYear && monthNum < currentMonth)) {
 			return 'Card has expired'
 		}
-		
+
 		return null
 	}
 
-	function validateCVV(value) {
+	function validateCVV(value: string): string | null {
 		if (!value) return 'Security code is required'
 		if (!/^\d{3,4}$/.test(value)) return 'Invalid security code'
 		return null
 	}
 
-	function validateCardName(value) {
+	function validateCardName(value: string): string | null {
 		if (!value.trim()) return 'Name on card is required'
 		if (value.trim().length < 3) return 'Please enter full name'
 		return null
 	}
 
 	// Validate all fields
-	function validateAll() {
-		const newErrors = {}
-		
+	function validateAll(): boolean {
+		const newErrors: FormErrors = {}
+
 		newErrors.card_number = validateCardNumber(localFormData.card_number)
 		newErrors.expiry_date = validateExpiryDate(localFormData.expiry_date)
 		newErrors.cvv = validateCVV(localFormData.cvv)
 		newErrors.card_name = validateCardName(localFormData.card_name)
-		
+
 		// Mark all fields as touched for displaying errors
 		touched = {
 			card_number: true,
@@ -120,76 +154,80 @@
 			cvv: true,
 			card_name: true
 		}
-		
+
 		// Return true if valid (no errors)
 		return !Object.values(newErrors).some(error => error !== null)
 	}
 
 	// Handle field changes with validation
-	function handleCardNumberInput(e) {
+	function handleCardNumberInput(e: Event): void {
+		const target = e.target as HTMLInputElement
 		// Format card number with spaces
-		const value = e.target.value.replace(/\s+/g, '').replace(/[^0-9]/gi, '')
+		const value = target.value.replace(/\s+/g, '').replace(/[^0-9]/gi, '')
 		const formattedValue = value.replace(/(.{4})/g, '$1 ').trim()
-		
+
 		localFormData.card_number = formattedValue
-		e.target.value = formattedValue
-		
+		target.value = formattedValue
+
 		if (touched.card_number) {
 			errors.card_number = validateCardNumber(formattedValue)
 		}
-		
+
 		dispatch('change', { field: 'card_number', value: formattedValue })
 	}
 
-	function handleExpiryDateInput(e) {
+	function handleExpiryDateInput(e: Event): void {
+		const target = e.target as HTMLInputElement
 		// Format expiry date with slash
-		const value = e.target.value.replace(/\D/g, '')
+		const value = target.value.replace(/\D/g, '')
 		let formattedValue = value
-		
+
 		if (value.length > 2) {
 			formattedValue = value.slice(0, 2) + '/' + value.slice(2, 4)
 		}
-		
+
 		localFormData.expiry_date = formattedValue
-		e.target.value = formattedValue
-		
+		target.value = formattedValue
+
 		if (touched.expiry_date) {
 			errors.expiry_date = validateExpiryDate(formattedValue)
 		}
-		
+
 		dispatch('change', { field: 'expiry_date', value: formattedValue })
 	}
 
-	function handleCVVInput(e) {
+	function handleCVVInput(e: Event): void {
+		const target = e.target as HTMLInputElement
 		// Only allow numbers
-		const value = e.target.value.replace(/\D/g, '')
-		
+		const value = target.value.replace(/\D/g, '')
+
 		localFormData.cvv = value
-		e.target.value = value
-		
+		target.value = value
+
 		if (touched.cvv) {
 			errors.cvv = validateCVV(value)
 		}
-		
+
 		dispatch('change', { field: 'cvv', value })
 	}
 
-	function handleCardNameInput(e) {
-		const value = e.target.value
-		
+	function handleCardNameInput(e: Event): void {
+		const target = e.target as HTMLInputElement
+		const value = target.value
+
 		localFormData.card_name = value
-		
+
 		if (touched.card_name) {
 			errors.card_name = validateCardName(value)
 		}
-		
+
 		dispatch('change', { field: 'card_name', value })
 	}
 
 	// Handle form submission
-	function handleSubmit() {
+	function handleSubmit(): void {
 		const isValid = validateAll()
-		
+
 		if (isValid) {
 			dispatch('submit', localFormData)
 		} else {
@@ -198,9 +236,9 @@
 	}
 
 	// Mark fields as touched on blur
-	function handleBlur(field) {
+	function handleBlur(field: keyof TouchedFields): void {
 		touched[field] = true
-		
+
 		// Validate the field
 		switch (field) {
 			case 'card_number':
@@ -216,14 +254,14 @@
 				errors.card_name = validateCardName(localFormData.card_name)
 				break
 		}
-		
+
 		dispatch('blur', { field, touched: true })
 	}
 </script>
 
 <div class="payment-form">
 	<h3 class="payment-form__title">Payment Information</h3>
-	
+
 	<div class="payment-form__fields">
 		<!-- Card Number -->
 		<div class="payment-form__form-group">
@@ -248,7 +286,7 @@
 				</div>
 			{/if}
 		</div>
-		
+
 		<!-- Expiry Date and CVV -->
 		<div class="payment-form__form-row">
 			<div class="payment-form__form-group">
@@ -273,7 +311,7 @@
 					</div>
 				{/if}
 			</div>
-			
+
 			<div class="payment-form__form-group">
 				<label for="cvv" class="payment-form__label">
 					Security Code (CVV) <span class="required">*</span>
@@ -297,7 +335,7 @@
 				{/if}
 			</div>
 		</div>
-		
+
 		<!-- Name on Card -->
 		<div class="payment-form__form-group">
 			<label for="card_name" class="payment-form__label">
@@ -321,7 +359,7 @@
 			{/if}
 		</div>
 	</div>
-	
+
 	<!-- Payment Method Icons -->
 	<div class="payment-form__payment-methods">
 		<div class="payment-form__payment-method-icons">
@@ -342,7 +380,7 @@
 			<i class="fa fa-lock"></i> Your payment information is secure and encrypted
 		</p>
 	</div>
-	
+
 	<button
 		type="button"
 		class="payment-form__submit-button"
@@ -361,47 +399,47 @@
 <style lang="scss">
 	.payment-form {
 		margin-top: 1.5rem;
-		
+
 		&__title {
 			font-size: 1.25rem;
 			font-weight: 600;
 			margin-bottom: 1rem;
 			color: #b45309;
 		}
-		
+
 		&__fields {
 			margin-bottom: 1.5rem;
 		}
-		
+
 		&__form-group {
 			margin-bottom: 1rem;
-			
+
 			&:last-child {
 				margin-bottom: 0;
 			}
 		}
-		
+
 		&__form-row {
 			display: grid;
 			grid-template-columns: 1fr 1fr;
 			gap: 1rem;
-			
+
 			@media (max-width: 480px) {
 				grid-template-columns: 1fr;
 			}
 		}
-		
+
 		&__label {
 			display: block;
 			margin-bottom: 0.5rem;
 			font-weight: 500;
 			color: #4b5563;
-			
+
 			.required {
 				color: #ef4444;
 			}
 		}
-		
+
 		&__input {
 			width: 100%;
 			padding: 0.75rem;
@@ -409,72 +447,72 @@
 			border-radius: 0.375rem;
 			font-size: 0.875rem;
 			transition: border-color 0.2s, box-shadow 0.2s;
-			
+
 			&:focus {
 				border-color: #f59e0b;
 				outline: none;
 				box-shadow: 0 0 0 2px rgba(245, 158, 11, 0.2);
 			}
-			
+
 			&-error {
 				border-color: #ef4444;
-				
+
 				&:focus {
 					border-color: #ef4444;
 					box-shadow: 0 0 0 2px rgba(239, 68, 68, 0.2);
 				}
 			}
 		}
-		
+
 		&__error-message {
 			margin-top: 0.25rem;
 			color: #ef4444;
 			font-size: 0.75rem;
 		}
-		
+
 		&__payment-methods {
 			margin-top: 1.5rem;
 			display: flex;
 			flex-direction: column;
 			align-items: center;
 		}
-		
+
 		&__payment-method-icons {
 			display: flex;
 			gap: 0.75rem;
 			margin-bottom: 0.75rem;
 		}
-		
+
 		&__payment-icon {
 			font-size: 1.5rem;
-			
+
 			&.visa {
 				color: #1434cb;
 			}
-			
+
 			&.mastercard {
 				color: #eb001b;
 			}
-			
+
 			&.amex {
 				color: #2e77bb;
 			}
-			
+
 			&.discover {
 				color: #ff6000;
 			}
 		}
-		
+
 		&__security-note {
 			font-size: 0.75rem;
 			color: #6b7280;
-			
+
 			i {
 				color: #10b981;
 				margin-right: 0.25rem;
 			}
 		}
-		
+
 		&__submit-button {
 			display: inline-flex;
 			align-items: center;
@@ -487,15 +525,15 @@
 			font-weight: 500;
 			cursor: pointer;
 			transition: background-color 0.2s, transform 0.1s;
-			
+
 			&:hover:not(:disabled) {
 				background-color: #d97706;
 			}
-			
+
 			&:active:not(:disabled) {
 				transform: translateY(1px);
 			}
-			
+
 			&:disabled {
 				opacity: 0.7;
 				cursor: not-allowed;
