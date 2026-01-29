@@ -6,10 +6,10 @@
 	 * Works with any e-commerce store using the subscription module
 	 */
 
-	let {
+	const {
 		product = $bindable(),
 		selectedVariant = $bindable(),
-		onSubscribe = () => {},
+		_onSubscribe = () => {},
 		defaultInterval = 'month',
 		intervals = [
 			{ value: 'week', label: 'Weekly', discount: 5 },
@@ -21,15 +21,16 @@
 
 	// Subscription state
 	let isSubscription = $state(false)
+	// eslint-disable-next-line svelte/valid-compile -- intentionally capturing initial value for form state
 	let selectedInterval = $state(defaultInterval)
-	let selectedIntervalCount = $state(1)
+	let _selectedIntervalCount = $state(1)
 	let selectedDiscount = $state(0)
 
 	// Get price
 	const productPrice = $derived(selectedVariant?.prices?.[0]?.amount || product?.variants?.[0]?.prices?.[0]?.amount || 0)
 
 	// Calculate subscription price with discount
-	const subscriptionPrice = $derived(() => {
+	const subscriptionPrice = $derived.by(() => {
 		if (!isSubscription) return productPrice
 
 		const discount = selectedDiscount / 100
@@ -37,9 +38,9 @@
 	})
 
 	// Calculate savings
-	const savings = $derived(() => {
+	const savings = $derived.by(() => {
 		if (!isSubscription) return 0
-		return productPrice - subscriptionPrice()
+		return productPrice - subscriptionPrice
 	})
 
 	// Handle interval change
@@ -47,26 +48,8 @@
 		const intervalData = intervals.find(i => i.value === event.target.value)
 		if (intervalData) {
 			selectedInterval = intervalData.value
-			selectedIntervalCount = intervalData.count || 1
+			_selectedIntervalCount = intervalData.count || 1
 			selectedDiscount = intervalData.discount || 0
-		}
-	}
-
-	// Handle subscribe toggle
-	function toggleSubscription() {
-		isSubscription = !isSubscription
-	}
-
-	// Handle subscribe click
-	function handleSubscribe() {
-		if (onSubscribe) {
-			onSubscribe({
-				isSubscription,
-				interval: selectedInterval,
-				intervalCount: selectedIntervalCount,
-				discount: selectedDiscount,
-				price: subscriptionPrice()
-			})
 		}
 	}
 
@@ -122,13 +105,13 @@
 				<div class="subscribe-save__price">
 					<span class="subscribe-save__price-label">Subscription price:</span>
 					<span class="subscribe-save__price-value">
-						{formatCurrency(subscriptionPrice())}
+						{formatCurrency(subscriptionPrice)}
 					</span>
 				</div>
 
-				{#if savings() > 0}
+				{#if savings > 0}
 					<div class="subscribe-save__savings">
-						You save {formatCurrency(savings())} per delivery!
+						You save {formatCurrency(savings)} per delivery!
 					</div>
 				{/if}
 			</div>

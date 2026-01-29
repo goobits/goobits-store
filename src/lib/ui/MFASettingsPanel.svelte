@@ -19,7 +19,7 @@
 	 * @prop {Object} auth - Auth store instance
 	 * @prop {Function} [onEnrollComplete] - Callback when enrollment is complete
 	 */
-	let {
+	const {
 		auth,
 		onEnrollComplete = null
 	} = $props()
@@ -39,8 +39,8 @@
 	let passwordError = $state(null)
 	let isVerifyingPassword = $state(false)
 
-	const backendUrl = $derived(getBackendUrl())
-	const publishableKey = $derived(getPublishableKey())
+	const backendUrl = getBackendUrl()
+	const publishableKey = getPublishableKey()
 
 	// Fetch MFA status
 	async function fetchMFAStatus() {

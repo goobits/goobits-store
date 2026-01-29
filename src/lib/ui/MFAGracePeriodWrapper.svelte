@@ -1,5 +1,4 @@
 <script>
-	import { onMount } from 'svelte'
 	import MFAGracePeriodBanner from './MFAGracePeriodBanner.svelte'
 	import { fetchMFAStatus, shouldShowGracePeriodBanner } from './mfaStatus.js'
 	import { getPublishableKey } from '../config/urls.js'
@@ -17,7 +16,7 @@
 	 * @prop {string} backendUrl - Medusa backend URL
 	 * @prop {Function} onSetupNow - Callback when "Set up now" is clicked
 	 */
-	let {
+	const {
 		auth,
 		backendUrl = '',
 		onSetupNow = () => {}
@@ -42,7 +41,7 @@
 	})
 
 	// Check if banner should be shown
-	let showBanner = $derived(
+	const showBanner = $derived(
 		!loading &&
 		!error &&
 		mfaStatus &&

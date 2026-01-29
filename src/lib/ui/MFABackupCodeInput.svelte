@@ -9,7 +9,7 @@
 	 * @prop {string} [error] - Error message to display
 	 * @prop {boolean} [loading=false] - Loading state
 	 */
-	let {
+	const {
 		onVerify,
 		onBackToTOTP = null,
 		error = '',
@@ -21,9 +21,9 @@
 	let inputRef = $state(null)
 
 	// Derived
-	let cleanCode = $derived(code.replace(/[-\s]/g, ''))
-	let isValid = $derived(cleanCode.length === 8)
-	let canSubmit = $derived(isValid && !loading)
+	const cleanCode = $derived(code.replace(/[-\s]/g, ''))
+	const isValid = $derived(cleanCode.length === 8)
+	const canSubmit = $derived(isValid && !loading)
 
 	onMount(() => {
 		// Focus input on mount

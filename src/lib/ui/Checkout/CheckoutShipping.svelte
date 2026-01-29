@@ -12,12 +12,12 @@
 	 */
 
 	/** @type {Props} */
-	let { 
-		shippingAddress, 
-		cartId, 
-		form, 
-		formSubmitting, 
-		handleShippingAddressSubmit, 
+	const {
+		shippingAddress,
+		cartId,
+		form,
+		formSubmitting,
+		handleShippingAddressSubmit,
 		goToStep,
 		defaultRegion,
 		STEPS_INFORMATION

@@ -85,8 +85,8 @@ export async function loadShopIndex(lang, config = null, options = {}) {
  * @returns {Promise<object>} An object containing page data for the product
  * @throws {Error} If the product is not found
  */
-export async function loadProduct(productHandle, lang, config = null) {
-	const _finalConfig = config || getStoreConfig()
+export async function loadProduct(productHandle, lang, _config = null) {
+	const _finalConfig = _config || getStoreConfig()
 
 	try {
 		// Get regions first for pricing context
@@ -155,8 +155,8 @@ export async function loadProduct(productHandle, lang, config = null) {
  * @returns {Promise<object>} An object containing page data for the category
  * @throws {Error} If the category is not found
  */
-export async function loadCategory(categoryHandle, lang, config = null) {
-	const _finalConfig = config || getStoreConfig()
+export async function loadCategory(categoryHandle, lang, _config = null) {
+	const _finalConfig = _config || getStoreConfig()
 
 	try {
 		// First, find the category by handle
@@ -211,8 +211,8 @@ export async function loadCategory(categoryHandle, lang, config = null) {
  * @returns {Promise<object>} An object containing page data for the collection
  * @throws {Error} If the collection is not found
  */
-export async function loadCollection(collectionHandle, lang, config = null) {
-	const _finalConfig = config || getStoreConfig()
+export async function loadCollection(collectionHandle, lang, _config = null) {
+	const _finalConfig = _config || getStoreConfig()
 
 	try {
 		// First, find the collection by handle
@@ -266,8 +266,8 @@ export async function loadCollection(collectionHandle, lang, config = null) {
  * @param {Object} config - Shop configuration
  * @returns {Promise<object[]>} Array of entry objects for prerendering
  */
-export async function generateShopEntries(languages = [ 'en' ], config = null) {
-	const _finalConfig = config || getStoreConfig()
+export async function generateShopEntries(languages = [ 'en' ], _config = null) {
+	const _finalConfig = _config || getStoreConfig()
 
 	try {
 		const generatedEntries = []
@@ -276,7 +276,7 @@ export async function generateShopEntries(languages = [ 'en' ], config = null) {
 		const { products } = await medusaServerClient.products.list({ limit: 1000 })
 
 		products.forEach(product => {
-			if (!product.handle) return
+			if (!product.handle) {return}
 
 			languages.forEach(lang => {
 				generatedEntries.push({
@@ -290,7 +290,7 @@ export async function generateShopEntries(languages = [ 'en' ], config = null) {
 		const { product_categories } = await medusaServerClient.productCategories.list({ limit: 100 })
 
 		product_categories.forEach(category => {
-			if (!category.handle) return
+			if (!category.handle) {return}
 
 			languages.forEach(lang => {
 				generatedEntries.push({
@@ -304,7 +304,7 @@ export async function generateShopEntries(languages = [ 'en' ], config = null) {
 		const { collections } = await medusaServerClient.collections.list({ limit: 100 })
 
 		collections.forEach(collection => {
-			if (!collection.handle) return
+			if (!collection.handle) {return}
 
 			languages.forEach(lang => {
 				generatedEntries.push({
@@ -329,8 +329,8 @@ export async function generateShopEntries(languages = [ 'en' ], config = null) {
  * @returns {Promise<object>} An object containing page data for checkout
  * @throws {Error} If checkout data cannot be loaded
  */
-export async function loadCheckout(lang, config = null, url) {
-	const _finalConfig = config || getStoreConfig()
+export async function loadCheckout(lang, _config = null, url) {
+	const _finalConfig = _config || getStoreConfig()
 	const cartId = url.searchParams.get('cart_id')
 
 	if (!cartId) {
@@ -426,7 +426,7 @@ export async function loadCheckout(lang, config = null, url) {
  * @param {Object} config - Shop configuration
  * @returns {Promise<object>} An object containing page data for the cart
  */
-export async function loadCart(lang, config = null) {
+export async function loadCart(lang, _config = null) {
 	try {
 		// Get regions for cart creation
 		const { regions } = await medusaServerClient.regions.list()

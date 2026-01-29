@@ -16,7 +16,7 @@
 	 * @prop {string} [initialMode] - 'login' or 'register'
 	 * @prop {Object} [branding] - Site branding configuration
 	 */
-	let {
+	const {
 		auth,
 		demoCredentials = null,
 		initialMode = 'login',
@@ -25,16 +25,15 @@
 
 	let email = $state('')
 	let password = $state('')
-	let showRegister = $state(initialMode === 'register')
+	// eslint-disable-next-line svelte/valid-compile -- intentionally capturing initial value for form mode toggle
+	const showRegister = $state(initialMode === 'register')
 	let firstName = $state('')
 	let lastName = $state('')
 	let phone = $state('')
 	let confirmPassword = $state('')
-	let isDemoMode = $state(false)
 
 	// MFA state
 	let mfaRequired = $state(false)
-	let mfaUserId = $state(null)
 	let mfaError = $state('')
 	let mfaLoading = $state(false)
 	let useBackupCode = $state(false)
@@ -73,15 +72,14 @@
 			if (isLocalhost && !showRegister && !email && !password) {
 				email = demoCredentials.email
 				password = demoCredentials.password
-				isDemoMode = true
 			}
 		}
 	})
 
-	let returnUrl = $derived($page.url.searchParams.get('return') || '/shop/account')
+	const returnUrl = $derived($page.url.searchParams.get('return') || '/shop/account')
 
 	// Convert auth error to FormErrors format
-	let formErrors = $derived(authState.error ? { _errors: [authState.error] } : { _errors: [] })
+	const formErrors = $derived(authState.error ? { _errors: [authState.error] } : { _errors: [] })
 
 	async function handleLogin(e) {
 		e.preventDefault()
@@ -92,7 +90,6 @@
 		// Check if MFA is required
 		if (result.mfaRequired) {
 			mfaRequired = true
-			mfaUserId = result.userId
 			mfaError = ''
 		} else if (result.success) {
 			goto(returnUrl)

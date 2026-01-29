@@ -17,7 +17,7 @@
 	 */
 
 	/** @type {Props} */
-	let {
+	const {
 		data,
 		hero = null,
 		features = null,
@@ -25,12 +25,12 @@
 		config = {}
 	} = $props()
 
-	let products = $derived(data.products || [])
+	const products = $derived(data.products || [])
 	let addedProductId = $state(null)
 
 	// Get fallback image from config or use generic placeholder
-	const fallbackImage = config?.ui?.placeholders?.product ||
-		'https://placehold.co/250x200/E5E5E5/999?text=Product'
+	const fallbackImage = $derived(config?.ui?.placeholders?.product ||
+		'https://placehold.co/250x200/E5E5E5/999?text=Product')
 
 	/**
 	 * Calculates and formats the price for a product
@@ -163,7 +163,8 @@
 							<a href="/shop/{product.handle}" class="btn btn-primary">View Options</a>
 						{:else}
 							<button
-								class="btn btn-primary {addedProductId === product.id ? 'added' : ''}"
+								class="btn btn-primary"
+								class:added={addedProductId === product.id}
 								onclick={(e) => handleAddToCart(product, e)}
 							>
 								{addedProductId === product.id ? 'Added!' : 'Add to Cart'}
@@ -501,33 +502,33 @@
 		margin-top: 2rem;
 	}
 
-	.services, .explore {
+	.services {
 		text-align: left;
 	}
 
-	.services h3, .explore h3 {
+	.services h3 {
 		font-size: 1.25rem;
 		color: var(--text-primary);
 		margin-bottom: 1rem;
 		font-weight: 600;
 	}
 
-	.services ul, .explore ul {
+	.services ul {
 		list-style: none;
 		padding: 0;
 	}
 
-	.services li, .explore li {
+	.services li {
 		margin-bottom: 0.5rem;
 	}
 
-	.services a, .explore a {
+	.services a {
 		color: var(--color-link);
 		text-decoration: none;
 		transition: color 0.2s ease;
 	}
 
-	.services a:hover, .explore a:hover {
+	.services a:hover {
 		color: var(--color-link-hover);
 		text-decoration: underline;
 	}

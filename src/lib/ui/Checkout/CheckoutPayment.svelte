@@ -22,15 +22,16 @@
 	 */
 
 	/** @type {Props} */
+	/* eslint-disable prefer-const -- Svelte 5 requires `let` when using $bindable() in destructuring */
 	let {
 		medusaCart,
 		shippingOptions,
-		selectedShippingOption,
+		selectedShippingOption = $bindable(),
 		shippingAddress,
 		customerInfo,
-		form,
+		_form,
 		formSubmitting,
-		paymentErrors,
+		_paymentErrors,
 		handleShippingMethodSubmit,
 		handlePaymentUpdate,
 		handlePaymentSuccess,
@@ -39,6 +40,7 @@
 		formatPrice,
 		STEPS_SHIPPING
 	} = $props()
+	/* eslint-enable prefer-const */
 </script>
 
 <div class="goo__checkout-section">

@@ -14,12 +14,14 @@
 	 * @prop {Function} onCancel - Callback when modal is cancelled
 	 */
 
+	/* eslint-disable prefer-const -- show is $bindable and requires let for entire destructuring */
 	let {
 		show = $bindable(),
 		user,
 		onReset,
 		onCancel
 	} = $props()
+	/* eslint-enable prefer-const */
 
 	let reason = $state('')
 	let otherReason = $state('')
@@ -28,7 +30,7 @@
 	let error = $state(null)
 
 	// Convert error to FormErrors format
-	let formErrors = $derived(error ? { _errors: [error] } : { _errors: [] })
+	const formErrors = $derived(error ? { _errors: [error] } : { _errors: [] })
 
 	const reasonOptions = [
 		{ value: 'lost_device', label: 'Lost device' },
@@ -88,7 +90,6 @@
 </script>
 
 {#if show}
-	<!-- svelte-ignore a11y_no_static_element_interactions -->
 	<div
 		class="goo__modal-overlay"
 		role="button"

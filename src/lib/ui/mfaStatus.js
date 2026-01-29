@@ -76,7 +76,7 @@ export async function fetchMFAStatus(backendUrl, publishableKey) {
  * @returns {boolean} True if banner should be shown
  */
 export function shouldShowGracePeriodBanner(mfaStatus) {
-	if (!mfaStatus) return false
+	if (!mfaStatus) {return false}
 
 	// Show banner if MFA is required but not enabled, and in grace period
 	return mfaStatus.required &&
@@ -91,9 +91,9 @@ export function shouldShowGracePeriodBanner(mfaStatus) {
  * @returns {string} Urgency level: 'critical', 'urgent', 'warning', or 'info'
  */
 export function getUrgencyLevel(daysRemaining) {
-	if (daysRemaining < 3) return 'critical'
-	if (daysRemaining < 7) return 'urgent'
-	if (daysRemaining < 14) return 'warning'
+	if (daysRemaining < 3) {return 'critical'}
+	if (daysRemaining < 7) {return 'urgent'}
+	if (daysRemaining < 14) {return 'warning'}
 	return 'info'
 }
 
@@ -103,7 +103,7 @@ export function getUrgencyLevel(daysRemaining) {
  * @returns {string} Formatted date string
  */
 export function formatGracePeriodEndDate(gracePeriodEndsAt) {
-	if (!gracePeriodEndsAt) return ''
+	if (!gracePeriodEndsAt) {return ''}
 
 	try {
 		const date = new Date(gracePeriodEndsAt)
@@ -179,7 +179,7 @@ export function createMFAStatusStore() {
  * @returns {boolean} True if banner is currently dismissed
  */
 export function isBannerDismissed(daysRemaining) {
-	if (typeof window === 'undefined') return false
+	if (typeof window === 'undefined') {return false}
 
 	try {
 		const dismissalKey = `mfa-banner-dismissed-${ daysRemaining }`
@@ -205,7 +205,7 @@ export function isBannerDismissed(daysRemaining) {
  * @param {number} daysRemaining - Days remaining in grace period
  */
 export function dismissBanner(daysRemaining) {
-	if (typeof window === 'undefined') return
+	if (typeof window === 'undefined') {return}
 
 	try {
 		const dismissalKey = `mfa-banner-dismissed-${ daysRemaining }`

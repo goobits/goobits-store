@@ -7,9 +7,9 @@
 	 */
 
 	/** @type {Props} */
-	let { data } = $props()
+	const { data } = $props()
 
-	let category = $derived(data.category || {})
+	const category = $derived(data.category || {})
 </script>
 
 <section class="category-header">

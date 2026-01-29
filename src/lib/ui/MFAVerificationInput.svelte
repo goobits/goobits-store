@@ -12,7 +12,7 @@
 	 * @prop {boolean} [loading=false] - Loading state
 	 * @prop {number} [timerSeconds=30] - Countdown timer duration
 	 */
-	let {
+	const {
 		onVerify,
 		onUseBackupCode = null,
 		showRememberDevice = true,
@@ -25,16 +25,17 @@
 	// State
 	let digits = $state(['', '', '', '', '', ''])
 	let rememberDevice = $state(false)
-	let inputRefs = $state([])
+	const inputRefs = $state([])
 	let attempts = $state(0)
 	let isLocked = $state(false)
+	// eslint-disable-next-line svelte/valid-compile -- intentionally capturing initial value for countdown timer
 	let timeRemaining = $state(timerSeconds)
 	let timerInterval = $state(null)
 
 	// Derived
-	let code = $derived(digits.join(''))
-	let isComplete = $derived(code.length === 6)
-	let canSubmit = $derived(isComplete && !loading && !isLocked)
+	const code = $derived(digits.join(''))
+	const isComplete = $derived(code.length === 6)
+	const canSubmit = $derived(isComplete && !loading && !isLocked)
 
 	// Start countdown timer
 	onMount(() => {
@@ -154,7 +155,7 @@
 		}
 	}
 
-	function clearCode() {
+	function _clearCode() {
 		digits = ['', '', '', '', '', '']
 		if (inputRefs[0]) {
 			inputRefs[0].focus()

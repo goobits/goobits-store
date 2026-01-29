@@ -61,6 +61,7 @@ export function getPublishableKey(envValue) {
 	}
 	// Log warning in development
 	if (typeof process === 'undefined' || (process.env?.NODE_ENV !== 'production')) {
+		// eslint-disable-next-line no-console
 		console.warn('[URLConfig] Publishable key not found. Make sure PUBLIC_MEDUSA_PUBLISHABLE_KEY is set in your .env file.')
 	}
 	return ''

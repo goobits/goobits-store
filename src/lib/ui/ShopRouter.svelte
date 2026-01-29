@@ -19,14 +19,14 @@
 	 */
 
 	/** @type {Props} */
-	let {
+	const {
 		data,
 		content = {},
 		config = {}
 	} = $props()
 
 	// Extract page type and route data
-	let pageType = $derived(data.pageType || 'index')
+	const pageType = $derived(data.pageType || 'index')
 </script>
 
 <div class="shop-router">

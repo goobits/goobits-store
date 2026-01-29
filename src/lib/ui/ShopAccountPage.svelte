@@ -10,7 +10,7 @@
 	 * @prop {Object} customer - Customer data store
 	 * @prop {Object} [branding] - Site branding
 	 */
-	let {
+	const {
 		auth,
 		isAuthenticated,
 		customer,
@@ -69,9 +69,9 @@
 	const currentUser = $derived(customerData || authState.user)
 
 	// Use $derived for display values to ensure SSR/client consistency
-	let displayName = $derived(currentUser?.name || '')
-	let displayEmail = $derived(currentUser?.email || '')
-	let displayPhone = $derived(currentUser?.phone || '')
+	const displayName = $derived(currentUser?.name || '')
+	const displayEmail = $derived(currentUser?.email || '')
+	const displayPhone = $derived(currentUser?.phone || '')
 
 	// Separate state for editing (only used when editing=true)
 	let editName = $state('')

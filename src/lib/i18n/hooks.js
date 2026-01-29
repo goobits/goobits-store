@@ -34,7 +34,7 @@ export async function handleStoreI18n(event, handler) {
 	if (storeConfig.i18n?.enabled &&
 		event.url.pathname &&
 		(event.url.pathname === storeConfig.shopUri ||
-		 event.url.pathname.startsWith(storeConfig.shopUri + '/'))) {
+		 event.url.pathname.startsWith(`${storeConfig.shopUri  }/`))) {
 
 		// Only call handler if it's actually a function
 		if (typeof handler === 'function') {
@@ -100,9 +100,9 @@ export async function loadWithStoreI18n(event, originalLoad) {
  * @param {Function} [originalLoad] - The original load function if any
  * @returns {Promise<Object>} The load function result with i18n data
  */
-export async function layoutLoadWithStoreI18n(event, originalLoad) {
+export function layoutLoadWithStoreI18n(event, originalLoad) {
 	// This is similar to loadWithStoreI18n but typically used in +layout.server.js
-	return await loadWithStoreI18n(event, originalLoad)
+	return loadWithStoreI18n(event, originalLoad)
 }
 
 export default {

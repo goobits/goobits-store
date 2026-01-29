@@ -7,9 +7,9 @@
 	 */
 
 	/** @type {Props} */
-	let { data } = $props()
+	const { data } = $props()
 
-	let collection = $derived(data.collection || {})
+	const collection = $derived(data.collection || {})
 </script>
 
 <section class="collection-header">

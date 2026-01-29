@@ -57,7 +57,7 @@ async function createSubscriptionForOrder(order, cart) {
 	// Calculate next billing date
 	const billing_start = trial_end_date || start_date
 	const next_billing_date = calculateNextBillingDate(billing_start, interval, interval_count)
-	const current_period_end = next_billing_date
+	const _current_period_end = next_billing_date
 
 	// Extract payment method from order's payment collection
 	let payment_method_id = null

@@ -10,7 +10,7 @@
  * @param {string} options.integrity - SRI hash for security
  * @param {string} options.id - Element ID to prevent duplicate loading
  */
-export function loadFontAwesome(options = {}) {
+export function loadFontAwesome(options = { version: '', integrity: '', id: '' }) {
 	const {
 		version = '6.5.1',
 		integrity = 'sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA==',

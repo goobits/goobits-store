@@ -24,7 +24,7 @@ export function formatCurrency(amount, currency = 'usd') {
  * @returns {string} Formatted date string
  */
 export function formatDate(dateString) {
-	if (!dateString) return 'N/A'
+	if (!dateString) {return 'N/A'}
 	return new Date(dateString).toLocaleDateString('en-US', {
 		year: 'numeric',
 		month: 'long',
@@ -106,10 +106,10 @@ export function getPastSubscriptions(subscriptions) {
  * @returns {number} Days until next billing (negative if past due)
  */
 export function daysUntilBilling(nextBillingDate) {
-	if (!nextBillingDate) return null
+	if (!nextBillingDate) {return null}
 	const now = new Date()
 	const billing = new Date(nextBillingDate)
-	const diff = billing - now
+	const diff = billing.getTime() - now.getTime()
 	return Math.ceil(diff / (1000 * 60 * 60 * 24))
 }
 

@@ -22,7 +22,7 @@
 	 */
 
 	/** @type {Props} */
-	let {
+	const {
 		medusaCart,
 		shippingAddress,
 		selectedShippingOption,

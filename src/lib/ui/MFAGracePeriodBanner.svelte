@@ -11,14 +11,14 @@
 	 * @prop {string} gracePeriodEndsAt - ISO date string when grace period ends
 	 * @prop {Function} onSetupNow - Callback when "Set up now" is clicked
 	 */
-	let {
+	const {
 		daysRemaining = 30,
 		gracePeriodEndsAt = null,
 		onSetupNow = () => {}
 	} = $props()
 
 	// Calculate urgency level
-	let urgencyLevel = $derived(
+	const urgencyLevel = $derived(
 		daysRemaining < 3 ? 'critical' :
 		daysRemaining < 7 ? 'urgent' :
 		daysRemaining < 14 ? 'warning' :
@@ -26,7 +26,7 @@
 	)
 
 	// Check if banner can be dismissed (only when >7 days)
-	let isDismissible = $derived(daysRemaining >= 7)
+	const isDismissible = $derived(daysRemaining >= 7)
 
 	// Check localStorage for dismissal state (SSR-safe)
 	function checkDismissalState() {
@@ -50,7 +50,7 @@
 	let dismissed = $state(checkDismissalState())
 
 	// Get urgency-specific message
-	let message = $derived(() => {
+	const message = $derived(() => {
 		if (daysRemaining <= 1) {
 			return 'Two-factor authentication required by tomorrow! Set up MFA immediately to maintain access.'
 		} else if (daysRemaining <= 3) {
@@ -65,7 +65,7 @@
 	})
 
 	// Get formatted end date
-	let formattedEndDate = $derived(() => {
+	const formattedEndDate = $derived(() => {
 		if (!gracePeriodEndsAt) return ''
 		try {
 			const date = new Date(gracePeriodEndsAt)

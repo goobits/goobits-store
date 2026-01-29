@@ -12,7 +12,7 @@
 	 */
 
 	/** @type {Props} */
-	let {
+	const {
 		completedOrder,
 		formatPrice,
 		continueShopping,
@@ -21,7 +21,7 @@
 	} = $props()
 	
 	// Create message getter
-	const getMessage = createMessageGetter({ ...defaultMessages, ...messages })
+	const getMessage = $derived(createMessageGetter({ ...defaultMessages, ...messages }))
 </script>
 
 <div class="goo__checkout-section goo__confirmation">

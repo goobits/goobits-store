@@ -21,8 +21,8 @@ if (browser) {
 	// Validate required environment variables
 	if (!MEDUSA_BACKEND_URL || !PUBLISHABLE_API_KEY) {
 		const missing = []
-		if (!MEDUSA_BACKEND_URL) missing.push('PUBLIC_MEDUSA_BACKEND_URL')
-		if (!PUBLISHABLE_API_KEY) missing.push('PUBLIC_MEDUSA_PUBLISHABLE_KEY')
+		if (!MEDUSA_BACKEND_URL) {missing.push('PUBLIC_MEDUSA_BACKEND_URL')}
+		if (!PUBLISHABLE_API_KEY) {missing.push('PUBLIC_MEDUSA_PUBLISHABLE_KEY')}
 
 		logger.error(
 			`Missing required environment variables for Medusa client: ${missing.join(', ')}`,

@@ -10,7 +10,7 @@
 	 */
 
 	/** @type {Props} */
-	let {
+	const {
 		customerInfo,
 		cartId,
 		form,
@@ -93,8 +93,7 @@
 		color: #e53e3e;
 	}
 
-	.goo__form-group input,
-	.goo__form-group select {
+	.goo__form-group input {
 		width: 100%;
 		padding: 0.75rem;
 		border: 1px solid #ddd;
@@ -102,8 +101,7 @@
 		font-size: 1rem;
 	}
 
-	.goo__form-group input:focus,
-	.goo__form-group select:focus {
+	.goo__form-group input:focus {
 		outline: none;
 		border-color: #f59e0b;
 		box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.1);

@@ -10,7 +10,7 @@
 	const dispatch = createEventDispatcher()
 	
 	// Props
-	let {
+	const {
 		clientSecret = '',
 		cartId = '',
 		billingDetails = {
@@ -34,8 +34,9 @@
 	let isLoading = $state(true)
 	let stripeError = $state(null)
 	let stripeElements = $state(null)
-	let paymentIntentStatus = $state('')
+	let _paymentIntentStatus = $state('')
 	// Processing state: use prop if provided, otherwise manage locally
+	// eslint-disable-next-line svelte/valid-compile -- intentionally capturing initial value for local state management
 	let processing = $state(isProcessing)
 
 	// Set up Elements when component mounts
@@ -92,8 +93,8 @@
 			} else {
 				// The payment has been processed!
 				if (result.paymentIntent) {
-					paymentIntentStatus = result.paymentIntent.status
-					
+					_paymentIntentStatus = result.paymentIntent.status
+
 					// Dispatch the success event with payment info
 					dispatch('success', {
 						paymentIntent: result.paymentIntent,

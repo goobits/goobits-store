@@ -38,9 +38,9 @@ export function createShopIndexHandler(options = {}) {
 
 	return {
 		prerender,
-		load: async ({ params: _params, locals }) => {
+		load: ({ params: _params, locals }) => {
 			const lang = getLanguage(locals)
-			return await loadShopIndex(lang, config, { initialLoad: true })
+			return loadShopIndex(lang, config, { initialLoad: true })
 		}
 	}
 }
@@ -74,8 +74,8 @@ export function createShopSlugHandler(options = {}) {
 	return {
 		prerender,
 		trailingSlash,
-		entries: prerender ? async () => generateShopEntries(languages, config) : undefined,
-		load: async ({ params, locals }) => {
+		entries: prerender ? () => generateShopEntries(languages, config) : undefined,
+		load: ({ params, locals }) => {
 			const { slug } = params
 			const lang = getLanguage(locals)
 
@@ -83,29 +83,29 @@ export function createShopSlugHandler(options = {}) {
 			const normalizedSlug = slug ? slug.replace(/\/$/, '') : ''
 
 			if (!normalizedSlug || normalizedSlug === '') {
-				return await loadShopIndex(lang, config)
+				return loadShopIndex(lang, config)
 			}
 
 			if (normalizedSlug.startsWith('category/')) {
 				const categorySlug = normalizedSlug.replace('category/', '')
-				return await loadCategory(categorySlug, lang, config)
+				return loadCategory(categorySlug, lang, config)
 			}
 
 			if (normalizedSlug.startsWith('collection/')) {
 				const collectionSlug = normalizedSlug.replace('collection/', '')
-				return await loadCollection(collectionSlug, lang, config)
+				return loadCollection(collectionSlug, lang, config)
 			}
 
 			// Handle special shop pages
 			if (normalizedSlug === 'products') {
 				// Products listing page - same as shop index
-				return await loadShopIndex(lang, config)
+				return loadShopIndex(lang, config)
 			}
 
 			// Handle product pages: /shop/products/{handle}
 			if (normalizedSlug.startsWith('products/')) {
 				const productHandle = normalizedSlug.replace('products/', '')
-				return await loadProduct(productHandle, lang, config)
+				return loadProduct(productHandle, lang, config)
 			}
 
 			if (normalizedSlug === 'account') {
@@ -113,7 +113,7 @@ export function createShopSlugHandler(options = {}) {
 			}
 
 			if (normalizedSlug === 'cart') {
-				return await loadCart(lang, config)
+				return loadCart(lang, config)
 			}
 
 			if (normalizedSlug === 'login') {
@@ -129,11 +129,11 @@ export function createShopSlugHandler(options = {}) {
 			}
 
 			if (normalizedSlug === 'checkout') {
-				return await loadCheckout(lang, config, { url: params.url })
+				return loadCheckout(lang, config, { url: params.url })
 			}
 
 			// Default: treat as product handle/slug
-			return await loadProduct(normalizedSlug, lang, config)
+			return loadProduct(normalizedSlug, lang, config)
 		}
 	}
 }

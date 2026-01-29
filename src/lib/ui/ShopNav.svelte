@@ -14,7 +14,7 @@
 	 */
 	
 	/** @type {ShopNavProps} */
-	let {
+	const {
 		messages = {},
 		shopName,
 		backUrl = '/',
@@ -24,16 +24,13 @@
 	} = $props()
 	
 	// Create message getter
-	const getMessage = createMessageGetter({ ...defaultMessages, ...messages })
-	
-	// Determine if we're in the shop section
-	let isShopSection = $derived($page.url.pathname.startsWith(shopUrl))
-	
+	const getMessage = $derived(createMessageGetter({ ...defaultMessages, ...messages }))
+
 	// Get cart item count
-	let cartCount = $derived(getCartCount())
-	
+	const cartCount = $derived(getCartCount())
+
 	// Get the shop name to display
-	const displayShopName = shopName || getMessage('shopName', 'Shop')
+	const displayShopName = $derived(shopName || getMessage('shopName', 'Shop'))
 </script>
 
 <nav class="goo__shop-nav">
@@ -45,13 +42,13 @@
 		<div class="goo__shop-nav-links">
 			<a 
 				href={shopUrl} 
-				class="goo__shop-nav-link {$page.url.pathname === shopUrl ? 'active' : ''}"
+				class="goo__shop-nav-link" class:active={$page.url.pathname === shopUrl}
 			>
 				{getMessage('products', 'Products')}
 			</a>
 			<a 
 				href={cartUrl}
-				class="goo__shop-nav-link goo__cart-link {$page.url.pathname === cartUrl ? 'active' : ''}"
+				class="goo__shop-nav-link goo__cart-link" class:active={$page.url.pathname === cartUrl}
 			>
 				{getMessage('cart', 'Cart')} {cartCount > 0 ? `(${cartCount})` : ''}
 			</a>

@@ -11,9 +11,9 @@
 	const logger = new Logger('ProductDetail')
 
 	// Extract product data
-	let product = $derived(data.product || {})
-	let relatedProducts = $derived(data.relatedProducts || [])
-	let defaultRegion = $derived(data.defaultRegion)
+	const product = $derived(data.product || {})
+	const relatedProducts = $derived(data.relatedProducts || [])
+	const defaultRegion = $derived(data.defaultRegion)
 
 	// State
 	let quantity = $state(1)
@@ -23,11 +23,11 @@
 	let showOptionWarning = $state(false) // State for showing option selection warning
 
 	// Reactive updates when product data changes
-	let variants = $derived(product.variants || [])
-	let options = $derived(product.options || [])
+	const variants = $derived(product.variants || [])
+	const options = $derived(product.options || [])
 
 	// Initialize selectedOptions based on options and variants (runs during SSR)
-	let initialSelectedOptions = $derived.by(() => {
+	const initialSelectedOptions = $derived.by(() => {
 		const initialOptions = {}
 		if (options && options.length > 0 && variants && variants.length > 0) {
 			options.forEach(option => {
@@ -42,7 +42,7 @@
 	})
 
 	// Calculate selected variant based on options (runs during SSR)
-	let selectedVariant = $derived.by(() => {
+	const selectedVariant = $derived.by(() => {
 		// If no options and only one variant, select it by default
 		if (options.length === 0 && variants.length === 1) {
 			return variants[0]
@@ -66,7 +66,7 @@
 
 	// Selected image (derived to ensure SSR consistency)
 	// Uses user selection if available, otherwise defaults to first product image
-	let selectedImage = $derived(
+	const selectedImage = $derived(
 		userSelectedImage ||
 		(product?.images?.length > 0 ? product.images[0] : null)
 	)
@@ -194,7 +194,7 @@
 						{#each product.images as image}
 							{#if image && image.url}
 								<div
-									class="goo__product-thumbnail {selectedImage && selectedImage.id === image.id ? 'active' : ''}"
+									class="goo__product-thumbnail" class:active={selectedImage && selectedImage.id === image.id}
 									onclick={() => selectImage(image)}
 									onkeydown={(e) => e.key === 'Enter' && selectImage(image)}
 									tabindex="0"
@@ -242,12 +242,12 @@
 								<div class="goo__variant-options">
 									{#each availableValues as value (value)}
 										<button
-											class="goo__variant-button {currentSelection === value ? 'active' : ''}"
+											class="goo__variant-button" class:active={currentSelection === value}
 											onclick={() => selectOption(option.id, value)}
 										>
 											<!-- Add color swatch if it's a color option -->
 											{#if option.title.toLowerCase() === 'color'}
-												<span class="goo__color-swatch" style="background-color: {value.toLowerCase()};"></span>
+												<span class="goo__color-swatch" style:background-color="{value.toLowerCase()}"></span>
 											{/if}
 											{value}
 										</button>
@@ -261,10 +261,10 @@
 					<div class="goo__product-variants">
 						<h3>Select Option</h3>
 						<div class="goo__variant-options">
-							{#each variants as variant, index (variant.id)}
+							{#each variants as variant (variant.id)}
 								<button
-									class="goo__variant-button {selectedVariant?.id === variant.id ? 'active' : ''}"
-									onclick={() => { selectedVariant = variant; selectedOptions = {}; /* Reset options if selecting variant directly */ }}
+									class="goo__variant-button" class:active={selectedVariant?.id === variant.id}
+									onclick={() => { selectedOptions = { _selectedVariantId: variant.id }; /* Store variant selection in options to trigger derived recalculation */ }}
 								>
 									{variant.title}
 								</button>
@@ -285,7 +285,7 @@
 
 				<!-- Add to Cart Button -->
 				<button
-					class="goo__add-to-cart-button {addedToCart ? 'added' : ''}"
+					class="goo__add-to-cart-button" class:added={addedToCart}
 					onclick={handleAddToCart}
 					aria-live="polite"
 				>

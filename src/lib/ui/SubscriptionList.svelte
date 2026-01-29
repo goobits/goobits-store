@@ -15,7 +15,7 @@
 		getPastSubscriptions
 	} from '../utils/subscription-helpers.js'
 
-	let {
+	const {
 		subscriptions = [],
 		detailUrlPattern = '/shop/subscriptions/{id}',
 		emptyMessage = 'No subscriptions yet',

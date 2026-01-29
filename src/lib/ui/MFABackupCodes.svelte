@@ -18,7 +18,7 @@
 	 * @prop {Function} [onRegenerate] - Callback when codes are regenerated
 	 * @prop {boolean} [isNewEnrollment] - True if showing codes from enrollment
 	 */
-	let {
+	const {
 		backupCodes = null,
 		auth,
 		onClose,
@@ -27,7 +27,7 @@
 	} = $props()
 
 	// Component state
-	let loading = $state(false)
+	const loading = $state(false)
 	let error = $state(null)
 	let password = $state('')
 	let showRegenerateConfirm = $state(false)
@@ -36,11 +36,12 @@
 	let copiedAll = $state(false)
 	let confirmChecked = $state(false)
 
-	const backendUrl = $derived(getBackendUrl())
-	const publishableKey = $derived(getPublishableKey())
+	const backendUrl = getBackendUrl()
+	const publishableKey = getPublishableKey()
 
 	// Codes state initialized from prop (no effect needed - ensures SSR consistency)
 	// Uses $state because codes can be mutated when regenerated
+	// eslint-disable-next-line svelte/valid-compile -- intentionally capturing initial value for local state
 	let codes = $state(backupCodes)
 
 	// Note: Better Auth stores backup codes hashed for security,

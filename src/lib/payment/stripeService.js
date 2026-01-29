@@ -36,7 +36,7 @@ export const configureStripe = (publicKey) => {
  * @returns {Promise<Object>} Stripe instance
  */
 export const getStripe = async (publicKey) => {
-	if (!browser) return null
+	if (!browser) {return null}
 
 	const keyToUse = publicKey || configuredPublicKey
 
@@ -72,15 +72,14 @@ export const getStripe = async (publicKey) => {
 		}
 	}
 
-	return await stripePromise
+	return stripePromise
 }
 
 /**
  * Create payment element options
  * @returns {Object} Options for creating payment elements
  */
-export const createPaymentElementOptions = () => {
-	return {
+export const createPaymentElementOptions = () => ({
 		style: {
 			base: {
 				fontSize: '16px',
@@ -101,8 +100,7 @@ export const createPaymentElementOptions = () => {
 				phone: 'never'
 			}
 		}
-	}
-}
+	})
 
 /**
  * Create Elements instance for adding Elements to the page
@@ -110,22 +108,20 @@ export const createPaymentElementOptions = () => {
  * @param {Object} options - Elements options
  * @returns {Object} Elements instance
  */
-export const createElements = async (stripe, options = {}) => {
+export const createElements = (stripe, options = {}) => {
 	if (!stripe) {
 		logger.error('Stripe not initialized')
 		return null
 	}
 
 	try {
-		const elements = stripe.elements({
+		return stripe.elements({
 			appearance: {
 				theme: 'stripe',
 				...options.appearance
 			},
 			clientSecret: options.clientSecret
 		})
-
-		return elements
 	} catch (error) {
 		logger.error('Error creating Elements:', error)
 		stripeError.set(error.message || 'Failed to initialize payment form')
@@ -148,7 +144,7 @@ export const confirmPayment = async (stripe, elements, options = {}) => {
 	const { error, paymentIntent } = await stripe.confirmPayment({
 		elements,
 		confirmParams: {
-			return_url: options.returnUrl || window.location.origin + '/shop/checkout/confirmation',
+			return_url: options.returnUrl || `${window.location.origin  }/shop/checkout/confirmation`,
 			payment_method_data: {
 				billing_details: options.billingDetails || {}
 			}

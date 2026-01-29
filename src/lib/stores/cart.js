@@ -17,12 +17,12 @@ const CART_ID_KEY = 'medusa_cart_id'
  * @returns {Array} The cart items array or an empty array if nothing found
  */
 function getStoredCart() {
-	if (!browser) return []
+	if (!browser) {return []}
 
 	try {
 		// Try to get cart from sessionStorage first (more recent)
 		const sessionCart = sessionStorage.getItem('cart')
-		if (sessionCart) return JSON.parse(sessionCart)
+		if (sessionCart) {return JSON.parse(sessionCart)}
 
 		// Fall back to localStorage
 		const localCart = localStorage.getItem('cart')
@@ -44,7 +44,7 @@ function getStoredCart() {
  * @param {Array} cartItems - Cart items to persist
  */
 function persistCart(cartItems) {
-	if (!browser) return
+	if (!browser) {return}
 
 	try {
 		const cartJson = JSON.stringify(cartItems)
@@ -110,7 +110,9 @@ export function addToCart(product) {
 			)
 		} else {
 			const newProduct = { ...product }
-			if (!newProduct.quantity) newProduct.quantity = 1
+			if (!newProduct.quantity) {
+				newProduct.quantity = 1
+			}
 
 			// Add as new cart item
 			updatedCart = [ ...items, newProduct ]
@@ -181,7 +183,7 @@ export function clearCart() {
  */
 export function getCartItems() {
 	// Handle server-side rendering where stores aren't available
-	if (!browser) return []
+	if (!browser) {return []}
 
 	return get(cart)
 }
@@ -211,7 +213,9 @@ export function getCartCount() {
  * @returns {Promise<void>}
  */
 export async function associateWithCustomer() {
-	if (!browser) return
+	if (!browser) {
+		return
+	}
 
 	try {
 		const cartId = localStorage.getItem(CART_ID_KEY)
@@ -229,8 +233,10 @@ export async function associateWithCustomer() {
  * Resets the cart (used on logout)
  * @returns {Promise<void>}
  */
-export async function reset() {
-	if (!browser) return
+export function reset() {
+	if (!browser) {
+		return
+	}
 
 	// Clear cart ID
 	localStorage.removeItem(CART_ID_KEY)

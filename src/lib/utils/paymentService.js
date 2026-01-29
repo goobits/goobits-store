@@ -31,13 +31,15 @@ export async function processPayment(paymentData, amount) {
 	// For demo purposes, we simulate a payment processor response
 
 	// Simulate network latency
-	await new Promise(resolve => setTimeout(resolve, 1500))
+	await new Promise(resolve => {
+		setTimeout(resolve, 1500)
+	})
 
 	// Simulated success response (would come from payment gateway in real app)
 	return {
 		success: true,
 		transaction_id: generateTransactionId(),
-		amount: amount,
+		amount,
 		currency: 'USD',
 		card_last4: paymentData.card_number.replace(/\s/g, '').slice(-4),
 		created_at: new Date().toISOString()
@@ -78,19 +80,19 @@ export async function processPaymentWithErrorHandling(paymentData, amount) {
  */
 function validatePaymentData(paymentData) {
 	// Check for required fields
-	if (!paymentData) throw new Error('Payment data is required')
+	if (!paymentData) {throw new Error('Payment data is required')}
 
 	const { card_number, expiry_date, cvv, card_name } = paymentData
 
 	// Validate card number (basic validation)
-	if (!card_number) throw new Error('Card number is required')
+	if (!card_number) {throw new Error('Card number is required')}
 	const cleanCardNumber = card_number.replace(/\s/g, '')
 	if (!/^\d{13,19}$/.test(cleanCardNumber)) {
 		throw new Error('Invalid card number format')
 	}
 
 	// Validate expiry date
-	if (!expiry_date) throw new Error('Expiry date is required')
+	if (!expiry_date) {throw new Error('Expiry date is required')}
 	if (!/^\d{2}\/\d{2}$/.test(expiry_date)) {
 		throw new Error('Invalid expiry date format (MM/YY)')
 	}
@@ -110,7 +112,7 @@ function validatePaymentData(paymentData) {
 	}
 
 	// Validate CVV
-	if (!cvv) throw new Error('Security code (CVV) is required')
+	if (!cvv) {throw new Error('Security code (CVV) is required')}
 	if (!/^\d{3,4}$/.test(cvv)) {
 		throw new Error('Invalid security code format')
 	}
@@ -126,7 +128,7 @@ function validatePaymentData(paymentData) {
  * @returns {string} - A transaction ID
  */
 function generateTransactionId() {
-	return 'txn_' + Math.random().toString(36).substr(2, 9) + Date.now().toString().substr(-4)
+	return `txn_${  Math.random().toString(36).substr(2, 9)  }${Date.now().toString().substr(-4)}`
 }
 
 /**
@@ -134,7 +136,7 @@ function generateTransactionId() {
  * @param {Object} paymentData - Payment data
  * @returns {Promise<Object>} - Saved payment method
  */
-export async function savePaymentMethod(paymentData) {
+export function savePaymentMethod(paymentData) {
 	if (!browser) {
 		throw new Error('This operation can only be performed in the browser')
 	}
@@ -162,16 +164,16 @@ function detectCardBrand(cardNumber) {
 	const number = cardNumber.replace(/\s+/g, '')
 
 	// Visa
-	if (/^4/.test(number)) return 'visa'
+	if (/^4/.test(number)) {return 'visa'}
 
 	// Mastercard
-	if (/^5[1-5]/.test(number)) return 'mastercard'
+	if (/^5[1-5]/.test(number)) {return 'mastercard'}
 
 	// Amex
-	if (/^3[47]/.test(number)) return 'amex'
+	if (/^3[47]/.test(number)) {return 'amex'}
 
 	// Discover
-	if (/^6(?:011|5)/.test(number)) return 'discover'
+	if (/^6(?:011|5)/.test(number)) {return 'discover'}
 
 	// Unknown
 	return 'unknown'

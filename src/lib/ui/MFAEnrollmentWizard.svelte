@@ -17,8 +17,8 @@
 	 * @prop {boolean} allowSkip - Whether user can skip enrollment
 	 * @prop {string} backendUrl - Backend API URL
 	 */
-	let {
-	userId,
+	const {
+	_userId,
 	password,
 	onComplete,
 	onCancel,

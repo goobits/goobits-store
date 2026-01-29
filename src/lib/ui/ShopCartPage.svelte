@@ -6,18 +6,17 @@
 	import { medusaClient } from '@goobits/store'
 	import { browser } from '$app/environment'
 	import { Logger } from '@lib/utils/Logger.js'
-	import { formatPrice } from '@goobits/store/utils/checkoutUtils'
 
 	const { data, config = {} } = $props()
 
 	// Get placeholder image from config or use generic fallback
-	const fallbackImage = config?.ui?.placeholders?.product ||
-		'https://placehold.co/100x100/E5E5E5/999?text=Product'
+	const fallbackImage = $derived(config?.ui?.placeholders?.product ||
+		'https://placehold.co/100x100/E5E5E5/999?text=Product')
 
 	const logger = new Logger('ShopCart')
 
 	// Extract region data from server
-	let defaultRegion = $derived(data?.defaultRegion)
+	const defaultRegion = $derived(data?.defaultRegion)
 	
 	// Utility function to get product ID consistently
 	function getProductId(product) {
@@ -29,7 +28,7 @@
 
 	// Derived state for subtotal - automatically updates when cart changes
 	// Note: Cart prices are stored as actual dollar amounts, not cents
-	let subtotal = $derived(
+	const subtotal = $derived(
 		!$cart || $cart.length === 0 ? 0 :
 		$cart.reduce((total, item) => {
 			const price = typeof item.price === 'number' ? item.price : 0
@@ -46,7 +45,7 @@
 	}
 	
 	// Derived state for cleaner template logic
-	let hasItems = $derived($cart && $cart.length > 0)
+	const hasItems = $derived($cart && $cart.length > 0)
 	
 	function handleQuantityChange(product, newQuantity) {
 		if (newQuantity < 1) newQuantity = 1
@@ -212,7 +211,7 @@
 											{#if option.title.toLowerCase() === 'color'}
 												<div class="goo__cart-item-option">
 													{option.title}:
-													<span class="goo__color-swatch" style="background-color: {option.value.toLowerCase()};"></span>
+													<span class="goo__color-swatch" style:background-color="{option.value.toLowerCase()}"></span>
 													{option.value}
 												</div>
 											{:else if option.title.toLowerCase() === 'size'}
@@ -230,7 +229,7 @@
 										</div>
 										<div class="goo__cart-item-option">
 											Color:
-											<span class="goo__color-swatch" style="background-color: {parts[1].toLowerCase()};"></span>
+											<span class="goo__color-swatch" style:background-color="{parts[1].toLowerCase()}"></span>
 											{parts[1]}
 										</div>
 									{:else}

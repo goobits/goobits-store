@@ -11,7 +11,7 @@
 	 */
 
 	// Props
-	let {
+	const {
 		formData = {
 			card_number: '',
 			expiry_date: '',
@@ -29,12 +29,14 @@
 	// Use Stripe Elements or your payment provider's SDK instead.
 	
 	// Form state - for demo purposes only
+	/* eslint-disable svelte/valid-compile -- intentionally capturing initial values, synced via $effect below */
 	let localFormData = $state({
 		card_number: formData.card_number,
 		expiry_date: formData.expiry_date,
 		cvv: formData.cvv,
 		card_name: formData.card_name
 	})
+	/* eslint-enable svelte/valid-compile */
 
 	// Track touched fields for validation
 	let touched = $state({

@@ -64,6 +64,7 @@ export function formatPrice(price, currencySymbol = '$', includeSymbol = false) 
 		return includeSymbol ? `${ currencySymbol }${ formatted }` : formatted
 	} catch (error) {
 		handleError(MODULE_NAME, error)
+		return '0.00'
 	}
 }
 
@@ -91,6 +92,7 @@ export function formatCurrency(amount, currencyCode = 'USD') {
 		return formatPrice(amount, symbol, true)
 	} catch (error) {
 		handleError(MODULE_NAME, error)
+		return '0.00'
 	}
 }
 
@@ -120,6 +122,7 @@ export function getLineItemTotal(item) {
 		return ((item.unit_price / 100) * item.quantity).toFixed(2)
 	} catch (error) {
 		handleError(MODULE_NAME, error)
+		return '0.00'
 	}
 }
 
@@ -139,6 +142,7 @@ export function getSelectedShippingOption(shippingOptions, selectedId) {
 		return shippingOptions.find(option => option.id === selectedId)
 	} catch (error) {
 		handleError(MODULE_NAME, error)
+		return undefined
 	}
 }
 
@@ -156,10 +160,11 @@ export function getCartSubtotal(cart) {
 		// Validate cart is an object
 		validateType(cart, 'object', 'cart', false)
 
-		if (!cart.items) return '0.00'
+		if (!cart.items) {return '0.00'}
 		return formatPrice(cart.subtotal)
 	} catch (error) {
 		handleError(MODULE_NAME, error)
+		return '0.00'
 	}
 }
 
@@ -176,10 +181,11 @@ export function getShippingTotal(cart) {
 		// Validate cart is an object
 		validateType(cart, 'object', 'cart', false)
 
-		if (!cart.shipping_total) return '0.00'
+		if (!cart.shipping_total) {return '0.00'}
 		return formatPrice(cart.shipping_total)
 	} catch (error) {
 		handleError(MODULE_NAME, error)
+		return '0.00'
 	}
 }
 
@@ -196,10 +202,11 @@ export function getTaxTotal(cart) {
 		// Validate cart is an object
 		validateType(cart, 'object', 'cart', false)
 
-		if (!cart.tax_total) return '0.00'
+		if (!cart.tax_total) {return '0.00'}
 		return formatPrice(cart.tax_total)
 	} catch (error) {
 		handleError(MODULE_NAME, error)
+		return '0.00'
 	}
 }
 
@@ -216,9 +223,10 @@ export function getOrderTotal(cart) {
 		// Validate cart is an object
 		validateType(cart, 'object', 'cart', false)
 
-		if (!cart.total) return '0.00'
+		if (!cart.total) {return '0.00'}
 		return formatPrice(cart.total)
 	} catch (error) {
 		handleError(MODULE_NAME, error)
+		return '0.00'
 	}
 }
