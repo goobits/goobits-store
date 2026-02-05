@@ -98,6 +98,12 @@
 			}
 
 			try {
+			if (!medusaClient) {
+				errorMessage = 'Store connection not available'
+				isSubmitting = false
+				return
+			}
+
 			// Create a cart in Medusa with region
 			const cartParams: { region_id?: string } = {}
 			if (defaultRegion?.id) {
@@ -236,14 +242,16 @@
 									{/each}
 								{:else if item.variant_title && item.variant_title.includes(' / ')}
 									{@const parts = item.variant_title.split(' / ')}
-									{#if parts.length === 2}
+									{@const size = parts[0]}
+									{@const color = parts[1]}
+									{#if size && color}
 										<div class="goo__cart-item-option">
-											Size: {parts[0]}
+											Size: {size}
 										</div>
 										<div class="goo__cart-item-option">
 											Color:
-											<span class="goo__color-swatch" style:background-color="{parts[1].toLowerCase()}"></span>
-											{parts[1]}
+											<span class="goo__color-swatch" style:background-color="{color.toLowerCase()}"></span>
+											{color}
 										</div>
 									{:else}
 										<div class="goo__cart-item-variant">{item.variant_title}</div>

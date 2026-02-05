@@ -74,7 +74,6 @@
 	let isLoading: boolean = $state(true)
 	let stripeError: StripeError | null = $state(null)
 	let stripeElements: StripeElementsData | null = $state(null)
-	let _paymentIntentStatus: string = $state('')
 	// Processing state: use prop if provided, otherwise manage locally
 	// eslint-disable-next-line svelte/valid-compile -- intentionally capturing initial value for local state management
 	let processing: boolean = $state(isProcessing)
@@ -140,8 +139,6 @@
 			} else {
 				// The payment has been processed!
 				if (result.paymentIntent) {
-					_paymentIntentStatus = result.paymentIntent.status
-
 					// Dispatch the success event with payment info
 					const successData = {
 						paymentIntent: result.paymentIntent,

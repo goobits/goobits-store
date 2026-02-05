@@ -12,10 +12,10 @@
 	}
 
 	interface AuthStore {
-		subscribe: (fn: (state: AuthState) => void) => () => void;
-		checkSession: () => Promise<void>;
-		updateProfile: (data: { name?: string; phone?: string }) => Promise<{ success: boolean }>;
-		logout: () => Promise<void>;
+		subscribe: Readable<AuthState>['subscribe'];
+		checkSession?: () => Promise<void>;
+		updateProfile?: (data: Record<string, unknown>) => Promise<{ success: boolean }>;
+		logout?: () => Promise<void>;
 	}
 
 	interface Branding {
@@ -48,29 +48,29 @@
 
 	$effect(() => {
 		if (auth) {
-			const unsubAuth = auth.subscribe((state: AuthState) => {
+			return auth.subscribe((state: AuthState) => {
 				authState = state
 			})
-			return unsubAuth
 		}
+		return undefined
 	})
 
 	$effect(() => {
 		if (isAuthenticated) {
-			const unsubIsAuth = isAuthenticated.subscribe((value: boolean) => {
+			return isAuthenticated.subscribe((value: boolean) => {
 				isAuth = value
 			})
-			return unsubIsAuth
 		}
+		return undefined
 	})
 
 	$effect(() => {
 		if (customer) {
-			const unsubCustomer = customer.subscribe((value: MedusaCustomer | null) => {
+			return customer.subscribe((value: MedusaCustomer | null) => {
 				customerData = value
 			})
-			return unsubCustomer
 		}
+		return undefined
 	})
 
 	// Redirect to login if not authenticated
@@ -80,7 +80,7 @@
 			if (typeof window !== 'undefined') {
 				window.location.href = '/shop/login?return=/shop/account'
 			}
-		} else if (isAuth && !currentUser && auth) {
+		} else if (isAuth && !currentUser && auth?.checkSession) {
 			// User is authenticated but user data is missing.
 			// Refresh session to get user data
 			await auth.checkSession()
@@ -112,7 +112,7 @@
 
 	async function handleUpdate(e: Event): Promise<void> {
 		e.preventDefault()
-		if (!auth) return
+		if (!auth?.updateProfile) return
 
 		const result = await auth.updateProfile({
 			name: editName,
@@ -125,7 +125,7 @@
 	}
 
 	async function handleLogout(): Promise<void> {
-		if (auth) {
+		if (auth?.logout) {
 			await auth.logout()
 			if (typeof window !== 'undefined') {
 				window.location.href = '/shop/login'
@@ -233,13 +233,15 @@
 				{/if}
 			</section>
 
-			<section class="goo__account-section">
-				<h2>Security</h2>
-				<p class="goo__section-description">
-					Manage your account security settings and two-factor authentication.
-				</p>
-				<MFASettingsPanel {auth} />
-			</section>
+			{#if auth}
+				<section class="goo__account-section">
+					<h2>Security</h2>
+					<p class="goo__section-description">
+						Manage your account security settings and two-factor authentication.
+					</p>
+					<MFASettingsPanel {auth} />
+				</section>
+			{/if}
 
 			<section class="goo__account-section">
 				<h2>Order History</h2>

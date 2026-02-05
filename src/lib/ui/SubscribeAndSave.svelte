@@ -9,7 +9,7 @@
 	interface Props {
 		product?: MedusaProduct;
 		selectedVariant?: MedusaVariant;
-		_onSubscribe?: (interval: string) => void;
+		onSubscribe?: (interval: string, intervalCount: number) => void;
 		defaultInterval?: string;
 		intervals?: SubscriptionInterval[];
 	}
@@ -17,7 +17,7 @@
 	const {
 		product = $bindable(),
 		selectedVariant = $bindable(),
-		_onSubscribe = () => {},
+		onSubscribe,
 		defaultInterval = 'month',
 		intervals = [
 			{ value: 'week', label: 'Weekly', discount: 5 },
@@ -31,7 +31,7 @@
 	let isSubscription: boolean = $state(false)
 	// eslint-disable-next-line svelte/valid-compile -- intentionally capturing initial value for form state
 	let selectedInterval: string = $state(defaultInterval)
-	let _selectedIntervalCount: number = $state(1)
+	let selectedIntervalCount: number = $state(1)
 	let selectedDiscount: number = $state(0)
 
 	// Get price
@@ -57,8 +57,9 @@
 		const intervalData = intervals.find(i => i.value === target.value)
 		if (intervalData) {
 			selectedInterval = intervalData.value
-			_selectedIntervalCount = intervalData.count || 1
+			selectedIntervalCount = intervalData.count || 1
 			selectedDiscount = intervalData.discount || 0
+			onSubscribe?.(selectedInterval, selectedIntervalCount)
 		}
 	}
 

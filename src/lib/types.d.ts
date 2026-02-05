@@ -122,7 +122,7 @@ declare interface FeaturesSection {
 	description?: string;
 	links?: Array<{
 		title: string;
-		items: Array<{ text: string; href: string }>;
+		items: Array<{ text: string; href: string; url?: string; label?: string }>;
 	}>;
 }
 
@@ -152,6 +152,8 @@ declare interface AuthState {
 	isAuthenticated: boolean;
 	customer?: MedusaCustomer;
 	token?: string;
+	loading: boolean;
+	error: string | null;
 }
 
 // Payment types
@@ -208,6 +210,56 @@ declare interface SubscriptionUpdateEvent {
 }
 
 // Global module declarations
+declare module '@goobits/store' {
+	import type { Writable } from 'svelte/store';
+	import type Medusa from '@medusajs/medusa-js';
+
+	// Cart item type
+	interface StoreCartItem {
+		id: string;
+		name: string;
+		price: number;
+		quantity: number;
+		variant_id?: string;
+		image?: string;
+		handle?: string;
+		variant_title?: string;
+		options?: Array<{ title?: string; value?: string }>;
+		[key: string]: unknown;
+	}
+
+	// Cart store and functions
+	export const cart: Writable<StoreCartItem[]>;
+	export function addToCart(product: StoreCartItem | CartProduct): void;
+	export function removeFromCart(productId: string): void;
+	export function updateQuantity(productId: string, quantity: number): void;
+	export function clearCart(): void;
+	export function getCartItems(): StoreCartItem[];
+	export function getCartTotal(): number;
+	export function getCartCount(): number;
+	export function associateWithCustomer(): Promise<void>;
+	export function reset(): void;
+
+	// Medusa client
+	interface MedusaClientWithConfig extends Medusa {
+		config?: {
+			baseUrl: string;
+			publishableApiKey: string;
+		};
+		carts: {
+			create(params?: { region_id?: string }): Promise<{ cart: MedusaCart }>;
+			update(cartId: string, data: Record<string, unknown>): Promise<{ cart: MedusaCart }>;
+			lineItems: {
+				create(cartId: string, data: { variant_id?: string; quantity: number }): Promise<{ cart: MedusaCart }>;
+			};
+		};
+	}
+	export const medusaClient: MedusaClientWithConfig | null;
+
+	// Re-exports from utils
+	export function formatPrice(amount: number, currencyCode?: string): string;
+}
+
 declare module '@goobits/store/utils/checkoutUtils' {
 	export function formatPrice(amount: number, currencyCode?: string): string;
 	export function getLineItemTotal(item: MedusaLineItem): number;
@@ -251,6 +303,7 @@ declare module '@goobits/forms/ui/modals/Modal.svelte' {
 
 declare module '@lib/utils/Logger' {
 	export class Logger {
+		constructor(module?: string);
 		info(...args: unknown[]): void;
 		warn(...args: unknown[]): void;
 		error(...args: unknown[]): void;
@@ -259,7 +312,8 @@ declare module '@lib/utils/Logger' {
 }
 
 declare module '@lib/stores/auth-simple' {
-	import { Readable } from 'svelte/store';
+	// eslint-disable-next-line no-duplicate-imports -- ambient module declarations require separate imports
+	import type { Readable } from 'svelte/store';
 	export const user: Readable<unknown>;
 }
 

@@ -127,7 +127,6 @@ describe('sanitizeString', () => {
 
 	describe('non-string inputs', () => {
 		it('should return empty string for number', () => {
-			// @ts-expect-error Testing runtime behavior
 			expect(sanitizeString(123)).toBe('')
 		})
 
@@ -140,12 +139,10 @@ describe('sanitizeString', () => {
 		})
 
 		it('should return empty string for object', () => {
-			// @ts-expect-error Testing runtime behavior
 			expect(sanitizeString({ foo: 'bar' })).toBe('')
 		})
 
 		it('should return empty string for array', () => {
-			// @ts-expect-error Testing runtime behavior
 			expect(sanitizeString(['a', 'b'])).toBe('')
 		})
 	})

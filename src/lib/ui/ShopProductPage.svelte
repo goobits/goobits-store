@@ -380,8 +380,8 @@
 										<div class="goo__product-placeholder">No image</div>
 									{/if}
 									<h3>{relatedProduct.title || 'Product'}</h3>
-									{#if relatedProduct.variants && relatedProduct.variants.length > 0 && relatedProduct.variants[0].calculated_price}
-										<p>${formatPrice(relatedProduct.variants[0].calculated_price.calculated_amount)}</p>
+									{#if relatedProduct.variants?.[0]?.calculated_price}
+										<p>${formatPrice(relatedProduct.variants[0]!.calculated_price!.calculated_amount)}</p>
 									{/if}
 								</a>
 							</div>

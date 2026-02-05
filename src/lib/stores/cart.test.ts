@@ -27,7 +27,6 @@ import {
 	removeFromCart,
 	updateQuantity,
 	clearCart,
-	getCartItems,
 	getCartTotal,
 	getCartCount,
 	type CartItem
@@ -50,7 +49,7 @@ describe('Cart Store', () => {
 
 			const items = get(cart)
 			expect(items).toHaveLength(1)
-			expect(items[0].quantity).toBe(2)
+			expect(items[0]?.quantity).toBe(2)
 		})
 
 		it('should treat variant_id as primary identifier over id', () => {
@@ -154,7 +153,7 @@ describe('Cart Store', () => {
 			updateQuantity('var-1', 10)
 
 			const items = get(cart)
-			expect(items[0].quantity).toBe(10)
+			expect(items[0]?.quantity).toBe(10)
 		})
 
 		it('should not affect other items when updating non-existent id', () => {
@@ -163,7 +162,7 @@ describe('Cart Store', () => {
 
 			const items = get(cart)
 			expect(items).toHaveLength(1)
-			expect(items[0].quantity).toBe(5)
+			expect(items[0]?.quantity).toBe(5)
 		})
 	})
 
@@ -176,7 +175,7 @@ describe('Cart Store', () => {
 
 			const items = get(cart)
 			expect(items).toHaveLength(1)
-			expect(items[0].variant_id).toBe('v2')
+			expect(items[0]?.variant_id).toBe('v2')
 		})
 
 		it('should handle removing from empty cart gracefully', () => {
@@ -204,20 +203,20 @@ describe('Cart Store', () => {
 			const product = { id: '1', name: 'A', price: 100 } as CartItem
 			addToCart(product)
 
-			expect(get(cart)[0].quantity).toBe(1)
+			expect(get(cart)[0]?.quantity).toBe(1)
 		})
 
 		it('should use provided quantity when adding new item', () => {
 			addToCart({ id: '1', name: 'A', price: 100, quantity: 5 })
 
-			expect(get(cart)[0].quantity).toBe(5)
+			expect(get(cart)[0]?.quantity).toBe(5)
 		})
 
 		it('should add provided quantity when incrementing existing item', () => {
 			addToCart({ id: '1', name: 'A', price: 100, quantity: 2 })
 			addToCart({ id: '1', name: 'A', price: 100, quantity: 3 })
 
-			expect(get(cart)[0].quantity).toBe(5)
+			expect(get(cart)[0]?.quantity).toBe(5)
 		})
 	})
 })

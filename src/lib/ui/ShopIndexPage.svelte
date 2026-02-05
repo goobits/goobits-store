@@ -35,13 +35,11 @@
 	 * Calculates and formats the price for a product
 	 */
 	function getProductPrice(product: MedusaProduct): string {
-		if (!product.variants?.length) return 'N/A'
-		// Get calculated_amount from the calculated_price object
-		const calculatedPrice = product.variants[0].calculated_price
+		const firstVariant = product.variants?.[0]
+		if (!firstVariant) return 'N/A'
+		const calculatedPrice = firstVariant.calculated_price
 		if (!calculatedPrice) return 'N/A'
 		const price = calculatedPrice.calculated_amount || 0
-		// Note: Medusa v2 may store amounts differently depending on configuration
-		// Use formatPrice to handle conversion consistently
 		return formatPrice(price)
 	}
 
@@ -50,7 +48,8 @@
 	 */
 	function getProductImage(product: MedusaProduct): string {
 		if (product.thumbnail) return product.thumbnail
-		if (product.images?.length) return product.images[0].url
+		const firstImage = product.images?.[0]
+		if (firstImage) return firstImage.url
 		return fallbackImage
 	}
 
@@ -70,13 +69,16 @@
 	function handleAddToCart(product: MedusaProduct, event: MouseEvent): void {
 		if (event) event.stopPropagation()
 
+		const firstVariant = product.variants?.[0]
+		if (!firstVariant) return
+
 		const cartProduct: CartProduct = {
 			id: product.id,
 			name: product.title,
 			handle: product.handle,
 			price: parseFloat(getProductPrice(product)),
 			image: getProductImage(product),
-			variant_id: product.variants![0].id
+			variant_id: firstVariant.id
 		}
 
 		addToCart(cartProduct)
@@ -198,7 +200,7 @@
 							{#if linkGroup.items && linkGroup.items.length > 0}
 								<ul>
 									{#each linkGroup.items as link}
-										<li><a href={link.url}>{link.label}</a></li>
+										<li><a href={link.url ?? link.href}>{link.label ?? link.text}</a></li>
 									{/each}
 								</ul>
 							{/if}

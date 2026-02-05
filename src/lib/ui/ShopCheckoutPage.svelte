@@ -52,7 +52,7 @@
 	}
 
 	interface FormData {
-		success?: boolean;
+		success: boolean;
 		error?: string;
 		order?: MedusaOrder;
 	}
@@ -77,10 +77,10 @@
 
 	interface Props {
 		data: PageData;
-		form?: FormData;
+		form?: FormData | null;
 	}
 
-	const { data, form = undefined }: Props = $props()
+	const { data, form = null }: Props = $props()
 
 	const logger = new Logger('Checkout')
 
@@ -96,21 +96,23 @@
 		// Initialize session storage for checkout
 		if (browser && typeof window !== 'undefined') {
 			// Populate customer data from store if available and not already loaded from session
-			const unsubscribe = customer.subscribe((value: MedusaCustomer | null) => {
-				if (value && !savedState?.customerInfo) {
+			const unsubscribe = customer.subscribe((value: unknown) => {
+				const customerData = value as MedusaCustomer | null
+				if (customerData && !savedState?.customerInfo) {
 					// Only populate if we don't have saved state
-					customerInfo.email = value.email || ''
-					customerInfo.first_name = value.first_name || ''
-					customerInfo.last_name = value.last_name || ''
+					customerInfo.email = customerData.email || ''
+					customerInfo.first_name = customerData.first_name || ''
+					customerInfo.last_name = customerData.last_name || ''
 
-					shippingAddress.first_name = value.first_name || ''
-					shippingAddress.last_name = value.last_name || ''
-					shippingAddress.phone = value.phone || ''
+					shippingAddress.first_name = customerData.first_name || ''
+					shippingAddress.last_name = customerData.last_name || ''
+					shippingAddress.phone = customerData.phone || ''
 				}
 			})
 
 			return unsubscribe
 		}
+		return undefined
 	})
 
 	onDestroy(() => {
@@ -206,7 +208,7 @@
 
 	// Get default shipping option (derived to ensure SSR consistency)
 	const defaultShippingOption: string = $derived(
-		shippingOptions && shippingOptions.length > 0 ? shippingOptions[0].id : ''
+		shippingOptions?.[0]?.id ?? ''
 	)
 
 	// Initialize selected shipping option from saved state or default
@@ -224,8 +226,8 @@
 	// Save form state whenever critical values change
 	$effect(() => {
 		if (browser) {
-			// Any of these state changes should trigger saving
-			const _ = [
+			// Track these state changes to trigger saving - void to acknowledge usage
+			void [
 				customerInfo.email,
 				customerInfo.first_name,
 				customerInfo.last_name,
@@ -359,34 +361,34 @@
 		return CheckoutUtils.formatPrice(price)
 	}
 
-	function getLineItemTotal(item: MedusaLineItem): number {
+	function getLineItemTotal(item: MedusaLineItem): string {
 		return CheckoutUtils.getLineItemTotal(item)
 	}
 
-	function getCartSubtotal(): number {
+	function getCartSubtotal(): string {
 		return CheckoutUtils.getCartSubtotal(medusaCart)
 	}
 
-	function getShippingTotal(): number {
+	function getShippingTotal(): string {
 		return CheckoutUtils.getShippingTotal(medusaCart)
 	}
 
-	function getTaxTotal(): number {
+	function getTaxTotal(): string {
 		return CheckoutUtils.getTaxTotal(medusaCart)
 	}
 
-	function getOrderTotal(): number {
+	function getOrderTotal(): string {
 		return CheckoutUtils.getOrderTotal(medusaCart)
 	}
 
-	function goToStep(step: StepType): void {
+	function goToStep(step: string): void {
 		// Only allow going back to previous steps
-		const steps = Object.values(STEPS)
+		const steps = Object.values(STEPS) as string[]
 		const currentIndex = steps.indexOf(currentStep)
 		const targetIndex = steps.indexOf(step)
 
 		if (targetIndex < currentIndex) {
-			currentStep = step
+			currentStep = step as StepType
 		}
 	}
 
