@@ -1,4 +1,6 @@
 // Mock for @goobits/logger in tests
+const noop = (): void => { /* no-op for testing */ }
+
 export const LogLevels = {
 	ERROR: 0,
 	WARN: 1,
@@ -7,15 +9,15 @@ export const LogLevels = {
 }
 
 export const LoggerConfig = {
-	setGlobalPrefix: () => {},
-	configure: () => {}
+	setGlobalPrefix: noop,
+	configure: noop
 }
 
 export function createLogger(_module: string) {
 	return {
-		error: () => {},
-		warn: () => {},
-		info: () => {},
-		debug: () => {}
+		error: noop,
+		warn: noop,
+		info: noop,
+		debug: noop
 	}
 }

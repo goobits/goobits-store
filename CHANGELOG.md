@@ -5,6 +5,47 @@ All notable changes to the `@goobits/store` package will be documented in this f
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.9.0] - 2026-02-05
+
+### Added
+- **Comprehensive Test Suite** - 161 tests across 6 test files using Vitest
+  - Cart store tests: quantity math, variant_id/id collision handling, edge cases
+  - Checkout utils tests: price formatting, currency conversion, line item calculations
+  - Validation tests: email validation edge cases, string sanitization
+  - Slug utils tests: kebab-case conversion, acronym handling, path cleaning
+  - Route handler tests: slug routing resolution, language handling
+  - Tests focus on finding bugs rather than coverage metrics
+
+### Changed
+- **Full TypeScript Conversion** - Migrated entire codebase from JavaScript to TypeScript
+  - Renamed all 30 .js files to .ts with proper type annotations
+  - Added `lang="ts"` to all 30 Svelte components
+  - Created comprehensive type interfaces for Medusa entities, component props, store states
+  - Added type declarations for external modules (@goobits/forms, qrcode, etc.)
+- **Strict TypeScript Configuration** - Enhanced type safety across the codebase
+  - Enabled `strict`, `noImplicitAny`, `strictNullChecks`, `noUncheckedIndexedAccess`
+  - Enabled `noUnusedLocals` and `noUnusedParameters`
+  - Added `@goobits/store` module declaration with cart store types
+- **ESLint Configuration** - Added strict ESLint config with TypeScript and Svelte plugins
+  - Fixed all ESLint errors across 45+ files
+  - Proper const usage, arrow function styles, template literals
+  - Svelte 5 state_referenced_locally warnings resolved with $derived()
+- **Dependency Updates** - Updated all dev dependencies to latest versions
+  - @sveltejs/kit 2.48.4 → 2.50.1
+  - svelte 5.43.9 → 5.48.5
+  - vite 7.2.2 → 7.3.1
+  - sass-embedded 1.93.3 → 1.97.3
+
+### Fixed
+- **Type Safety Improvements** - Multiple strict TypeScript fixes
+  - Added optional chaining for array index access (noUncheckedIndexedAccess)
+  - Fixed $effect return paths in Svelte 5 components
+  - Added proper null checks for medusaClient
+  - Removed unused imports and variables
+  - Fixed logger mock with proper no-op functions
+- **AuthStore Compatibility** - Updated interfaces with loading and error properties
+- **Test Infrastructure** - Cleaned up test files, removed unused @ts-expect-error directives
+
 ## [1.8.0] - 2025-11-19
 
 ### Fixed

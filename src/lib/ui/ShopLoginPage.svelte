@@ -16,17 +16,13 @@
 	}
 
 	interface AuthStore {
-		subscribe: (fn: (state: AuthState) => void) => () => void;
+		subscribe: (fn: (state: AuthState) => void) => (() => void);
 		login: (email: string, password: string) => Promise<{ success: boolean; mfaRequired?: boolean }>;
-		register: (data: {
-			first_name: string;
-			last_name: string;
-			email: string;
-			password: string;
-			phone?: string;
-		}) => Promise<{ success: boolean }>;
+		register: (data: Record<string, unknown>) => Promise<{ success: boolean }>;
 		clearError?: () => void;
 		checkSession?: () => Promise<void>;
+		logout?: () => Promise<void>;
+		updateProfile?: (data: Record<string, unknown>) => Promise<{ success: boolean }>;
 	}
 
 	interface DemoCredentials {

@@ -78,7 +78,6 @@
 	let elements: StripeElementsType | null = $state(null)
 	let stripe: Stripe | null = $state(null)
 	let isLoading: boolean = $state(true)
-	let _elementsReady: boolean = $state(false)
 	let elementsError: Error | null = $state(null)
 	let elementsContainer: HTMLDivElement | null = $state(null)
 
@@ -120,7 +119,6 @@
 
 				// Listen for ready event
 				paymentElement.on('ready', () => {
-					_elementsReady = true
 					isLoading = false
 
 					// Dispatch the ready event with the elements and stripe objects

@@ -38,24 +38,13 @@
 		last_name: string;
 	}
 
-	interface FormResult {
-		success: boolean;
-		error?: string;
-	}
-
-	interface PaymentErrors {
-		message?: string;
-	}
-
 	interface Props {
 		medusaCart: MedusaCartData;
 		shippingOptions: ShippingOption[];
 		selectedShippingOption?: string;
 		shippingAddress: ShippingAddress;
 		customerInfo: CustomerInfo;
-		_form?: FormResult | null;
 		formSubmitting: boolean;
-		_paymentErrors?: PaymentErrors | null;
 		handleShippingMethodSubmit: (event: SubmitEvent) => void;
 		handlePaymentUpdate: (event: SubmitEvent) => void;
 		handlePaymentSuccess: (event: CustomEvent) => void;
@@ -72,9 +61,7 @@
 		selectedShippingOption = $bindable(),
 		shippingAddress,
 		customerInfo,
-		_form,
 		formSubmitting,
-		_paymentErrors,
 		handleShippingMethodSubmit,
 		handlePaymentUpdate,
 		handlePaymentSuccess,
