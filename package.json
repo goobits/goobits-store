@@ -1,6 +1,6 @@
 {
 	"name": "@goobits/store",
-	"version": "1.8.0",
+	"version": "1.9.0",
 	"description": "Reusable e-commerce store components and utilities for Goobits projects built on Medusa v2",
 	"type": "module",
 	"exports": {
