@@ -105,6 +105,7 @@
 		"qrcode": "^1.5.4"
 	},
 	"peerDependencies": {
+		"@goobits/ui": "^2.0.0",
 		"@lucide/svelte": "^0.548.0",
 		"@stripe/stripe-js": "^3.0.0 || ^4.0.0 || ^5.0.0",
 		"@sveltejs/kit": "^2.0.0",
@@ -115,6 +116,7 @@
 	},
 	"devDependencies": {
 		"@eslint/js": "^9.39.2",
+		"@goobits/ui": "workspace:*",
 		"@sveltejs/kit": "^2.50.1",
 		"@sveltejs/package": "^2.5.7",
 		"@sveltejs/vite-plugin-svelte": "^6.2.4",
@@ -139,6 +141,7 @@
 		"build": "svelte-package",
 		"prepublishOnly": "pnpm run build",
 		"test": "vitest run",
+		"test:leaks": "vitest run --detectAsyncLeaks --maxWorkers=1 --silent=passed-only",
 		"test:watch": "vitest",
 		"lint": "eslint src/",
 		"lint:fix": "eslint src/ --fix",
