@@ -17,7 +17,7 @@ interface MedusaClientConfig {
 }
 
 // Use SvelteKit public environment variables
-const backendUrl: string = PUBLIC_MEDUSA_BACKEND_URL || 'http://localhost:3282'
+const backendUrl: string = PUBLIC_MEDUSA_BACKEND_URL || 'http://localhost:3022'
 const publishableKey: string | undefined = PUBLIC_MEDUSA_PUBLISHABLE_KEY
 
 // Validate backend URL

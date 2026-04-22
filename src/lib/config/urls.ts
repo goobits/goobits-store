@@ -26,8 +26,8 @@ export function getBackendUrl(envValue?: string): string {
 	if (typeof process !== 'undefined' && process.env?.PUBLIC_MEDUSA_BACKEND_URL) {
 		return process.env.PUBLIC_MEDUSA_BACKEND_URL
 	}
-	// Fallback for client-side or development
-	return 'http://localhost:3282'
+	// VM-local Medusa default. Production deployments should set PUBLIC_MEDUSA_BACKEND_URL.
+	return 'http://localhost:3022'
 }
 
 /**
@@ -44,8 +44,8 @@ export function getAppUrl(envValue?: string): string {
 	if (typeof process !== 'undefined' && process.env?.PUBLIC_APP_URL) {
 		return process.env.PUBLIC_APP_URL
 	}
-	// Fallback for development
-	return 'http://localhost:3280'
+	// VM-local SvelteKit default. Production deployments should set PUBLIC_APP_URL.
+	return 'http://localhost:3630'
 }
 
 /**
