@@ -76,7 +76,7 @@
 				// Calculate available values for this option
 				const availableValues = [ ...new Set(variants.map((v: ProductVariant) => v.options?.find((o: VariantOption) => o.option_id === option.id)?.value).filter(Boolean)) ] as string[]
 				if (availableValues.length > 0) {
-					initialOptions[option.id] = availableValues[0]
+					initialOptions[option.id] = availableValues[0]!
 				}
 			})
 		}
@@ -87,7 +87,7 @@
 	const selectedVariant: ProductVariant | null = $derived.by(() => {
 		// If no options and only one variant, select it by default
 		if (options.length === 0 && variants.length === 1) {
-			return variants[0]
+			return variants[0] ?? null
 		}
 
 		// Use selectedOptions if user has made selections, otherwise use initial
@@ -110,7 +110,7 @@
 	// Uses user selection if available, otherwise defaults to first product image
 	const selectedImage: ProductImage | null = $derived(
 		userSelectedImage ||
-		(product?.images?.length ? product.images[0] : null)
+		(product?.images?.length ? product.images[0] ?? null : null)
 	)
 
 	// Get price from variant
@@ -130,7 +130,7 @@
 				? variant.prices.find(p => p.currency_code === region.currency_code)
 				: variant.prices[0]
 
-			return regionPrice ? regionPrice.amount : variant.prices[0].amount
+			return regionPrice ? regionPrice.amount : (variant.prices[0]?.amount ?? null)
 		}
 
 		return null
@@ -167,7 +167,7 @@
 			handle: product.handle,
 			variant_id: selectedVariant.id,
 			price: variantPrice ? parseFloat(formatPrice(variantPrice)) : 0,
-			image: product.thumbnail || (product.images && product.images.length > 0 ? product.images[0].url : ''),
+			image: product.thumbnail || (product.images && product.images.length > 0 ? (product.images[0]?.url || '') : ''),
 			quantity: quantity
 		}
 
@@ -255,7 +255,7 @@
 
 				{#if selectedVariant}
 					<p class="goo__product-price">${formatPrice(getVariantPrice(selectedVariant) || 0)}</p>
-				{:else if variants.length > 0 && variants[0].calculated_price}
+				{:else if variants.length > 0 && variants[0]?.calculated_price}
 					<p class="goo__product-price">From ${formatPrice(variants[0].calculated_price.calculated_amount)}</p>
 				{/if}
 
@@ -368,9 +368,9 @@
 											sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
 											class="related-product-image"
 										/>
-									{:else if relatedProduct.images && relatedProduct.images.length > 0 && relatedProduct.images[0].url}
+									{:else if relatedProduct.images && relatedProduct.images.length > 0 && relatedProduct.images[0]?.url}
 										<OptimizedImage
-											src={relatedProduct.images[0].url}
+											src={relatedProduct.images[0]?.url || ''}
 											alt={relatedProduct.title || 'Related Product'}
 											widths={[200, 400, 600]}
 											sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"

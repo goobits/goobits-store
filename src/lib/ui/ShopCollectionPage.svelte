@@ -9,6 +9,7 @@
 	interface PageData {
 		collection?: MedusaCollection;
 		products?: MedusaProduct[];
+		[key: string]: unknown;
 	}
 
 	interface Props {

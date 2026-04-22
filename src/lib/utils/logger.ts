@@ -1,9 +1,7 @@
 /**
  * Logger utility for @goobits/store
- * Re-exports from @goobits/logger with @goobits/store defaults
+ * Self-contained logger implementation with configurable levels
  */
-
-import { createLogger as createBaseLogger, LogLevels, LoggerConfig } from '@goobits/logger'
 
 /**
  * Logger interface with standard logging methods
@@ -15,22 +13,71 @@ export interface Logger {
 	debug: (...args: unknown[]) => void;
 }
 
-// Set default prefix for @goobits/store
-LoggerConfig.setGlobalPrefix('@goobits/store')
+// Log levels
+export const LogLevels = {
+	ERROR: 0,
+	WARN: 1,
+	INFO: 2,
+	DEBUG: 3
+} as const
 
-// Re-export everything from @goobits/logger
-export { LogLevels, LoggerConfig }
+// Global logger configuration
+const globalConfig = {
+	enabled: true,
+	level: LogLevels.INFO as number,
+	prefix: '@goobits/store'
+}
+
+/**
+ * Logger configuration manager
+ */
+export const LoggerConfig = {
+	/**
+	 * Set the global prefix for all loggers
+	 */
+	setGlobalPrefix(prefix: string) {
+		globalConfig.prefix = prefix
+	},
+
+	/**
+	 * Configure the global logger settings
+	 */
+	configure(config: { enabled?: boolean; level?: number; prefix?: string }) {
+		if (config.enabled !== undefined) globalConfig.enabled = config.enabled
+		if (config.level !== undefined) globalConfig.level = config.level
+		if (config.prefix !== undefined) globalConfig.prefix = config.prefix
+	}
+}
 
 // Re-export configureLogger as alias
 export const configureLogger = LoggerConfig.configure
 
 /**
  * Create a logger instance for a specific module
- * Wrapper around @goobits/logger's createLogger with store defaults
  *
  * @param module - Module name
  * @returns Logger instance with error, warn, info, and debug methods
  */
 export function createLogger(module: string): Logger {
-	return createBaseLogger(module)
+	const prefix = `[${ globalConfig.prefix }:${ module }]`
+
+	const shouldLog = (level: number) => {
+		return globalConfig.enabled && level <= globalConfig.level
+	}
+
+	const log = (level: number, method: string, message: unknown, ...args: unknown[]) => {
+		if (!shouldLog(level)) return
+
+		const timestamp = new Date().toISOString()
+		const logMethod =
+			(console[method as keyof Console] as ((...a: unknown[]) => void) | undefined) || console.log
+		logMethod(`${ timestamp } ${ prefix } ${ message }`, ...args)
+	}
+
+	return {
+		error: (message, ...args) => log(LogLevels.ERROR, 'error', message, ...args),
+		warn: (message, ...args) => log(LogLevels.WARN, 'warn', message, ...args),
+		info: (message, ...args) => log(LogLevels.INFO, 'info', message, ...args),
+		debug: (message, ...args) => log(LogLevels.DEBUG, 'debug', message, ...args)
+	}
 }

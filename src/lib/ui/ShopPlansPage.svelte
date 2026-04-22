@@ -15,12 +15,12 @@
 	}
 
 	interface Props {
-		_data?: PageData;
+		data?: PageData;
 		content?: PlansContent;
 	}
 
 	const {
-		_data,
+		data: _data = {},
 		content = {
 			title: 'Service Plans & Subscriptions',
 			description: 'Our service plans and subscription options have moved to make them easier to find!',

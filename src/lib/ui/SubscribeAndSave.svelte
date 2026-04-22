@@ -29,10 +29,18 @@
 
 	// Subscription state
 	let isSubscription: boolean = $state(false)
-	// eslint-disable-next-line svelte/valid-compile -- intentionally capturing initial value for form state
-	let selectedInterval: string = $state(defaultInterval)
+	let selectedInterval: string = $state('')
 	let selectedIntervalCount: number = $state(1)
 	let selectedDiscount: number = $state(0)
+
+	$effect(() => {
+		if (!selectedInterval) {
+			const intervalData = intervals.find((interval) => interval.value === defaultInterval) || intervals[0]
+			selectedInterval = intervalData?.value || defaultInterval
+			selectedIntervalCount = intervalData?.count || 1
+			selectedDiscount = intervalData?.discount || 0
+		}
+	})
 
 	// Get price
 	const productPrice: number = $derived(selectedVariant?.prices?.[0]?.amount || product?.variants?.[0]?.prices?.[0]?.amount || 0)

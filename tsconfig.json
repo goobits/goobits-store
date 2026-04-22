@@ -1,5 +1,6 @@
 {
 	"compilerOptions": {
+		"baseUrl": ".",
 		"allowJs": false,
 		"checkJs": false,
 		"esModuleInterop": true,
@@ -27,7 +28,21 @@
 		"verbatimModuleSyntax": false,
 		"declaration": true,
 		"declarationMap": true,
-		"sourceMap": true
+		"sourceMap": true,
+		"paths": {
+			"@goobits/ui/ui/*.svelte": [
+				"../forms/src/lib/ui/*.svelte"
+			],
+			"@goobits/ui/ui/*": [
+				"../forms/src/lib/ui/*"
+			],
+			"@goobits/ui/ui/modals/*.svelte": [
+				"../forms/src/lib/ui/modals/*.svelte"
+			],
+			"@goobits/ui/ui/modals/*": [
+				"../forms/src/lib/ui/modals/*"
+			]
+		}
 	},
 	"include": [
 		"src/**/*.ts",

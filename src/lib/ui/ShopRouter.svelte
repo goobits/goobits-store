@@ -9,31 +9,14 @@
 	import ShopLoginPage from './ShopLoginPage.svelte'
 	import ShopPlansPage from './ShopPlansPage.svelte'
 	import type { Readable } from 'svelte/store'
+	import type {
+		Branding,
+		CheckoutFormResult,
+		DemoCredentials,
+		StoreAuthStore
+	} from '../types/storefront'
 
 	type PageType = 'index' | 'product' | 'category' | 'collection' | 'account' | 'cart' | 'checkout' | 'login' | 'register' | 'plans'
-
-	interface AuthStore {
-		subscribe: Readable<AuthState>['subscribe'];
-		login: (email: string, password: string) => Promise<{ success: boolean; mfaRequired?: boolean }>;
-		logout: () => Promise<void>;
-		register: (data: Record<string, unknown>) => Promise<{ success: boolean }>;
-		checkSession: () => Promise<void>;
-		clearError?: () => void;
-		updateProfile?: (data: Record<string, unknown>) => Promise<{ success: boolean }>;
-	}
-
-	interface DemoCredentials {
-		email: string;
-		password: string;
-	}
-
-	interface Branding {
-		siteName?: string;
-		loginTitle?: string;
-		loginSubtitle?: string;
-		registerTitle?: string;
-		registerSubtitle?: string;
-	}
 
 	interface PageData {
 		pageType?: PageType;
@@ -41,10 +24,10 @@
 		product?: MedusaProduct;
 		cart?: MedusaCart;
 		regions?: MedusaRegion[];
-		auth?: AuthStore;
+		auth?: StoreAuthStore;
 		isAuthenticated?: Readable<boolean>;
 		customer?: Readable<MedusaCustomer | null>;
-		form?: Record<string, unknown>;
+		form?: CheckoutFormResult | null;
 		demoCredentials?: DemoCredentials;
 		[key: string]: unknown;
 	}
@@ -75,6 +58,7 @@
 
 	// Extract page type and route data
 	const pageType: PageType = $derived((data.pageType || 'index') as PageType)
+	const checkoutData = $derived(data as Partial<import('../handlers/routeUtils').CheckoutPageData>)
 </script>
 
 <div class="shop-router">
@@ -103,7 +87,7 @@
 	{:else if pageType === 'cart'}
 		<ShopCartPage {data} {config} />
 	{:else if pageType === 'checkout'}
-		<ShopCheckoutPage {data} form={data.form} />
+		<ShopCheckoutPage data={checkoutData} form={data.form} />
 	{:else if pageType === 'login'}
 		<ShopLoginPage
 			{data}

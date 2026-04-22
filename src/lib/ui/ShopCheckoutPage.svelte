@@ -17,31 +17,13 @@
 
 	// Import checkout utilities directly to avoid circular dependency
 	import * as CheckoutUtils from '../utils/checkoutUtils'
-
-	interface CustomerInfo {
-		email: string;
-		first_name: string;
-		last_name: string;
-	}
-
-	interface ShippingAddress {
-		first_name: string;
-		last_name: string;
-		address_1: string;
-		address_2: string;
-		city: string;
-		province: string;
-		postal_code: string;
-		country_code: string;
-		phone: string;
-	}
-
-	interface ShippingOption {
-		id: string;
-		name?: string;
-		amount?: number;
-		[key: string]: unknown;
-	}
+	import type { CheckoutPageData } from '../handlers/routeUtils'
+	import type {
+		CheckoutFormResult,
+		CustomerInfo,
+		ShippingAddress,
+		StoreShippingOption
+	} from '../types/storefront'
 
 	interface SavedCheckoutState {
 		currentStep?: string;
@@ -49,12 +31,6 @@
 		shippingAddress?: ShippingAddress;
 		selectedShippingOption?: string;
 		useSameAddress?: boolean;
-	}
-
-	interface FormData {
-		success: boolean;
-		error?: string;
-		order?: MedusaOrder;
 	}
 
 	interface PaymentErrors {
@@ -68,16 +44,9 @@
 		[key: string]: unknown;
 	}
 
-	interface PageData {
-		cart?: MedusaCart;
-		defaultRegion?: MedusaRegion | null;
-		shippingOptions?: ShippingOption[];
-		[key: string]: unknown;
-	}
-
 	interface Props {
-		data: PageData;
-		form?: FormData | null;
+		data: Partial<CheckoutPageData>;
+		form?: CheckoutFormResult | null;
 	}
 
 	const { data, form = null }: Props = $props()
@@ -86,10 +55,6 @@
 
 	// Debug: log when component loads
 	logger.info('ShopCheckoutPage loading...')
-	// eslint-disable-next-line svelte/valid-compile -- debug logging intentionally captures initial values
-	logger.info('Data cart:', data?.cart?.id)
-	// eslint-disable-next-line svelte/valid-compile -- debug logging intentionally captures initial values
-	logger.info('Data regions:', data?.defaultRegion)
 
 	// Setup lifecycle hooks
 	onMount(() => {
@@ -123,7 +88,7 @@
 	// Extract checkout data
 	const medusaCart: MedusaCart = $derived(data.cart || {} as MedusaCart)
 	const defaultRegion: MedusaRegion | null = $derived(data.defaultRegion || null)
-	const shippingOptions: ShippingOption[] = $derived(data.shippingOptions || [])
+	const shippingOptions = $derived((data.shippingOptions || []) as StoreShippingOption[])
 
 	// Checkout steps
 	const STEPS = {
@@ -192,7 +157,6 @@
 	// Get default country code from region (derived to ensure SSR consistency)
 	const defaultCountry: string = $derived(defaultRegion?.countries?.[0]?.iso_2 || 'us')
 
-	/* eslint-disable svelte/valid-compile -- defaultCountry reference is intentional for initial state */
 	const shippingAddress: ShippingAddress = $state(savedState?.shippingAddress || {
 		first_name: '',
 		last_name: '',
@@ -201,10 +165,15 @@
 		city: '',
 		province: '',
 		postal_code: '',
-		country_code: defaultCountry,
+		country_code: '',
 		phone: ''
 	})
-	/* eslint-enable svelte/valid-compile */
+
+	$effect(() => {
+		if (!shippingAddress.country_code) {
+			shippingAddress.country_code = defaultCountry
+		}
+	})
 
 	// Get default shipping option (derived to ensure SSR consistency)
 	const defaultShippingOption: string = $derived(
@@ -353,7 +322,7 @@
 	}
 
 	// Helper functions
-	function getSelectedShippingOption(): ShippingOption | undefined {
+	function getSelectedShippingOption(): StoreShippingOption | undefined {
 		return shippingOptions.find(option => option.id === selectedShippingOption)
 	}
 
@@ -396,10 +365,6 @@
 		goto('/shop')
 	}
 
-	// eslint-disable-next-line svelte/valid-compile -- Debug logging intentionally captures initial values
-	logger.info('About to render template, currentStep:', currentStep)
-	// eslint-disable-next-line svelte/valid-compile -- Debug logging intentionally captures initial values
-	logger.info('medusaCart id:', medusaCart?.id)
 </script>
 
 <div class="goo__checkout-page">
@@ -483,9 +448,7 @@
 				{selectedShippingOption}
 				{shippingAddress}
 				{customerInfo}
-				{form}
 				{formSubmitting}
-				{paymentErrors}
 				{handleShippingMethodSubmit}
 				{handlePaymentUpdate}
 				{handlePaymentSuccess}
@@ -521,7 +484,7 @@
 		{/if}
 
 		<!-- Step 5: Order Confirmation -->
-		{#if currentStep === STEPS.CONFIRMATION}
+		{#if currentStep === STEPS.CONFIRMATION && completedOrder}
 			<CheckoutConfirmation
 				{completedOrder}
 				{formatPrice}

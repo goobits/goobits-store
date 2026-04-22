@@ -1,12 +1,13 @@
 <script lang="ts">
 	import { onMount } from 'svelte'
 	import { get, type Readable } from 'svelte/store'
-	import Modal from '@goobits/forms/ui/modals/Modal.svelte'
-	import Button from '@goobits/forms/ui/modals/Button.svelte'
+	import Modal from '@goobits/ui/ui/modals/Modal.svelte'
+	import Button from '@goobits/ui/ui/modals/Button.svelte'
 	import MFABackupCodes from './MFABackupCodes.svelte'
 	import MFAEnrollmentWizard from './MFAEnrollmentWizard.svelte'
 	import { getBackendUrl, getPublishableKey } from '../config/urls'
 	import { createLogger } from '../utils/logger'
+	import type { StoreAuthState } from '../types/storefront'
 
 	const logger = createLogger('MFASettingsPanel')
 
@@ -17,11 +18,6 @@
 	 * and manage backup codes.
 	 */
 
-	interface AuthState {
-		customer?: { id: string; email?: string }
-		user?: { id: string; email?: string }
-	}
-
 	interface MFAStatusData {
 		enabled: boolean
 		inGracePeriod: boolean
@@ -30,7 +26,7 @@
 	}
 
 	interface Props {
-		auth: Readable<AuthState>
+		auth: Readable<StoreAuthState>
 		onEnrollComplete?: (() => void) | null
 	}
 
@@ -63,7 +59,7 @@
 		error = null
 
 		try {
-			const authState: AuthState | null = auth ? get(auth) : null
+			const authState: StoreAuthState | null = auth ? get(auth) : null
 			const customer = authState?.customer || authState?.user
 
 			if (!customer) {
@@ -181,7 +177,7 @@
 		error = null
 
 		try {
-			const authState: AuthState | null = auth ? get(auth) : null
+			const authState: StoreAuthState | null = auth ? get(auth) : null
 			const customer = authState?.customer || authState?.user
 
 			if (!customer) {

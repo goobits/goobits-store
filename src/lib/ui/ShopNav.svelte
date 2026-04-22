@@ -26,13 +26,14 @@
 	}: Props = $props()
 
 	// Create message getter
-	const getMessage: (key: string, fallback?: string) => string = $derived(createMessageGetter({ ...defaultMessages, ...messages }))
+	const getMessage = $derived(createMessageGetter({ ...defaultMessages, ...messages }))
+	const msg = (key: string, fallback: string): string => String(getMessage(key, fallback))
 
 	// Get cart item count
 	const cartCount: number = $derived(getCartCount())
 
 	// Get the shop name to display
-	const displayShopName: string = $derived(shopName || getMessage('shopName', 'Shop'))
+	const displayShopName: string = $derived(shopName || msg('shopName', 'Shop'))
 </script>
 
 <nav class="goo__shop-nav">
@@ -46,18 +47,18 @@
 				href={shopUrl}
 				class="goo__shop-nav-link" class:active={$page.url.pathname === shopUrl}
 			>
-				{getMessage('products', 'Products')}
+				{msg('products', 'Products')}
 			</a>
 			<a
 				href={cartUrl}
 				class="goo__shop-nav-link goo__cart-link" class:active={$page.url.pathname === cartUrl}
 			>
-				{getMessage('cart', 'Cart')} {cartCount > 0 ? `(${cartCount})` : ''}
+				{msg('cart', 'Cart')} {cartCount > 0 ? `(${cartCount})` : ''}
 			</a>
 		</div>
 
 		<div class="goo__shop-nav-main-site">
-			<a href={backUrl}>{getMessage('backToMainSite', '← Back to Main Site')}</a>
+			<a href={backUrl}>{msg('backToMainSite', '← Back to Main Site')}</a>
 		</div>
 	</div>
 </nav>

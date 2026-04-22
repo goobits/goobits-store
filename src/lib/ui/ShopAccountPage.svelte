@@ -1,26 +1,8 @@
-<script lang="ts">
+	<script lang="ts">
 	import { onMount } from 'svelte'
 	import MFASettingsPanel from './MFASettingsPanel.svelte'
 	import type { Readable } from 'svelte/store'
-
-	interface AuthState {
-		customer: MedusaCustomer | null;
-		user?: MedusaCustomer | null;
-		token: string | null;
-		loading: boolean;
-		error: string | null;
-	}
-
-	interface AuthStore {
-		subscribe: Readable<AuthState>['subscribe'];
-		checkSession?: () => Promise<void>;
-		updateProfile?: (data: Record<string, unknown>) => Promise<{ success: boolean }>;
-		logout?: () => Promise<void>;
-	}
-
-	interface Branding {
-		siteName?: string;
-	}
+	import type { Branding, StoreAuthState, StoreAuthStore } from '../types/storefront'
 
 	interface PageData {
 		[key: string]: unknown;
@@ -28,7 +10,7 @@
 
 	interface Props {
 		data?: PageData;
-		auth?: AuthStore;
+		auth?: StoreAuthStore;
 		isAuthenticated?: Readable<boolean>;
 		customer?: Readable<MedusaCustomer | null>;
 		branding?: Branding;
@@ -42,13 +24,13 @@
 	}: Props = $props()
 
 	// Subscribe to stores
-	let authState: AuthState = $state({ customer: null, token: null, loading: false, error: null })
+	let authState: StoreAuthState = $state({ customer: null, token: null, loading: false, error: null })
 	let isAuth: boolean = $state(false)
 	let customerData: MedusaCustomer | null = $state(null)
 
 	$effect(() => {
 		if (auth) {
-			return auth.subscribe((state: AuthState) => {
+			return auth.subscribe((state: StoreAuthState) => {
 				authState = state
 			})
 		}
@@ -90,7 +72,7 @@
 	let editing: boolean = $state(false)
 
 	// Get user data from either customerData or authState.user
-	const currentUser: MedusaCustomer | null | undefined = $derived(customerData || authState.user)
+	const currentUser = $derived((customerData || authState.user || null) as MedusaCustomer | null)
 
 	// Use $derived for display values to ensure SSR/client consistency
 	const displayName: string = $derived(currentUser?.first_name || '')

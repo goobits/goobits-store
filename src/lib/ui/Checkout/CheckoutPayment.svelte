@@ -2,17 +2,17 @@
 	import { browser } from '$app/environment'
 	import StripePaymentForm from './StripePaymentForm.svelte'
 
+	import type {
+		CustomerInfo,
+		ShippingAddress,
+		StoreShippingOption
+	} from '../../types/storefront'
+
 	interface PaymentSession {
 		provider_id: string;
 		data?: {
 			client_secret?: string;
 		};
-	}
-
-	interface ShippingOption {
-		id: string;
-		name: string;
-		amount: number;
 	}
 
 	interface MedusaCartData {
@@ -21,26 +21,9 @@
 		payment_sessions?: PaymentSession[];
 	}
 
-	interface ShippingAddress {
-		first_name: string;
-		last_name: string;
-		address_1: string;
-		address_2?: string;
-		city: string;
-		province?: string;
-		postal_code: string;
-		country_code: string;
-	}
-
-	interface CustomerInfo {
-		email: string;
-		first_name: string;
-		last_name: string;
-	}
-
 	interface Props {
 		medusaCart: MedusaCartData;
-		shippingOptions: ShippingOption[];
+		shippingOptions: StoreShippingOption[];
 		selectedShippingOption?: string;
 		shippingAddress: ShippingAddress;
 		customerInfo: CustomerInfo;
@@ -93,8 +76,8 @@
 							<input type="radio" name="shipping_option_id" value={option.id}
 								bind:group={selectedShippingOption} checked={selectedShippingOption === option.id} />
 							<div class="goo__shipping-option-info">
-								<span class="goo__shipping-option-name">{option.name}</span>
-								<span class="goo__shipping-option-price">${formatPrice(option.amount)}</span>
+								<span class="goo__shipping-option-name">{option.name || 'Shipping'}</span>
+								<span class="goo__shipping-option-price">${formatPrice(option.amount || 0)}</span>
 							</div>
 						</label>
 					</div>

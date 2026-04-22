@@ -5,7 +5,7 @@
 	 * Displays detailed subscription information with management actions
 	 * Reusable across different storefronts
 	 */
-	import Modal from '@goobits/forms/ui/modals/Modal.svelte'
+	import Modal from '@goobits/ui/ui/modals/Modal.svelte'
 	import { formatCurrency, formatDate } from '../utils/subscription-helpers'
 
 	interface Props {

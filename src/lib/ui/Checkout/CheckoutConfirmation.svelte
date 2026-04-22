@@ -5,21 +5,21 @@
 	interface CompletedOrder {
 		id: string;
 		display_id?: number;
-		email: string;
-		created_at: string;
-		subtotal: number;
-		shipping_total: number;
-		tax_total: number;
-		total: number;
+		email?: string;
+		created_at?: string;
+		subtotal?: number;
+		shipping_total?: number;
+		tax_total?: number;
+		total?: number;
 		shipping_address?: {
-			first_name: string;
-			last_name: string;
-			address_1: string;
+			first_name?: string;
+			last_name?: string;
+			address_1?: string;
 			address_2?: string;
-			city: string;
-			province: string;
-			postal_code: string;
-			country_code: string;
+			city?: string;
+			province?: string;
+			postal_code?: string;
+			country_code?: string;
 		};
 	}
 
@@ -56,29 +56,29 @@
 			<div class="goo__confirmation-info">
 				<h3>{msg('orderInformation', 'Order Information')}</h3>
 				<p><strong>{msg('orderNumber', 'Order Number')}:</strong> {completedOrder.display_id || completedOrder.id}</p>
-				<p><strong>{msg('date', 'Date')}:</strong> {new Date(completedOrder.created_at).toLocaleDateString(locale)}</p>
-				<p><strong>{msg('email', 'Email')}:</strong> {completedOrder.email}</p>
+				<p><strong>{msg('date', 'Date')}:</strong> {completedOrder.created_at ? new Date(completedOrder.created_at).toLocaleDateString(locale) : '-'}</p>
+				<p><strong>{msg('email', 'Email')}:</strong> {completedOrder.email || '-'}</p>
 			</div>
 
 			<div class="goo__confirmation-summary">
 				<h3>{msg('orderSummary', 'Order Summary')}</h3>
 				<div class="goo__summary-row">
 					<span>{msg('subtotal', 'Subtotal')}</span>
-					<span>{msg('currency', '$')}{formatPrice(completedOrder.subtotal)}</span>
+					<span>{msg('currency', '$')}{formatPrice(completedOrder.subtotal || 0)}</span>
 				</div>
 				<div class="goo__summary-row">
 					<span>{msg('shipping', 'Shipping')}</span>
-					<span>{msg('currency', '$')}{formatPrice(completedOrder.shipping_total)}</span>
+					<span>{msg('currency', '$')}{formatPrice(completedOrder.shipping_total || 0)}</span>
 				</div>
-				{#if completedOrder.tax_total > 0}
+				{#if (completedOrder.tax_total || 0) > 0}
 					<div class="goo__summary-row">
 						<span>{msg('tax', 'Tax')}</span>
-						<span>{msg('currency', '$')}{formatPrice(completedOrder.tax_total)}</span>
+						<span>{msg('currency', '$')}{formatPrice(completedOrder.tax_total || 0)}</span>
 					</div>
 				{/if}
 				<div class="goo__summary-row goo__summary-total">
 					<span>{msg('total', 'Total')}</span>
-					<span>{msg('currency', '$')}{formatPrice(completedOrder.total)}</span>
+					<span>{msg('currency', '$')}{formatPrice(completedOrder.total || 0)}</span>
 				</div>
 			</div>
 

@@ -1,6 +1,6 @@
 <script lang="ts">
-	import FormErrors from '@goobits/forms/ui/FormErrors.svelte'
-	import Button from '@goobits/forms/ui/modals/Button.svelte'
+	import FormErrors from '@goobits/ui/ui/FormErrors.svelte'
+	import Button from '@goobits/ui/ui/modals/Button.svelte'
 
 	/**
 	 * MFAAdminResetModal - Super-admin MFA reset confirmation modal

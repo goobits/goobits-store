@@ -1,8 +1,9 @@
-<script lang="ts">
+	<script lang="ts">
 	import { get, type Readable } from 'svelte/store'
-	import Modal from '@goobits/forms/ui/modals/Modal.svelte'
+	import Modal from '@goobits/ui/ui/modals/Modal.svelte'
 	import { getBackendUrl, getPublishableKey } from '../config/urls'
 	import { createLogger } from '../utils/logger'
+	import type { StoreAuthState } from '../types/storefront'
 
 	const logger = createLogger('MFABackupCodes')
 
@@ -13,14 +14,9 @@
 	 * and regenerating codes with proper warnings.
 	 */
 
-	interface AuthState {
-		customer?: { id: string; email?: string }
-		user?: { id: string; email?: string }
-	}
-
 	interface Props {
 		backupCodes?: string[] | null
-		auth: Readable<AuthState>
+		auth: Readable<StoreAuthState>
 		onClose: () => void
 		onRegenerate?: ((codes: string[]) => void) | null
 		isNewEnrollment?: boolean
@@ -47,10 +43,14 @@
 	const backendUrl = getBackendUrl()
 	const publishableKey = getPublishableKey()
 
-	// Codes state initialized from prop (no effect needed - ensures SSR consistency)
-	// Uses $state because codes can be mutated when regenerated
-	// eslint-disable-next-line svelte/valid-compile -- intentionally capturing initial value for local state
-	let codes: string[] | null = $state(backupCodes)
+	// Codes can be replaced locally after regeneration, so initialize them lazily.
+	let codes: string[] | null = $state(null)
+
+	$effect(() => {
+		if (codes === null) {
+			codes = backupCodes ? [ ...backupCodes ] : null
+		}
+	})
 
 	// Note: Better Auth stores backup codes hashed for security,
 	// so they can only be viewed once when first generated.
@@ -89,7 +89,7 @@
 	function downloadCodes(): void {
 		if (!codes || codes.length === 0) return
 
-		const authState: AuthState | null = auth ? get(auth) : null
+		const authState: StoreAuthState | null = auth ? get(auth) : null
 		const currentUser = authState?.customer || authState?.user
 		const email: string = currentUser?.email || 'user'
 		const timestamp = new Date().toISOString().split('T')[0]
@@ -128,7 +128,7 @@
 		error = null
 
 		try {
-			const authState: AuthState | null = auth ? get(auth) : null
+			const authState: StoreAuthState | null = auth ? get(auth) : null
 			const customer = authState?.customer || authState?.user
 
 			if (!customer) {

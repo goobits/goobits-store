@@ -1,66 +1,24 @@
-<script lang="ts">
-	interface MedusaVariant {
-		id: string;
-		title: string;
-	}
-
-	interface LineItem {
-		id: string;
-		title: string;
-		quantity: number;
-		thumbnail?: string;
-		variant: MedusaVariant;
-	}
-
-	interface MedusaCartData {
-		id: string;
-		items?: LineItem[];
-	}
-
-	interface ShippingAddress {
-		first_name: string;
-		last_name: string;
-		address_1: string;
-		address_2?: string;
-		city: string;
-		province: string;
-		postal_code: string;
-		country_code: string;
-		phone?: string;
-	}
+	<script lang="ts">
+	import type { ShippingAddress, StoreShippingOption } from '../../types/storefront'
 
 	interface PaymentResultData {
 		id: string;
 		last4?: string;
 	}
 
-	interface Country {
-		iso_2: string;
-		display_name: string;
-	}
-
-	interface DefaultRegion {
-		countries?: Country[];
-	}
-
-	interface ShippingOption {
-		name: string;
-		amount: number;
-	}
-
 	interface Props {
-		medusaCart: MedusaCartData;
+		medusaCart: MedusaCart;
 		shippingAddress: ShippingAddress;
 		selectedShippingOption: string;
 		paymentProcessed: boolean;
 		paymentResult: PaymentResultData | null;
 		orderError: string | null;
-		defaultRegion: DefaultRegion | null;
+		defaultRegion: MedusaRegion | null;
 		formSubmitting: boolean;
 		handlePlaceOrder: (event: SubmitEvent) => void;
-		getSelectedShippingOption: () => ShippingOption | null;
+		getSelectedShippingOption: () => StoreShippingOption | undefined;
 		formatPrice: (amount: number) => string;
-		getLineItemTotal: (item: LineItem) => string;
+		getLineItemTotal: (item: MedusaLineItem) => string;
 		getCartSubtotal: () => string;
 		getShippingTotal: () => string;
 		getTaxTotal: () => string;
@@ -107,7 +65,7 @@
 				<p>{shippingAddress.city}, {shippingAddress.province} {shippingAddress.postal_code}</p>
 				<p>
 					{#if defaultRegion && defaultRegion.countries}
-						{defaultRegion.countries.find(c => c.iso_2 === shippingAddress.country_code)?.display_name || shippingAddress.country_code}
+						{(defaultRegion.countries as Array<{ iso_2: string; display_name?: string }>).find(c => c.iso_2 === shippingAddress.country_code)?.display_name || shippingAddress.country_code}
 					{:else}
 						{shippingAddress.country_code}
 					{/if}
@@ -168,7 +126,7 @@
 							</div>
 							<div class="goo__order-item-details">
 								<p class="goo__item-title">{item.title}</p>
-								<p class="goo__item-variant">{item.variant.title !== 'Default' ? item.variant.title : ''}</p>
+								<p class="goo__item-variant">{item.variant?.title && item.variant.title !== 'Default' ? item.variant.title : ''}</p>
 							</div>
 							<div class="goo__order-item-price">${getLineItemTotal(item)}</div>
 						</div>

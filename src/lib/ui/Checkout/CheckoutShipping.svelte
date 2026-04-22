@@ -1,28 +1,9 @@
 <script lang="ts">
-	interface ShippingAddress {
-		first_name: string;
-		last_name: string;
-		address_1: string;
-		address_2: string;
-		city: string;
-		postal_code: string;
-		province: string;
-		country_code: string;
-		phone: string;
-	}
+	import type { ShippingAddress } from '../../types/storefront'
 
 	interface FormResult {
 		success: boolean;
 		error?: string;
-	}
-
-	interface Country {
-		iso_2: string;
-		display_name: string;
-	}
-
-	interface DefaultRegion {
-		countries?: Country[];
 	}
 
 	interface Props {
@@ -32,7 +13,7 @@
 		formSubmitting: boolean;
 		handleShippingAddressSubmit: (event: SubmitEvent) => void;
 		goToStep: (step: string) => void;
-		defaultRegion: DefaultRegion | null;
+		defaultRegion: MedusaRegion | null;
 		STEPS_INFORMATION: string;
 	}
 
@@ -101,7 +82,7 @@
 				<select id="country_code" name="country_code" required bind:value={shippingAddress.country_code}>
 					{#if defaultRegion && defaultRegion.countries}
 						{#each defaultRegion.countries as country}
-							<option value={country.iso_2}>{country.display_name}</option>
+							<option value={country.iso_2}>{(country as { display_name?: string }).display_name || country.iso_2.toUpperCase()}</option>
 						{/each}
 					{:else}
 						<option value="us">United States</option>

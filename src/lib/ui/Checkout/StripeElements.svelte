@@ -36,7 +36,7 @@
 		stripePublicKey = '', // Stripe public key
 		getStripe = defaultGetStripe, // Function to get Stripe instance
 		createElements = defaultCreateElements, // Function to create Stripe Elements
-		createPaymentElementOptions = defaultCreatePaymentElementOptions, // Function to create payment element options
+		createPaymentElementOptions: _createPaymentElementOptions = defaultCreatePaymentElementOptions, // Function kept for API compatibility
 		appearance = {
 			theme: 'stripe',
 			variables: {
@@ -70,16 +70,13 @@
 		onescape
 	}: Props = $props()
 
-	// Suppress unused variable warning - kept for potential future use
-	// eslint-disable-next-line svelte/valid-compile -- intentionally capturing initial value
-	void createPaymentElementOptions
+	void _createPaymentElementOptions
 
 	// State
 	let elements: StripeElementsType | null = $state(null)
 	let stripe: Stripe | null = $state(null)
 	let isLoading: boolean = $state(true)
 	let elementsError: Error | null = $state(null)
-	let elementsContainer: HTMLDivElement | null = $state(null)
 
 	// Variables to store the payment element reference
 	let paymentElement: StripePaymentElement | null = null
@@ -180,7 +177,7 @@
 			<p>{elementsError.message || 'Error loading payment form'}</p>
 		</div>
 	{:else}
-		<div id="stripe-payment-element" class="goo__stripe-elements-field" bind:this={elementsContainer}></div>
+		<div id="stripe-payment-element" class="goo__stripe-elements-field"></div>
 	{/if}
 </div>
 

@@ -74,9 +74,12 @@
 	let isLoading: boolean = $state(true)
 	let stripeError: StripeError | null = $state(null)
 	let stripeElements: StripeElementsData | null = $state(null)
-	// Processing state: use prop if provided, otherwise manage locally
-	// eslint-disable-next-line svelte/valid-compile -- intentionally capturing initial value for local state management
-	let processing: boolean = $state(isProcessing)
+	// Processing state mirrors the prop but can also be set during submit.
+	let processing: boolean = $state(false)
+
+	$effect(() => {
+		processing = isProcessing
+	})
 
 	// Set up Elements when component mounts
 	onMount(() => {

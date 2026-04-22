@@ -4,39 +4,15 @@
 	import { browser } from '$app/environment'
 	import MFAVerificationInput from './MFAVerificationInput.svelte'
 	import MFABackupCodeInput from './MFABackupCodeInput.svelte'
-	import FormErrors from '@goobits/forms/ui/FormErrors.svelte'
-	import Button from '@goobits/forms/ui/modals/Button.svelte'
+	import FormErrors from '@goobits/ui/ui/FormErrors.svelte'
+	import Button from '@goobits/ui/ui/modals/Button.svelte'
 	import { getPublishableKey } from '../config/urls'
-
-	interface AuthState {
-		customer: MedusaCustomer | null;
-		token: string | null;
-		loading: boolean;
-		error: string | null;
-	}
-
-	interface AuthStore {
-		subscribe: (fn: (state: AuthState) => void) => (() => void);
-		login: (email: string, password: string) => Promise<{ success: boolean; mfaRequired?: boolean }>;
-		register: (data: Record<string, unknown>) => Promise<{ success: boolean }>;
-		clearError?: () => void;
-		checkSession?: () => Promise<void>;
-		logout?: () => Promise<void>;
-		updateProfile?: (data: Record<string, unknown>) => Promise<{ success: boolean }>;
-	}
-
-	interface DemoCredentials {
-		email: string;
-		password: string;
-	}
-
-	interface Branding {
-		siteName?: string;
-		loginTitle?: string;
-		loginSubtitle?: string;
-		registerTitle?: string;
-		registerSubtitle?: string;
-	}
+	import type {
+		Branding,
+		DemoCredentials,
+		StoreAuthState,
+		StoreAuthStore
+	} from '../types/storefront'
 
 	interface PageData {
 		[key: string]: unknown;
@@ -44,7 +20,7 @@
 
 	interface Props {
 		data?: PageData;
-		auth?: AuthStore;
+		auth?: StoreAuthStore;
 		demoCredentials?: DemoCredentials | null;
 		initialMode?: 'login' | 'register';
 		branding?: Branding;
@@ -59,12 +35,15 @@
 
 	let email: string = $state('')
 	let password: string = $state('')
-	// eslint-disable-next-line svelte/valid-compile -- intentionally capturing initial value for form mode toggle
-	const showRegister: boolean = $state(initialMode === 'register')
+	let showRegister: boolean = $state(false)
 	let firstName: string = $state('')
 	let lastName: string = $state('')
 	let phone: string = $state('')
 	let confirmPassword: string = $state('')
+
+	$effect(() => {
+		showRegister = initialMode === 'register'
+	})
 
 	// MFA state
 	let mfaRequired: boolean = $state(false)
@@ -73,16 +52,17 @@
 	let useBackupCode: boolean = $state(false)
 
 	// Subscribe to auth store
-	let authState: AuthState = $state({ customer: null, token: null, loading: false, error: null })
+	let authState: StoreAuthState = $state({ customer: null, token: null, loading: false, error: null })
 
 	$effect(() => {
 		if (auth) {
 			// Subscribe to auth store updates
-			const unsubscribe = auth.subscribe((state: AuthState) => {
+			const unsubscribe = auth.subscribe((state: StoreAuthState) => {
 				authState = state
 			})
 			return unsubscribe
 		}
+		return undefined
 	})
 
 	// Clear initial session fetch errors on mount (these are expected when not logged in)
@@ -117,7 +97,7 @@
 
 	async function handleLogin(e: Event): Promise<void> {
 		e.preventDefault()
-		if (!auth) return
+		if (!auth?.login) return
 
 		const result = await auth.login(email, password)
 
@@ -221,7 +201,7 @@
 
 	async function handleRegister(e: Event): Promise<void> {
 		e.preventDefault()
-		if (!auth) return
+		if (!auth?.register) return
 
 		if (password !== confirmPassword) {
 			// Set error state
