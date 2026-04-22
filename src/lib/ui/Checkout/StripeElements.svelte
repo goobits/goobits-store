@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { onMount, onDestroy, createEventDispatcher } from 'svelte'
 	import { Loader2 } from '@lucide/svelte'
-	import { getStripe as defaultGetStripe, createElements as defaultCreateElements, createPaymentElementOptions as defaultCreatePaymentElementOptions, type ElementsOptions } from '../../payment/stripeService'
+	import { getStripe as defaultGetStripe, createElements as defaultCreateElements, type ElementsOptions } from '../../payment/stripeService'
 
 	import type { Stripe, StripeElements as StripeElementsType, StripePaymentElement, Appearance } from '@stripe/stripe-js'
 
@@ -21,7 +21,6 @@
 		stripePublicKey?: string;
 		getStripe?: (publicKey?: string) => Promise<Stripe | null>;
 		createElements?: (stripe: Stripe | null, options?: ElementsOptions) => StripeElementsType | null;
-		createPaymentElementOptions?: typeof defaultCreatePaymentElementOptions;
 		appearance?: Appearance;
 		onready?: (event: CustomEvent<{ elements: StripeElementsType; stripe: Stripe }>) => void;
 		onchange?: (event: CustomEvent<unknown>) => void;
@@ -36,7 +35,6 @@
 		stripePublicKey = '', // Stripe public key
 		getStripe = defaultGetStripe, // Function to get Stripe instance
 		createElements = defaultCreateElements, // Function to create Stripe Elements
-		createPaymentElementOptions: _createPaymentElementOptions = defaultCreatePaymentElementOptions, // Function kept for API compatibility
 		appearance = {
 			theme: 'stripe',
 			variables: {
@@ -69,9 +67,6 @@
 		onfocus,
 		onescape
 	}: Props = $props()
-
-	void _createPaymentElementOptions
-
 	// State
 	let elements: StripeElementsType | null = $state(null)
 	let stripe: Stripe | null = $state(null)
@@ -204,9 +199,6 @@
 			font-size: 0.875rem;
 		}
 
-		&-field {
-			/* Stripe injects its own styles here */
-		}
 	}
 
 	/* Animate spinner */

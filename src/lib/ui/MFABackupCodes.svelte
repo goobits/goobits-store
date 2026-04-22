@@ -782,10 +782,6 @@
 	}
 
 	@media (max-width: 480px) {
-		.goo__modal-overlay {
-			padding: $spacing-small;
-		}
-
 		.goo__modal-header {
 			padding: $spacing-medium;
 

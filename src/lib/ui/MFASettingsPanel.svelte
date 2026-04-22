@@ -521,47 +521,6 @@
 		}
 	}
 
-	.goo__mfa-disabled-notice {
-		display: flex;
-		gap: $spacing-medium;
-		padding: $spacing-large;
-		background-color: var(--bg-secondary);
-		border: 1px solid var(--color-border);
-		border-radius: $border-radius-medium;
-
-		svg {
-			flex-shrink: 0;
-			color: var(--text-secondary);
-			margin-top: 2px;
-		}
-
-		div {
-			flex: 1;
-		}
-
-		h3 {
-			margin: 0 0 $spacing-small 0;
-			color: var(--text-primary);
-			font-size: 1.1rem;
-			font-weight: 600;
-		}
-
-		p {
-			margin: 0 0 $spacing-small 0;
-			color: var(--text-secondary);
-			line-height: 1.5;
-
-			&:last-child {
-				margin-bottom: 0;
-			}
-		}
-
-		.goo__notice-detail {
-			font-size: 0.9rem;
-			color: var(--text-tertiary);
-		}
-	}
-
 	.goo__loading {
 		text-align: center;
 		padding: $spacing-large;
@@ -706,19 +665,15 @@
 	}
 
 	@media (max-width: 768px) {
-		.goo__modal-overlay {
-			padding: $spacing-medium;
-		}
-
-		.goo__modal {
+		:global(.goo__modal) {
 			max-width: 100%;
 		}
 
-		.goo__modal-header {
+		:global(.goo__modal-header) {
 			padding: $spacing-medium;
 		}
 
-		.goo__modal-content {
+		:global(.goo__modal-content) {
 			padding: $spacing-medium;
 		}
 

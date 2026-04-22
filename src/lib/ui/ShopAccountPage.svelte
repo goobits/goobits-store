@@ -331,16 +331,6 @@
 	}
 
 	.goo__profile-form {
-		.goo__form-row {
-			display: grid;
-			grid-template-columns: 1fr 1fr;
-			gap: $spacing-medium;
-
-			@media (max-width: 480px) {
-				grid-template-columns: 1fr;
-			}
-		}
-
 		.goo__form-group {
 			margin-bottom: $spacing-medium;
 

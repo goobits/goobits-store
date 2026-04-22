@@ -488,7 +488,7 @@
 		}
 	}
 
-	.goo__auth-submit {
+	:global(.goo__auth-submit) {
 		width: 100%;
 		font-size: 1.1rem;
 	}

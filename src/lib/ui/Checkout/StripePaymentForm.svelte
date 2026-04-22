@@ -242,10 +242,6 @@
 			font-size: 0.875rem;
 		}
 
-		&-form {
-			/* Form container */
-		}
-
 		&-button {
 			display: flex;
 			align-items: center;

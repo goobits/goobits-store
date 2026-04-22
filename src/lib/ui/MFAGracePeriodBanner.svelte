@@ -309,10 +309,6 @@
 		border: none;
 		white-space: nowrap;
 
-		&--primary {
-			// Colors set by urgency level
-		}
-
 		&--dismiss {
 			padding: $spacing-small;
 			background-color: transparent;

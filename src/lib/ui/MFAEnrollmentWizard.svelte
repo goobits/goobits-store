@@ -752,41 +752,6 @@
 	}
 	}
 
-	.goo__mfa-password-section {
-	width: 100%;
-	max-width: 400px;
-
-	label {
-	display: block;
-	margin-bottom: 12px;
-	font-weight: 500;
-	color: var(--text-primary);
-	font-size: 15px;
-	}
-
-	input {
-	width: 100%;
-	padding: 16px 18px;
-	border: 1px solid var(--color-border, #d2d2d7);
-	border-radius: 10px;
-	font-size: 17px;
-	background-color: var(--bg-primary, #ffffff);
-	color: var(--text-primary);
-	transition: all 0.2s ease;
-	font-family: inherit;
-
-	&:focus {
-	outline: none;
-	border-color: var(--accent-primary, #06c);
-	box-shadow: 0 0 0 4px var(--accent-shadow, rgba(0, 108, 204, 0.1));
-	}
-
-	&::placeholder {
-	color: var(--text-tertiary, #86868b);
-	}
-	}
-	}
-
 	// Step 2: QR Code
 	.goo__mfa-qr-container {
 	background: var(--color-surface, var(--bg-primary, #ffffff));
@@ -1041,11 +1006,6 @@
 	gap: $spacing-medium;
 	color: var(--text-primary);
 	text-align: left;
-
-	svg {
-	flex-shrink: 0;
-	color: var(--accent-primary);
-	}
 
 	span {
 	font-size: $font-size-base;
