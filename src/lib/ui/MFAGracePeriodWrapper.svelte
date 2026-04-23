@@ -1,6 +1,7 @@
 <script lang="ts">
 	import MFAGracePeriodBanner from './MFAGracePeriodBanner.svelte'
 	import { fetchMFAStatus, shouldShowGracePeriodBanner, type MFAStatus } from './mfaStatus'
+	import { resolveShopPath } from '../config/index'
 	import { getPublishableKey } from '../config/urls'
 	import { createLogger } from '../utils/logger'
 	import type { Readable } from 'svelte/store'
@@ -23,12 +24,14 @@
 		auth: Readable<AuthState>
 		backendUrl?: string
 		onSetupNow?: () => void
+		config?: ShopConfig
 	}
 
 	const {
 		auth,
 		backendUrl = '',
-		onSetupNow = () => {}
+		onSetupNow = () => {},
+		config = {}
 	}: Props = $props()
 
 	// MFA status state
@@ -96,7 +99,7 @@
 
 		// Navigate to MFA setup page
 		if (typeof window !== 'undefined') {
-			window.location.href = '/shop/account/mfa-setup'
+			window.location.href = resolveShopPath('/account/mfa-setup', config)
 		}
 	}
 </script>

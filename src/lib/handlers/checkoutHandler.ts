@@ -114,6 +114,7 @@ interface SubscriptionErrorData {
 // Checkout handler options
 interface CheckoutHandlerOptions {
 	cartRedirectPath?: string
+	shopUri?: string
 }
 
 // Checkout load result
@@ -333,15 +334,17 @@ export function createCheckoutHandler(options: CheckoutHandlerOptions = {}): {
 	}
 } {
 	const {
-		cartRedirectPath = '/shop/cart'
+		cartRedirectPath,
+		shopUri = '/shop'
 	} = options
+	const resolvedCartRedirectPath = cartRedirectPath || `${shopUri.replace(/\/+$/, '') || '/shop'}/cart`
 
 	return {
 		load: async ({ url }): Promise<CheckoutLoadResult> => {
 			const cartId = url.searchParams.get('cart_id')
 
 			if (!cartId) {
-				throw redirect(302, cartRedirectPath)
+				throw redirect(302, resolvedCartRedirectPath)
 			}
 
 			try {
@@ -351,7 +354,7 @@ export function createCheckoutHandler(options: CheckoutHandlerOptions = {}): {
 				logger.info('Retrieved cart successfully:', cart.id)
 
 				if (!cart) {
-					throw redirect(302, cartRedirectPath)
+					throw redirect(302, resolvedCartRedirectPath)
 				}
 
 				// Get regions for shipping

@@ -8,7 +8,7 @@
  * @version 1.0.0
  */
 
-import { createLogger } from '../utils/logger'
+import { createLogger } from '../utils/logger.js'
 
 const logger = createLogger('MFAStatus')
 

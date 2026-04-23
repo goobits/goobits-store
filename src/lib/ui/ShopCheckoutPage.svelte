@@ -5,8 +5,8 @@
 	import { goto } from '$app/navigation'
 	import { onMount, onDestroy } from 'svelte'
 	import { browser } from '$app/environment'
-	import { Logger } from '@lib/utils/Logger'
-	import { user as customer } from '@lib/stores/auth-simple'
+	import { createLogger } from '../utils/logger'
+	import { resolveShopPath } from '../config/index'
 
 	// Import checkout components from store package
 	import CheckoutCustomerInfo from './Checkout/CheckoutCustomerInfo.svelte'
@@ -47,11 +47,12 @@
 	interface Props {
 		data: Partial<CheckoutPageData>;
 		form?: CheckoutFormResult | null;
+		config?: ShopConfig;
 	}
 
-	const { data, form = null }: Props = $props()
+	const { data, form = null, config = {} }: Props = $props()
 
-	const logger = new Logger('Checkout')
+	const logger = createLogger('Checkout')
 
 	// Debug: log when component loads
 	logger.info('ShopCheckoutPage loading...')
@@ -60,22 +61,7 @@
 	onMount(() => {
 		// Initialize session storage for checkout
 		if (browser && typeof window !== 'undefined') {
-			// Populate customer data from store if available and not already loaded from session
-			const unsubscribe = customer.subscribe((value: unknown) => {
-				const customerData = value as MedusaCustomer | null
-				if (customerData && !savedState?.customerInfo) {
-					// Only populate if we don't have saved state
-					customerInfo.email = customerData.email || ''
-					customerInfo.first_name = customerData.first_name || ''
-					customerInfo.last_name = customerData.last_name || ''
-
-					shippingAddress.first_name = customerData.first_name || ''
-					shippingAddress.last_name = customerData.last_name || ''
-					shippingAddress.phone = customerData.phone || ''
-				}
-			})
-
-			return unsubscribe
+			return undefined
 		}
 		return undefined
 	})
@@ -362,7 +348,7 @@
 	}
 
 	function continueShopping(): void {
-		goto('/shop')
+		goto(resolveShopPath('', config))
 	}
 
 </script>
@@ -456,6 +442,7 @@
 				{goToStep}
 				{formatPrice}
 				STEPS_SHIPPING={STEPS.SHIPPING}
+				{config}
 			/>
 		{/if}
 

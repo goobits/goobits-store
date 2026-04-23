@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { browser } from '$app/environment'
 	import StripePaymentForm from './StripePaymentForm.svelte'
+	import { resolveShopPath } from '../../config/index'
 
 	import type {
 		CustomerInfo,
@@ -35,6 +36,7 @@
 		goToStep: (step: string) => void;
 		formatPrice: (amount: number) => string;
 		STEPS_SHIPPING: string;
+		config?: ShopConfig;
 	}
 
 	/* eslint-disable prefer-const -- Svelte 5 requires `let` when using $bindable() in destructuring */
@@ -51,7 +53,8 @@
 		handlePaymentError,
 		goToStep,
 		formatPrice,
-		STEPS_SHIPPING
+		STEPS_SHIPPING,
+		config = {}
 	}: Props = $props()
 	/* eslint-enable prefer-const */
 </script>
@@ -118,7 +121,7 @@
 							country: shippingAddress.country_code
 						}
 					}}
-					returnUrl={`${browser ? window.location.origin : ''}/shop/checkout/confirmation`}
+					returnUrl={`${browser ? window.location.origin : ''}${resolveShopPath('/checkout/confirmation', config)}`}
 					submitButtonText="Continue to Review"
 					isProcessing={formSubmitting}
 					onsuccess={handlePaymentSuccess}

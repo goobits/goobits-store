@@ -3,7 +3,7 @@
  * Provides a flexible way to handle messages from any i18n library
  */
 
-import { defaultMessages, type DefaultMessages, type CheckoutStepsMessages } from '../config/defaultMessages'
+import { defaultMessages, type DefaultMessages, type CheckoutStepsMessages } from '../config/defaultMessages.js'
 
 // Use console for logging within the package
 const logger = console

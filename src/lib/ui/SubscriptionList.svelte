@@ -6,6 +6,7 @@
 	 * Reusable across different storefronts
 	 */
 	import type { Snippet } from 'svelte'
+	import { resolveShopPath } from '../config/index'
 	import {
 		formatCurrency,
 		formatDate,
@@ -18,28 +19,33 @@
 
 	interface Props {
 		subscriptions?: Subscription[];
-		detailUrlPattern?: string;
+		detailUrlPattern?: string | null;
 		emptyMessage?: string;
 		emptyAction?: Snippet | null;
+		config?: ShopConfig;
 	}
 
 	const {
 		subscriptions = [],
-		detailUrlPattern = '/shop/subscriptions/{id}',
+		detailUrlPattern = null,
 		emptyMessage = 'No subscriptions yet',
-		emptyAction = null
+		emptyAction = null,
+		config = {}
 	}: Props = $props()
 
 	// Filter subscriptions by status
 	const activeSubscriptions: Subscription[] = $derived(getActiveSubscriptions(subscriptions))
 	const pausedSubscriptions: Subscription[] = $derived(getPausedSubscriptions(subscriptions))
 	const pastSubscriptions: Subscription[] = $derived(getPastSubscriptions(subscriptions))
+	const resolvedDetailUrlPattern: string = $derived(
+		detailUrlPattern || resolveShopPath('/subscriptions/{id}', config)
+	)
 
 	/**
 	 * Get detail URL for a subscription
 	 */
 	function getDetailUrl(subscriptionId: string): string {
-		return detailUrlPattern.replace('{id}', subscriptionId)
+		return resolvedDetailUrlPattern.replace('{id}', subscriptionId)
 	}
 </script>
 

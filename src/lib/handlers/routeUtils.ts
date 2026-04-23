@@ -468,13 +468,12 @@ export async function loadCheckout(
 	_config: ShopConfig | null = null,
 	options: LoadCheckoutOptions = {}
 ): Promise<CheckoutPageData> {
-	// Config available for future customization
-	void (_config || getStoreConfig())
+	const finalConfig = getStoreConfig(_config || {})
 	const { url } = options
 	const cartId = url?.searchParams.get('cart_id')
 
 	if (!cartId) {
-		throw redirect(302, '/shop/cart')
+		throw redirect(302, finalConfig.shopUri ? `${finalConfig.shopUri}/cart` : '/shop/cart')
 	}
 
 	try {
@@ -482,7 +481,7 @@ export async function loadCheckout(
 		const { cart } = await medusaServerClient.carts.retrieve(cartId) as MedusaCartResponse
 
 		if (!cart) {
-			throw redirect(302, '/shop/cart')
+			throw redirect(302, finalConfig.shopUri ? `${finalConfig.shopUri}/cart` : '/shop/cart')
 		}
 
 		// Get regions for shipping

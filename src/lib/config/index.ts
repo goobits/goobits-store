@@ -115,3 +115,31 @@ export function getStoreConfig(customConfig: PartialStoreConfig = {}): StoreConf
 		i18n: { ...storeConfig.i18n, ...customConfig.i18n }
 	}
 }
+
+export function normalizeShopUri(shopUri?: string): string {
+	const value = (shopUri || storeConfig.shopUri || '/shop').trim()
+	if (value === '' || value === '/') {
+		return '/shop'
+	}
+
+	const withLeadingSlash = value.startsWith('/') ? value : `/${ value }`
+	return withLeadingSlash.replace(/\/+$/, '') || '/shop'
+}
+
+export function resolveShopPath(
+	path = '',
+	customConfig: PartialStoreConfig = {}
+): string {
+	const baseUri = normalizeShopUri(customConfig.shopUri)
+
+	if (!path || path === '/') {
+		return baseUri
+	}
+
+	if (/^https?:\/\//.test(path)) {
+		return path
+	}
+
+	const normalizedPath = path.startsWith('/') ? path : `/${ path }`
+	return `${ baseUri }${ normalizedPath }`
+}

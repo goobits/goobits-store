@@ -5,7 +5,8 @@
 	import { goto } from '$app/navigation'
 	import { medusaClient } from '@goobits/store'
 	import { browser } from '$app/environment'
-	import { Logger } from '@lib/utils/Logger'
+	import { createLogger } from '../utils/logger'
+	import { resolveShopPath } from '../config/index'
 	import type { CartItem } from '../stores/cart'
 
 	interface PageData {
@@ -24,7 +25,7 @@
 	const fallbackImage: string = $derived(config?.ui?.placeholders?.product ||
 		'https://placehold.co/100x100/E5E5E5/999?text=Product')
 
-	const logger = new Logger('ShopCart')
+	const logger = createLogger('ShopCart')
 
 	// Extract region data from server
 	const defaultRegion: MedusaRegion | undefined = $derived(data?.defaultRegion)
@@ -68,7 +69,7 @@
 	}
 
 	function handleContinueShopping(): void {
-		goto('/shop')
+		goto(resolveShopPath('', config))
 	}
 
 	// Helper function to generate a slug from a product name
@@ -165,7 +166,7 @@
 				// Only redirect if we have items in the cart
 				if ($cart.length > 0 || itemsToAdd.length > failedItems.length) {
 					// Redirect to the checkout page with the cart ID
-					goto(`/shop/checkout?cart_id=${ medusaCart.id }`)
+					goto(`${ resolveShopPath('/checkout', config) }?cart_id=${ medusaCart.id }`)
 				} else {
 					// All items were invalid, stay on cart page
 					errorMessage = 'All items in your cart are no longer available. Please add new items to continue.'
@@ -215,7 +216,7 @@
 				{#each $cart as item (getProductId(item))}
 					<div class="goo__cart-item">
 						<div class="goo__cart-item-product">
-							<a href="/shop/{item.handle || getProductHandle(item)}" class="goo__cart-item-image-link">
+							<a href={resolveShopPath(`/${ item.handle || getProductHandle(item) }`, config)} class="goo__cart-item-image-link">
 								<img
 									src={item.image || fallbackImage}
 									alt={item.name}
@@ -223,7 +224,7 @@
 								/>
 							</a>
 							<div class="goo__cart-item-details">
-								<a href="/shop/{item.handle || getProductHandle(item)}" class="goo__cart-item-name">{item.name}</a>
+								<a href={resolveShopPath(`/${ item.handle || getProductHandle(item) }`, config)} class="goo__cart-item-name">{item.name}</a>
 								{#if item.options && item.options.length > 0 && item.options.some((opt: { title?: string }) => opt.title && (opt.title.toLowerCase() === 'color' || opt.title.toLowerCase() === 'size'))}
 									{#each item.options as option}
 										{#if option.title && option.value}

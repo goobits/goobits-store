@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { page } from '$app/stores'
+	import { resolveShopPath } from '../config/index'
 	import { createMessageGetter } from '../utils/messages'
 	import { defaultMessages } from '../config/defaultMessages'
 
@@ -12,8 +13,9 @@
 		shopName?: string;
 		backUrl?: string;
 		getCartCount?: () => number;
-		shopUrl?: string;
-		cartUrl?: string;
+		shopUrl?: string | null;
+		cartUrl?: string | null;
+		config?: ShopConfig;
 	}
 
 	const {
@@ -21,8 +23,9 @@
 		shopName,
 		backUrl = '/',
 		getCartCount = () => 0,
-		shopUrl = '/shop',
-		cartUrl = '/shop/cart'
+		shopUrl = null,
+		cartUrl = null,
+		config = {}
 	}: Props = $props()
 
 	// Create message getter
@@ -34,24 +37,26 @@
 
 	// Get the shop name to display
 	const displayShopName: string = $derived(shopName || msg('shopName', 'Shop'))
+	const resolvedShopUrl: string = $derived(shopUrl || resolveShopPath('', config))
+	const resolvedCartUrl: string = $derived(cartUrl || resolveShopPath('/cart', config))
 </script>
 
 <nav class="goo__shop-nav">
 	<div class="goo__shop-nav-container">
 		<div class="goo__shop-nav-logo">
-			<a href={shopUrl}>{displayShopName}</a>
+			<a href={resolvedShopUrl}>{displayShopName}</a>
 		</div>
 
 		<div class="goo__shop-nav-links">
 			<a
-				href={shopUrl}
-				class="goo__shop-nav-link" class:active={$page.url.pathname === shopUrl}
+				href={resolvedShopUrl}
+				class="goo__shop-nav-link" class:active={$page.url.pathname === resolvedShopUrl}
 			>
 				{msg('products', 'Products')}
 			</a>
 			<a
-				href={cartUrl}
-				class="goo__shop-nav-link goo__cart-link" class:active={$page.url.pathname === cartUrl}
+				href={resolvedCartUrl}
+				class="goo__shop-nav-link goo__cart-link" class:active={$page.url.pathname === resolvedCartUrl}
 			>
 				{msg('cart', 'Cart')} {cartCount > 0 ? `(${cartCount})` : ''}
 			</a>

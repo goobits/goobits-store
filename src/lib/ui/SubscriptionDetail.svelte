@@ -6,23 +6,27 @@
 	 * Reusable across different storefronts
 	 */
 	import Modal from '@goobits/ui/ui/modals/Modal.svelte'
+	import { resolveShopPath } from '../config/index'
 	import { formatCurrency, formatDate } from '../utils/subscription-helpers'
 
 	interface Props {
 		subscription?: Subscription;
 		backendUrl?: string;
 		onUpdate?: (event: SubscriptionUpdateEvent) => void;
-		backLinkUrl?: string;
+		backLinkUrl?: string | null;
 		backLinkText?: string;
+		config?: ShopConfig;
 	}
 
 	const {
 		subscription,
 		backendUrl = '',
 		onUpdate = () => {},
-		backLinkUrl = '/shop/subscriptions',
-		backLinkText = '← Back to Subscriptions'
+		backLinkUrl = null,
+		backLinkText = '← Back to Subscriptions',
+		config = {}
 	}: Props = $props()
+	const resolvedBackLinkUrl: string = $derived(backLinkUrl || resolveShopPath('/subscriptions', config))
 
 	// Loading states
 	let isPausing: boolean = $state(false)
@@ -135,7 +139,7 @@
 <div class="subscription-detail">
 	<div class="subscription-detail__header">
 		<div>
-			<a href={backLinkUrl} class="back-link">{backLinkText}</a>
+			<a href={resolvedBackLinkUrl} class="back-link">{backLinkText}</a>
 			<h1>Subscription Details</h1>
 		</div>
 	</div>

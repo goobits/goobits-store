@@ -2,7 +2,7 @@
  * Utility functions for formatting prices and calculating checkout totals
  */
 
-import { createLogger } from './logger'
+import { createLogger } from './logger.js'
 
 const logger = createLogger('CheckoutUtils')
 

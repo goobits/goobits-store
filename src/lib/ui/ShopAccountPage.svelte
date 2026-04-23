@@ -3,6 +3,7 @@
 	import MFASettingsPanel from './MFASettingsPanel.svelte'
 	import type { Readable } from 'svelte/store'
 	import type { Branding, StoreAuthState, StoreAuthStore } from '../types/storefront'
+	import { resolveShopPath } from '../config/index'
 
 	interface PageData {
 		[key: string]: unknown;
@@ -14,13 +15,15 @@
 		isAuthenticated?: Readable<boolean>;
 		customer?: Readable<MedusaCustomer | null>;
 		branding?: Branding;
+		config?: ShopConfig;
 	}
 
 	const {
 		auth,
 		isAuthenticated,
 		customer,
-		branding = { siteName: 'Store' }
+		branding = { siteName: 'Store' },
+		config = {}
 	}: Props = $props()
 
 	// Subscribe to stores
@@ -60,7 +63,7 @@
 	onMount(async () => {
 		if (!isAuth) {
 			if (typeof window !== 'undefined') {
-				window.location.href = '/shop/login?return=/shop/account'
+				window.location.href = `${ resolveShopPath('/login', config) }?return=${ encodeURIComponent(resolveShopPath('/account', config)) }`
 			}
 		} else if (isAuth && !currentUser && auth?.checkSession) {
 			// User is authenticated but user data is missing.
@@ -110,7 +113,7 @@
 		if (auth?.logout) {
 			await auth.logout()
 			if (typeof window !== 'undefined') {
-				window.location.href = '/shop/login'
+				window.location.href = resolveShopPath('/login', config)
 			}
 		}
 	}
@@ -235,7 +238,7 @@
 					</svg>
 					<h3 class="goo__empty-title">No orders yet</h3>
 					<p class="goo__empty-description">Start your shopping journey and your orders will appear here.</p>
-					<a href="/shop" class="goo__empty-action">Browse Products</a>
+					<a href={resolveShopPath('', config)} class="goo__empty-action">Browse Products</a>
 				</div>
 			</section>
 

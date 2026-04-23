@@ -8,6 +8,7 @@
 	import ShopCheckoutPage from './ShopCheckoutPage.svelte'
 	import ShopLoginPage from './ShopLoginPage.svelte'
 	import ShopPlansPage from './ShopPlansPage.svelte'
+	import { resolveShopPath } from '../config/index'
 	import type { Readable } from 'svelte/store'
 	import type {
 		Branding,
@@ -71,11 +72,11 @@
 			{config}
 		/>
 	{:else if pageType === 'product'}
-		<ShopProductPage {data} />
+		<ShopProductPage {data} {config} />
 	{:else if pageType === 'category'}
-		<ShopCategoryPage {data} />
+		<ShopCategoryPage {data} {config} />
 	{:else if pageType === 'collection'}
-		<ShopCollectionPage {data} />
+		<ShopCollectionPage {data} {config} />
 	{:else if pageType === 'account'}
 		<ShopAccountPage
 			{data}
@@ -83,11 +84,12 @@
 			isAuthenticated={data.isAuthenticated}
 			customer={data.customer}
 			branding={content.branding}
+			{config}
 		/>
 	{:else if pageType === 'cart'}
 		<ShopCartPage {data} {config} />
 	{:else if pageType === 'checkout'}
-		<ShopCheckoutPage data={checkoutData} form={data.form} />
+		<ShopCheckoutPage data={checkoutData} form={data.form} {config} />
 	{:else if pageType === 'login'}
 		<ShopLoginPage
 			{data}
@@ -95,6 +97,7 @@
 			demoCredentials={data.demoCredentials}
 			initialMode="login"
 			branding={content.branding}
+			{config}
 		/>
 	{:else if pageType === 'register'}
 		<ShopLoginPage
@@ -103,17 +106,19 @@
 			demoCredentials={null}
 			initialMode="register"
 			branding={content.branding}
+			{config}
 		/>
 	{:else if pageType === 'plans'}
 		<ShopPlansPage
 			{data}
 			content={content.plans}
+			{config}
 		/>
 	{:else}
 		<div class="shop-error">
 			<h1>Page Not Found</h1>
 			<p>The requested shop page could not be found.</p>
-			<a href="/shop">← Back to Shop</a>
+			<a href={resolveShopPath('', config)}>← Back to Shop</a>
 		</div>
 	{/if}
 </div>

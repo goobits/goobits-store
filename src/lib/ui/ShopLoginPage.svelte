@@ -2,6 +2,7 @@
 	import { goto } from '$app/navigation'
 	import { page } from '$app/stores'
 	import { browser } from '$app/environment'
+	import { resolveShopPath } from '../config/index'
 	import MFAVerificationInput from './MFAVerificationInput.svelte'
 	import MFABackupCodeInput from './MFABackupCodeInput.svelte'
 	import FormErrors from '@goobits/ui/ui/FormErrors.svelte'
@@ -24,13 +25,15 @@
 		demoCredentials?: DemoCredentials | null;
 		initialMode?: 'login' | 'register';
 		branding?: Branding;
+		config?: ShopConfig;
 	}
 
 	const {
 		auth,
 		demoCredentials = null,
 		initialMode = 'login',
-		branding = { siteName: 'Store' }
+		branding = { siteName: 'Store' },
+		config = {}
 	}: Props = $props()
 
 	let email: string = $state('')
@@ -90,7 +93,7 @@
 		}
 	})
 
-	const returnUrl: string = $derived($page.url.searchParams.get('return') || '/shop/account')
+	const returnUrl: string = $derived($page.url.searchParams.get('return') || resolveShopPath('/account', config))
 
 	// Convert auth error to FormErrors format
 	const formErrors: { _errors: string[] } = $derived(authState.error ? { _errors: [authState.error] } : { _errors: [] })
@@ -232,9 +235,9 @@
 
 		// Navigate to the appropriate route
 		if (showRegister) {
-			goto('/shop/login')
+			goto(resolveShopPath('/login', config))
 		} else {
-			goto('/shop/register')
+			goto(resolveShopPath('/register', config))
 		}
 	}
 </script>

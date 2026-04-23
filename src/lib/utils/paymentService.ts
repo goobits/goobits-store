@@ -5,7 +5,7 @@
  */
 
 import { browser } from '$app/environment'
-import { createLogger } from './logger'
+import { createLogger } from './logger.js'
 
 const logger = createLogger('PaymentService')
 

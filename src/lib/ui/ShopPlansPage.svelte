@@ -17,6 +17,7 @@
 	interface Props {
 		data?: PageData;
 		content?: PlansContent;
+		config?: ShopConfig;
 	}
 
 	const {
@@ -25,7 +26,8 @@
 			title: 'Service Plans & Subscriptions',
 			description: 'Our service plans and subscription options have moved to make them easier to find!',
 			links: []
-		}
+		},
+		config = {}
 	}: Props = $props()
 </script>
 
@@ -37,7 +39,7 @@
 		<a href="/plans" class="redirect-button">
 			View All Plans & Subscriptions
 		</a>
-		<a href="/shop" class="redirect-button secondary">
+		<a href={resolveShopPath('', config)} class="redirect-button secondary">
 			← Back to Shop
 		</a>
 	</div>
@@ -144,3 +146,4 @@
 		text-decoration: underline;
 	}
 </style>
+	import { resolveShopPath } from '../config/index'

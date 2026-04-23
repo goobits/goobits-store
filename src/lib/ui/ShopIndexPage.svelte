@@ -2,6 +2,7 @@
 	import { addToCart, getCartCount } from '@goobits/store'
 	import { goto } from '$app/navigation'
 	import { formatPrice } from '@goobits/store/utils/checkoutUtils'
+	import { resolveShopPath } from '../config/index'
 
 	interface PageData {
 		products?: MedusaProduct[];
@@ -99,7 +100,7 @@
 	 * Navigates to the checkout page
 	 */
 	function goToCheckout(): void {
-		goto('/shop/cart')
+		goto(resolveShopPath('/cart', config))
 	}
 </script>
 
@@ -135,7 +136,7 @@
 		{:else}
 			{#each products as product (product.id)}
 				<div class="product-card">
-					<a href="/shop/{product.handle}" class="product-link">
+					<a href={resolveShopPath(`/${ product.handle }`, config)} class="product-link">
 						<div class="product-image-container">
 							<img
 								src={getProductImage(product)}
@@ -151,7 +152,7 @@
 					</a>
 					<div class="product-actions">
 						{#if hasOptions(product) || (product.variants?.length ?? 0) > 1}
-							<a href="/shop/{product.handle}" class="btn btn-primary">View Options</a>
+							<a href={resolveShopPath(`/${ product.handle }`, config)} class="btn btn-primary">View Options</a>
 						{:else}
 							<button
 								class="btn btn-primary"

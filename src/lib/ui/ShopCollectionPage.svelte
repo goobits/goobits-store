@@ -14,9 +14,10 @@
 
 	interface Props {
 		data: PageData;
+		config?: ShopConfig;
 	}
 
-	const { data }: Props = $props()
+	const { data, config = {} }: Props = $props()
 
 	const collection: MedusaCollection = $derived(data.collection || {})
 </script>
@@ -29,7 +30,7 @@
 </section>
 
 <!-- Reuse the product grid from ShopIndexPage -->
-<ShopIndexPage {data} />
+<ShopIndexPage {data} {config} />
 
 <style>
 	.collection-header {

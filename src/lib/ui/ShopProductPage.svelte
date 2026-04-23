@@ -2,9 +2,8 @@
 	// This component contains the existing product detail functionality
 	import { addToCart } from '@goobits/store'
 	import { goto } from '$app/navigation'
-	// @ts-ignore - OptimizedImage component from external package
-	import OptimizedImage from '@components/OptimizedImage/OptimizedImage.svelte'
-	import { Logger } from '@lib/utils/Logger'
+	import { createLogger } from '../utils/logger'
+	import { resolveShopPath } from '../config/index'
 	import { formatPrice } from '@goobits/store/utils/checkoutUtils'
 
 	interface ProductImage {
@@ -46,11 +45,12 @@
 
 	interface Props {
 		data: PageData;
+		config?: ShopConfig;
 	}
 
-	const { data }: Props = $props()
+	const { data, config = {} }: Props = $props()
 
-	const logger = new Logger('ProductDetail')
+	const logger = createLogger('ProductDetail')
 
 	// Extract product data
 	const product: Product = $derived(data.product || {} as Product)
@@ -192,7 +192,7 @@
 
 	// Navigate back to products
 	function goBack(): void {
-		goto('/shop')
+		goto(resolveShopPath('', config))
 	}
 </script>
 
@@ -209,20 +209,18 @@
 			<div class="goo__product-images">
 				<div class="goo__product-main-image">
 					{#if selectedImage && selectedImage.url}
-						<OptimizedImage
+						<img
 							src={selectedImage.url}
 							alt={product.title || "Product Image"}
-							widths={[400, 800, 1200]}
-							sizes="(max-width: 768px) 100vw, 50vw"
 							class="main-product-image"
+							loading="lazy"
 						/>
 					{:else if product.thumbnail}
-						<OptimizedImage
+						<img
 							src={product.thumbnail}
 							alt={product.title || "Product Image"}
-							widths={[400, 800, 1200]}
-							sizes="(max-width: 768px) 100vw, 50vw"
 							class="main-product-image"
+							loading="lazy"
 						/>
 					{:else}
 						<div class="goo__product-placeholder">No image available</div>
@@ -359,7 +357,7 @@
 					{#each relatedProducts as relatedProduct}
 						{#if relatedProduct && relatedProduct.handle}
 							<div class="goo__related-product">
-								<a href="/shop/{relatedProduct.handle}">
+								<a href={resolveShopPath(`/${ relatedProduct.handle }`, config)}>
 									{#if relatedProduct.thumbnail}
 										<OptimizedImage
 											src={relatedProduct.thumbnail}

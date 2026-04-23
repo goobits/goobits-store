@@ -2,7 +2,7 @@
  * Standardized error handling utilities for @goobits/store
  */
 
-import { createLogger } from './logger'
+import { createLogger } from './logger.js'
 
 const logger = createLogger('ErrorHandler')
 

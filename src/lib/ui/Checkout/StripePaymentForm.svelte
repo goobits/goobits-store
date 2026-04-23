@@ -63,7 +63,7 @@
 				country: ''
 			}
 		},
-		returnUrl = '/shop/checkout/confirmation',
+		returnUrl = '/checkout/confirmation',
 		submitButtonText = 'Pay now',
 		isProcessing = false,
 		onsuccess,

@@ -20,8 +20,7 @@ import {
 	type CheckoutPageData,
 	type CartPageData,
 	type ShopEntry
-} from './routeUtils'
-
+} from './routeUtils.js'
 // Handler options interfaces
 interface ShopIndexHandlerOptions {
 	prerender?: boolean

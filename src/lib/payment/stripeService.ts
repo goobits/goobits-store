@@ -205,7 +205,7 @@ export const confirmPayment = async (
 	const confirmOptions = {
 		elements,
 		confirmParams: {
-			return_url: options.returnUrl || `${window.location.origin}/shop/checkout/confirmation`,
+			return_url: options.returnUrl || `${window.location.origin}/checkout/confirmation`,
 			payment_method_data: {
 				billing_details: options.billingDetails || {}
 			}

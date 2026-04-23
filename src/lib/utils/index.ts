@@ -1,9 +1,9 @@
 // Export utilities
-export * from './checkoutUtils'
-export * from './messages'
-export * from './errorHandler'
-export * from './logger'
-export * from './fontAwesome'
+export * from './checkoutUtils.js'
+export * from './messages.js'
+export * from './errorHandler.js'
+export * from './logger.js'
+export * from './fontAwesome.js'
 // Re-export subscription-helpers with renamed formatCurrency to avoid conflict
 export {
 	formatCurrency as formatSubscriptionCurrency,
@@ -17,10 +17,10 @@ export {
 	daysUntilBilling,
 	isPastDue,
 	getDiscountText
-} from './subscription-helpers'
-export * from './formatters'
-export * from './validation'
-export * from './slugUtils'
-export * from './paymentService'
-export * from './medusaClient'
-export * from './medusaServerClient'
+} from './subscription-helpers.js'
+export * from './formatters.js'
+export * from './validation.js'
+export * from './slugUtils.js'
+export * from './paymentService.js'
+export * from './medusaClient.js'
+export * from './medusaServerClient.js'
