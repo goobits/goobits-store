@@ -13,6 +13,15 @@ import { redirect, error } from '@sveltejs/kit'
 
 const logger = createLogger('StoreRouteUtils')
 
+async function optionalMedusaCall<T>(label: string, operation: () => Promise<T>, fallback: T): Promise<T> {
+	try {
+		return await operation()
+	} catch (err) {
+		logger.warn(`${ label } failed, continuing with fallback data`, err)
+		return fallback
+	}
+}
+
 // Medusa API response types
 interface MedusaProductsResponse {
 	products: MedusaProduct[]
@@ -161,11 +170,14 @@ export async function loadShopIndex(
 	const { initialLoad = false } = options
 
 	try {
-		// Get regions first for pricing context
-		const { regions } = await medusaServerClient.regions.list() as MedusaRegionsResponse
+		// Regions improve pricing, but the page can still render without them.
+		const { regions } = await optionalMedusaCall(
+			'regions.list',
+			async () => await medusaServerClient.regions.list() as MedusaRegionsResponse,
+			{ regions: [] as MedusaRegion[] }
+		)
 		const defaultRegion: MedusaRegion | null = regions && regions.length > 0 ? regions[0] ?? null : null
 
-		// Fetch products from Medusa
 		const limit = initialLoad
 			? _finalConfig.pagination?.productsPerBatch || 12
 			: 50
@@ -181,17 +193,23 @@ export async function loadShopIndex(
 			queryParams.region_id = defaultRegion.id
 		}
 
-		const { products, count } = await medusaServerClient.products.list(queryParams) as unknown as MedusaProductsResponse
-
-		// Get product categories for filtering
-		const { product_categories } = await medusaServerClient.productCategories.list({
-			limit: 100
-		}) as MedusaCategoriesResponse
-
-		// Get collections for filtering
-		const { collections } = await medusaServerClient.collections.list({
-			limit: 100
-		}) as MedusaCollectionsResponse
+		const [
+			{ products, count },
+			{ product_categories },
+			{ collections }
+		] = await Promise.all([
+			medusaServerClient.products.list(queryParams) as unknown as Promise<MedusaProductsResponse>,
+			optionalMedusaCall(
+				'productCategories.list',
+				async () => await medusaServerClient.productCategories.list({ limit: 100 }) as MedusaCategoriesResponse,
+				{ product_categories: [] as MedusaCategory[] }
+			),
+			optionalMedusaCall(
+				'collections.list',
+				async () => await medusaServerClient.collections.list({ limit: 100 }) as MedusaCollectionsResponse,
+				{ collections: [] as MedusaCollection[] }
+			)
+		])
 
 		return {
 			pageType: 'index',
@@ -226,8 +244,11 @@ export async function loadProduct(
 	void (_config || getStoreConfig())
 
 	try {
-		// Get regions first for pricing context
-		const { regions } = await medusaServerClient.regions.list() as MedusaRegionsResponse
+		const { regions } = await optionalMedusaCall(
+			'regions.list',
+			async () => await medusaServerClient.regions.list() as MedusaRegionsResponse,
+			{ regions: [] as MedusaRegion[] }
+		)
 		const defaultRegion: MedusaRegion | null = regions && regions.length > 0 ? regions[0] ?? null : null
 
 		// Fetch the product by handle (slug) with pricing information
@@ -256,10 +277,14 @@ export async function loadProduct(
 		let relatedProducts: MedusaProduct[] = []
 		const productWithCollection = product as MedusaProduct & { collection_id?: string }
 		if (productWithCollection.collection_id) {
-			const { products: collectionProducts } = await medusaServerClient.products.list({
-				collection_id: [ productWithCollection.collection_id ],
-				limit: 4
-			}) as unknown as MedusaProductsResponse
+			const { products: collectionProducts } = await optionalMedusaCall(
+				'relatedProducts.list',
+				async () => await medusaServerClient.products.list({
+					collection_id: [ productWithCollection.collection_id ],
+					limit: 4
+				}) as unknown as MedusaProductsResponse,
+				{ products: [] as MedusaProduct[], count: 0 }
+			)
 
 			// Remove the current product from related products
 			relatedProducts = collectionProducts.filter(p => p.id !== product.id)
@@ -314,8 +339,11 @@ export async function loadCategory(
 			limit: 50
 		}) as unknown as MedusaProductsResponse
 
-		// Get regions for pricing
-		const { regions } = await medusaServerClient.regions.list() as MedusaRegionsResponse
+		const { regions } = await optionalMedusaCall(
+			'regions.list',
+			async () => await medusaServerClient.regions.list() as MedusaRegionsResponse,
+			{ regions: [] as MedusaRegion[] }
+		)
 
 		// Default to first region if available
 		const defaultRegion: MedusaRegion | null = regions && regions.length > 0 ? regions[0] ?? null : null
@@ -370,8 +398,11 @@ export async function loadCollection(
 			limit: 50
 		}) as unknown as MedusaProductsResponse
 
-		// Get regions for pricing
-		const { regions } = await medusaServerClient.regions.list() as MedusaRegionsResponse
+		const { regions } = await optionalMedusaCall(
+			'regions.list',
+			async () => await medusaServerClient.regions.list() as MedusaRegionsResponse,
+			{ regions: [] as MedusaRegion[] }
+		)
 
 		// Default to first region if available
 		const defaultRegion: MedusaRegion | null = regions && regions.length > 0 ? regions[0] ?? null : null
