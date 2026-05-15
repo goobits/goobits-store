@@ -101,6 +101,13 @@ declare interface MedusaCustomer {
 // Shop config types
 declare interface ShopConfig {
 	ui?: {
+		theme?: {
+			colors?: {
+				primary?: string;
+				secondary?: string;
+			};
+		};
+		classPrefix?: string;
 		placeholders?: {
 			product?: string;
 		};

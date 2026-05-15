@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { resolveShopPath } from '../config/index'
+
 	interface ContentLink {
 		url: string;
 		label: string;
@@ -146,4 +148,3 @@
 		text-decoration: underline;
 	}
 </style>
-	import { resolveShopPath } from '../config/index'

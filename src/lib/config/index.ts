@@ -55,7 +55,14 @@ export interface PartialStoreConfig {
 	currencySymbol?: string;
 	pagination?: Partial<PaginationConfig>;
 	checkout?: Partial<CheckoutConfig>;
-	ui?: Partial<UIConfig>;
+	ui?: Partial<Omit<UIConfig, 'theme'>> & {
+		theme?: Partial<Omit<ThemeConfig, 'colors'>> & {
+			colors?: Partial<ThemeColors>;
+		};
+		placeholders?: {
+			product?: string;
+		};
+	};
 	i18n?: Partial<I18nConfig>;
 }
 
@@ -111,7 +118,18 @@ export function getStoreConfig(customConfig: PartialStoreConfig = {}): StoreConf
 		// Deep merge nested objects
 		pagination: { ...storeConfig.pagination, ...customConfig.pagination },
 		checkout: { ...storeConfig.checkout, ...customConfig.checkout },
-		ui: { ...storeConfig.ui, ...customConfig.ui },
+		ui: {
+			...storeConfig.ui,
+			...customConfig.ui,
+			theme: {
+				...storeConfig.ui.theme,
+				...customConfig.ui?.theme,
+				colors: {
+					...storeConfig.ui.theme.colors,
+					...customConfig.ui?.theme?.colors
+				}
+			}
+		},
 		i18n: { ...storeConfig.i18n, ...customConfig.i18n }
 	}
 }

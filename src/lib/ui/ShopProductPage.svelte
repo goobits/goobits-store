@@ -359,20 +359,18 @@
 							<div class="goo__related-product">
 								<a href={resolveShopPath(`/${ relatedProduct.handle }`, config)}>
 									{#if relatedProduct.thumbnail}
-										<OptimizedImage
+										<img
 											src={relatedProduct.thumbnail}
 											alt={relatedProduct.title || 'Related Product'}
-											widths={[200, 400, 600]}
-											sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
 											class="related-product-image"
+											loading="lazy"
 										/>
 									{:else if relatedProduct.images && relatedProduct.images.length > 0 && relatedProduct.images[0]?.url}
-										<OptimizedImage
+										<img
 											src={relatedProduct.images[0]?.url || ''}
 											alt={relatedProduct.title || 'Related Product'}
-											widths={[200, 400, 600]}
-											sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
 											class="related-product-image"
+											loading="lazy"
 										/>
 									{:else}
 										<div class="goo__product-placeholder">No image</div>
