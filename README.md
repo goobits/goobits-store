@@ -1,12 +1,19 @@
 # @goobits/store
 
-**Version 1.6.0** - Stable
-
 Reusable e-commerce store components and utilities for Goobits projects built on Medusa v2.
 
 Part of the Goobits monorepo ecosystem with shared `@goobits/logger`, `@goobits/security`, and `@goobits/ui` packages.
 
-## 🔒 Security Notice
+**Version 1.6.0** - Stable
+
+## TL;DR
+
+- Install and call `initStoreConfig` in `src/app.js` with your Stripe public key and store settings.
+- Use `ShopNav` for navigation and the Checkout\* components for the checkout flow.
+- Pass a `messages` prop to any component for i18n, or wire `handleStoreI18n` for server-side detection.
+- Payment processing happens server-side via Stripe Elements. Do not handle real card data in client code.
+
+## Security Notice
 
 **This package contains demo payment forms that are NOT suitable for production use.**
 
@@ -17,19 +24,19 @@ Part of the Goobits monorepo ecosystem with shared `@goobits/logger`, `@goobits/
 
 Using this package for real payment processing violates PCI compliance and could result in legal liability.
 
-## ✨ Features
+## Features
 
-- 🛒 Full shopping cart functionality with Medusa v2 integration
-- 💳 Checkout flow with Stripe integration and payment service abstraction
-- 🔄 Subscription management components (Subscribe & Save, Subscription Detail)
-- 📱 Responsive design with Svelte 5 runes mode
-- 🌐 Built-in internationalization (i18n) support
-- ♿ Accessibility compliant (WCAG)
-- 🎨 Customizable styling with BEM naming and SCSS variables
-- 📊 Structured logging with `@goobits/logger` integration
-- 🔐 Integrates with `@goobits/security` for CSRF and validation
+- Full shopping cart functionality with Medusa v2 integration
+- Checkout flow with Stripe integration and payment service abstraction
+- Subscription management components (Subscribe & Save, Subscription Detail)
+- Responsive design with Svelte 5 runes mode
+- Built-in internationalization (i18n) support
+- Accessibility compliant (WCAG)
+- Customizable styling with BEM naming and SCSS variables
+- Structured logging with `@goobits/logger` integration
+- Integrates with `@goobits/security` for CSRF and validation
 
-## 📦 Installation
+## Usage
 
 ```bash
 npm install @goobits/store
@@ -37,8 +44,6 @@ npm install @goobits/store
 # Required peer dependencies
 npm install @sveltejs/kit formsnap svelte
 ```
-
-## 🚀 Quick Start
 
 ```svelte
 <script>
@@ -56,7 +61,7 @@ npm install @sveltejs/kit formsnap svelte
 <CheckoutPayment messages={customMessages} />
 ```
 
-## 🔧 Configuration
+## Configuration
 
 ```js
 // src/lib/store-config.js
@@ -77,7 +82,7 @@ import { storeConfig } from '$lib/store-config.js'
 initStoreConfig(storeConfig)
 ```
 
-## 🌐 Internationalization (i18n)
+## Internationalization (i18n)
 
 The store package supports full internationalization through multiple integration methods:
 
@@ -149,7 +154,7 @@ const getMessage = createMessageGetter({
 })
 ```
 
-## 🧩 Components
+## Components
 
 ### Checkout Components
 - `CheckoutConfirmation` - Order confirmation page
@@ -173,7 +178,7 @@ const getMessage = createMessageGetter({
 ### Navigation
 - `ShopNav` - Store navigation with cart indicator
 
-## 🎨 Styling
+## Styling
 
 All components use BEM naming convention with the `goo__` namespace prefix:
 
@@ -188,7 +193,7 @@ All components use BEM naming convention with the `goo__` namespace prefix:
 }
 ```
 
-## ♿ Accessibility
+## Accessibility
 
 Components include:
 - Semantic HTML structure
@@ -198,6 +203,6 @@ Components include:
 - Color contrast compliance
 - Screen reader announcements
 
-## 📄 License
+## License
 
 ISC
