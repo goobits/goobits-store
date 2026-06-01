@@ -276,11 +276,12 @@ export async function loadProduct(
 		// Fetch related products in the same collection or with similar tags
 		let relatedProducts: MedusaProduct[] = []
 		const productWithCollection = product as MedusaProduct & { collection_id?: string }
-		if (productWithCollection.collection_id) {
+		const collectionId = productWithCollection.collection_id
+		if (collectionId) {
 			const { products: collectionProducts } = await optionalMedusaCall(
 				'relatedProducts.list',
 				async () => await medusaServerClient.products.list({
-					collection_id: [ productWithCollection.collection_id ],
+					collection_id: [ collectionId ],
 					limit: 4
 				}) as unknown as MedusaProductsResponse,
 				{ products: [] as MedusaProduct[], count: 0 }
