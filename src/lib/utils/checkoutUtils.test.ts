@@ -5,7 +5,7 @@
  * and edge cases that could display wrong prices to customers.
  */
 
-import { describe, it, expect } from 'vitest'
+import { describe, it, expect, vi } from 'vitest'
 import {
 	formatPrice,
 	formatCurrency,
@@ -73,7 +73,12 @@ describe('formatPrice', () => {
 		})
 
 		it('should return 0.00 for non-numeric string', () => {
-			expect(formatPrice('not a number')).toBe('0.00')
+			const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
+			try {
+				expect(formatPrice('not a number')).toBe('0.00')
+			} finally {
+				errorSpy.mockRestore()
+			}
 		})
 	})
 
