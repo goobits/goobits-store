@@ -28,6 +28,8 @@ const globalConfig = {
 	prefix: '@goobits/store'
 }
 
+const consoleSink = globalThis.console
+
 /**
  * Logger configuration manager
  */
@@ -43,9 +45,9 @@ export const LoggerConfig = {
 	 * Configure the global logger settings
 	 */
 	configure(config: { enabled?: boolean; level?: number; prefix?: string }) {
-		if (config.enabled !== undefined) globalConfig.enabled = config.enabled
-		if (config.level !== undefined) globalConfig.level = config.level
-		if (config.prefix !== undefined) globalConfig.prefix = config.prefix
+		if (config.enabled !== undefined) {globalConfig.enabled = config.enabled}
+		if (config.level !== undefined) {globalConfig.level = config.level}
+		if (config.prefix !== undefined) {globalConfig.prefix = config.prefix}
 	}
 }
 
@@ -61,16 +63,15 @@ export const configureLogger = LoggerConfig.configure
 export function createLogger(module: string): Logger {
 	const prefix = `[${ globalConfig.prefix }:${ module }]`
 
-	const shouldLog = (level: number) => {
-		return globalConfig.enabled && level <= globalConfig.level
-	}
+	const shouldLog = (level: number) => globalConfig.enabled && level <= globalConfig.level
 
 	const log = (level: number, method: string, message: unknown, ...args: unknown[]) => {
-		if (!shouldLog(level)) return
+		if (!shouldLog(level)) {return}
 
 		const timestamp = new Date().toISOString()
 		const logMethod =
-			(console[method as keyof Console] as ((...a: unknown[]) => void) | undefined) || console.log
+			(consoleSink[method as keyof Console] as ((...a: unknown[]) => void) | undefined) ||
+			consoleSink.log
 		logMethod(`${ timestamp } ${ prefix } ${ message }`, ...args)
 	}
 

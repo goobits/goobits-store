@@ -73,7 +73,7 @@ describe('formatPrice', () => {
 		})
 
 		it('should return 0.00 for non-numeric string', () => {
-			const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
+			const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => undefined)
 			try {
 				expect(formatPrice('not a number')).toBe('0.00')
 			} finally {

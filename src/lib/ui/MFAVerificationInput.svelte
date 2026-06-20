@@ -31,7 +31,7 @@
 	const inputRefs: (HTMLInputElement | null)[] = $state([])
 	let attempts: number = $state(0)
 	let isLocked: boolean = $state(false)
-	// eslint-disable-next-line svelte/valid-compile -- intentionally capturing initial value for countdown timer
+
 	let timeRemaining: number = $state(0)
 	let timerInterval: ReturnType<typeof setInterval> | null = $state(null)
 
