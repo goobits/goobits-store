@@ -7,7 +7,7 @@
 	import { browser } from '$app/environment'
 	import { createLogger } from '../utils/logger'
 	import { resolveShopPath } from '../config/index'
-	import { handleKeyboardActivationKey } from './_keyboard'
+	import { handleKeyboardActivationKey } from '@goobits/keyboard/dom'
 
 	// Import checkout components from store package
 	import CheckoutCustomerInfo from './Checkout/CheckoutCustomerInfo.svelte'

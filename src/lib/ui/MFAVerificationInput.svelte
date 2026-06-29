@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { onMount } from 'svelte'
-	import { containKeyboardEvent } from './_keyboard'
+	import { containKeyboardEvent } from '@goobits/keyboard/dom'
 
 	/**
 	 * MFAVerificationInput - 6-digit TOTP code input component

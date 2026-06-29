@@ -1,7 +1,7 @@
 <script lang="ts">
 	import FormErrors from '@goobits/ui/ui/FormErrors.svelte'
 	import Button from '@goobits/ui/ui/modals/Button.svelte'
-	import { handleKeyboardActivationKey, handleKeyboardEscapeKey } from './_keyboard'
+	import { handleKeyboardActivationKey, handleKeyboardEscapeKey } from '@goobits/keyboard/dom'
 
 	/**
 	 * MFAAdminResetModal - Super-admin MFA reset confirmation modal

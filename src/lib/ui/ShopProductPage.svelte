@@ -5,7 +5,7 @@
 	import { createLogger } from '../utils/logger'
 	import { resolveShopPath } from '../config/index'
 	import { formatPrice } from '@goobits/store/utils/checkoutUtils'
-	import { handleKeyboardActivationKey } from './_keyboard'
+	import { handleKeyboardActivationKey } from '@goobits/keyboard/dom'
 	import type { CartItem } from '../stores/cart'
 
 	interface ProductImage {
