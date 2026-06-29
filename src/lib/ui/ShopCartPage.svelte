@@ -35,6 +35,9 @@
 		return product.variant_id || product.id
 	}
 
+	type DisplayCartItemOption = { title: string; value: string }
+	type CheckoutCartItem = CartItem & { variant_id: string }
+
 	let isSubmitting: boolean = $state(false)
 	let errorMessage: string = $state('')
 
@@ -80,6 +83,26 @@
 			.replace(/\s+/g, '-') // Replace spaces with hyphens
 	}
 
+	function hasVariantId(item: CartItem): item is CheckoutCartItem {
+		return typeof item.variant_id === 'string' && item.variant_id.length > 0
+	}
+
+	function getDisplayOptions(item: CartItem): DisplayCartItemOption[] {
+		return Array.isArray(item.options)
+			? item.options.filter((option): option is DisplayCartItemOption => Boolean(option?.title && option?.value))
+			: []
+	}
+
+	function isColorOrSizeOption(option: DisplayCartItemOption): boolean {
+		return ['color', 'size'].includes(option.title.toLowerCase())
+	}
+
+	function getVariantTitleParts(item: CartItem): string[] {
+		return typeof item.variant_title === 'string'
+			? item.variant_title.split(' / ')
+			: []
+	}
+
 	async function handleCheckout(): Promise<void> {
 		if ($cart.length === 0) {
 			errorMessage = 'My cart is empty'
@@ -114,7 +137,7 @@
 			const { cart: medusaCart } = await medusaClient.carts.create(cartParams)
 
 				// Add line items to the cart
-				const itemsToAdd = $cart.map((item: CartItem) => {
+				const itemsToAdd = $cart.filter(hasVariantId).map((item: CheckoutCartItem) => {
 					return {
 						variant_id: item.variant_id,
 						quantity: item.quantity
@@ -122,7 +145,7 @@
 				})
 
 				// Track failed items
-				const failedItems: Array<{ variant_id?: string; quantity: number }> = []
+				const failedItems: Array<{ variant_id: string; quantity: number }> = []
 
 				for (const item of itemsToAdd) {
 					logger.info('Adding line item:', { variant_id: item.variant_id, quantity: item.quantity })
@@ -214,6 +237,8 @@
 				</div>
 
 				{#each $cart as item (getProductId(item))}
+					{@const displayOptions = getDisplayOptions(item)}
+					{@const variantTitleParts = getVariantTitleParts(item)}
 					<div class="goo__cart-item">
 						<div class="goo__cart-item-product">
 							<a href={resolveShopPath(`/${ item.handle || getProductHandle(item) }`, config)} class="goo__cart-item-image-link">
@@ -225,26 +250,21 @@
 							</a>
 							<div class="goo__cart-item-details">
 								<a href={resolveShopPath(`/${ item.handle || getProductHandle(item) }`, config)} class="goo__cart-item-name">{item.name}</a>
-								{#if item.options && item.options.length > 0 && item.options.some((opt: { title?: string }) => opt.title && (opt.title.toLowerCase() === 'color' || opt.title.toLowerCase() === 'size'))}
-									{#each item.options as option}
-										{#if option.title && option.value}
-											{#if option.title.toLowerCase() === 'color'}
-												<div class="goo__cart-item-option">
-													{option.title}:
+								{#if displayOptions.some(isColorOrSizeOption)}
+									{#each displayOptions as option}
+										{#if isColorOrSizeOption(option)}
+											<div class="goo__cart-item-option">
+												{option.title}:
+												{#if option.title.toLowerCase() === 'color'}
 													<span class="goo__color-swatch" style:background-color="{option.value.toLowerCase()}"></span>
-													{option.value}
-												</div>
-											{:else if option.title.toLowerCase() === 'size'}
-												<div class="goo__cart-item-option">
-													{option.title}: {option.value}
-												</div>
-											{/if}
+												{/if}
+												{option.value}
+											</div>
 										{/if}
 									{/each}
-								{:else if item.variant_title && item.variant_title.includes(' / ')}
-									{@const parts = item.variant_title.split(' / ')}
-									{@const size = parts[0]}
-									{@const color = parts[1]}
+								{:else if variantTitleParts.length > 1}
+									{@const size = variantTitleParts[0]}
+									{@const color = variantTitleParts[1]}
 									{#if size && color}
 										<div class="goo__cart-item-option">
 											Size: {size}
@@ -257,7 +277,7 @@
 									{:else}
 										<div class="goo__cart-item-variant">{item.variant_title}</div>
 									{/if}
-								{:else if item.variant_title && item.variant_title !== ''}
+								{:else if typeof item.variant_title === 'string' && item.variant_title !== ''}
 									<div class="goo__cart-item-variant">{item.variant_title}</div>
 								{/if}
 							</div>

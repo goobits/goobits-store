@@ -3,6 +3,7 @@
 	import { goto } from '$app/navigation'
 	import { formatPrice } from '@goobits/store/utils/checkoutUtils'
 	import { resolveShopPath } from '../config/index'
+	import type { CartItem } from '../stores/cart'
 
 	interface PageData {
 		products?: MedusaProduct[];
@@ -73,13 +74,14 @@
 		const firstVariant = product.variants?.[0]
 		if (!firstVariant) return
 
-		const cartProduct: CartProduct = {
+		const cartProduct: CartItem = {
 			id: product.id,
 			name: product.title,
 			handle: product.handle,
 			price: parseFloat(getProductPrice(product)),
 			image: getProductImage(product),
-			variant_id: firstVariant.id
+			variant_id: firstVariant.id,
+			quantity: 1
 		}
 
 		addToCart(cartProduct)

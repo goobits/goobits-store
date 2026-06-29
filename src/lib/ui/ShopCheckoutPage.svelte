@@ -7,6 +7,7 @@
 	import { browser } from '$app/environment'
 	import { createLogger } from '../utils/logger'
 	import { resolveShopPath } from '../config/index'
+	import { handleKeyboardActivationKey } from './_keyboard'
 
 	// Import checkout components from store package
 	import CheckoutCustomerInfo from './Checkout/CheckoutCustomerInfo.svelte'
@@ -347,6 +348,10 @@
 		}
 	}
 
+	function handleStepKeydown(event: KeyboardEvent, step: StepType): void {
+		handleKeyboardActivationKey(event, () => goToStep(step))
+	}
+
 	function continueShopping(): void {
 		goto(resolveShopPath('', config))
 	}
@@ -361,7 +366,7 @@
 		<div class="goo__checkout-step"
 			 class:active={currentStep === STEPS.INFORMATION}
 			 onclick={() => goToStep(STEPS.INFORMATION)}
-			 onkeydown={(e) => e.key === 'Enter' && goToStep(STEPS.INFORMATION)}
+			 onkeydown={(e) => handleStepKeydown(e, STEPS.INFORMATION)}
 			 tabindex="0"
 			 role="button">
 			<span class="goo__step-number">1</span>
@@ -371,7 +376,7 @@
 		<div class="goo__checkout-step"
 			 class:active={currentStep === STEPS.SHIPPING}
 			 onclick={() => goToStep(STEPS.SHIPPING)}
-			 onkeydown={(e) => e.key === 'Enter' && goToStep(STEPS.SHIPPING)}
+			 onkeydown={(e) => handleStepKeydown(e, STEPS.SHIPPING)}
 			 tabindex="0"
 			 role="button">
 			<span class="goo__step-number">2</span>
@@ -381,7 +386,7 @@
 		<div class="goo__checkout-step"
 			 class:active={currentStep === STEPS.PAYMENT}
 			 onclick={() => goToStep(STEPS.PAYMENT)}
-			 onkeydown={(e) => e.key === 'Enter' && goToStep(STEPS.PAYMENT)}
+			 onkeydown={(e) => handleStepKeydown(e, STEPS.PAYMENT)}
 			 tabindex="0"
 			 role="button">
 			<span class="goo__step-number">3</span>
@@ -391,7 +396,7 @@
 		<div class="goo__checkout-step"
 			 class:active={currentStep === STEPS.REVIEW}
 			 onclick={() => goToStep(STEPS.REVIEW)}
-			 onkeydown={(e) => e.key === 'Enter' && goToStep(STEPS.REVIEW)}
+			 onkeydown={(e) => handleStepKeydown(e, STEPS.REVIEW)}
 			 tabindex="0"
 			 role="button">
 			<span class="goo__step-number">4</span>

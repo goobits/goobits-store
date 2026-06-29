@@ -1,6 +1,7 @@
 {
 	"compilerOptions": {
 		"baseUrl": ".",
+		"ignoreDeprecations": "6.0",
 		"allowJs": false,
 		"checkJs": false,
 		"esModuleInterop": true,
@@ -10,6 +11,7 @@
 		"moduleResolution": "bundler",
 		"module": "ESNext",
 		"target": "ESNext",
+		"allowImportingTsExtensions": true,
 		"strict": true,
 		"noImplicitAny": true,
 		"noImplicitThis": true,
@@ -26,6 +28,7 @@
 		"noPropertyAccessFromIndexSignature": false,
 		"useUnknownInCatchVariables": true,
 		"verbatimModuleSyntax": false,
+		"noEmit": true,
 		"declaration": true,
 		"declarationMap": true,
 		"sourceMap": true,

@@ -101,6 +101,7 @@
 		"LICENSE"
 	],
 	"dependencies": {
+		"@goobits/keyboard": "workspace:*",
 		"@medusajs/medusa-js": "^6.1.10",
 		"qrcode": "^1.5.4"
 	},
@@ -138,7 +139,7 @@
 	},
 	"scripts": {
 		"dev": "svelte-package --watch",
-		"build": "svelte-package",
+		"build": "SVELTE_PACKAGE_NO_PREPROCESS=1 svelte-package",
 		"prepublishOnly": "pnpm run build",
 		"test": "vitest run",
 		"test:leaks": "vitest run --detectAsyncLeaks --maxWorkers=1 --silent=passed-only",

@@ -5,6 +5,8 @@
 	import { createLogger } from '../utils/logger'
 	import { resolveShopPath } from '../config/index'
 	import { formatPrice } from '@goobits/store/utils/checkoutUtils'
+	import { handleKeyboardActivationKey } from './_keyboard'
+	import type { CartItem } from '../stores/cart'
 
 	interface ProductImage {
 		id?: string;
@@ -141,6 +143,10 @@
 		userSelectedImage = image
 	}
 
+	function handleImageKeydown(event: KeyboardEvent, image: ProductImage): void {
+		handleKeyboardActivationKey(event, () => selectImage(image))
+	}
+
 	// Handle option selection
 	function selectOption(optionId: string, value: string): void {
 		// Create a new object to trigger reactivity
@@ -161,7 +167,7 @@
 
 		// Construct cart item
 		const variantPrice = getVariantPrice(selectedVariant)
-		const cartItem: CartProduct = {
+		const cartItem: CartItem = {
 			id: product.id, // Use product ID for grouping in cart logic if needed
 			name: product.title,
 			handle: product.handle,
@@ -234,7 +240,7 @@
 								<div
 									class="goo__product-thumbnail" class:active={selectedImage && selectedImage.id === image.id}
 									onclick={() => selectImage(image)}
-									onkeydown={(e) => e.key === 'Enter' && selectImage(image)}
+									onkeydown={(e) => handleImageKeydown(e, image)}
 									tabindex="0"
 									role="button"
 									aria-label="View image"

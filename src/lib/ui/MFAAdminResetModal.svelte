@@ -1,6 +1,7 @@
 <script lang="ts">
 	import FormErrors from '@goobits/ui/ui/FormErrors.svelte'
 	import Button from '@goobits/ui/ui/modals/Button.svelte'
+	import { handleKeyboardActivationKey, handleKeyboardEscapeKey } from './_keyboard'
 
 	/**
 	 * MFAAdminResetModal - Super-admin MFA reset confirmation modal
@@ -65,6 +66,13 @@
 		show = false
 	}
 
+	function handleOverlayKeydown(event: KeyboardEvent): void {
+		if (event.target !== event.currentTarget) return
+
+		if (handleKeyboardEscapeKey(event, handleClose)) return
+		handleKeyboardActivationKey(event, handleClose)
+	}
+
 	function resetForm(): void {
 		reason = ''
 		otherReason = ''
@@ -114,7 +122,7 @@
 		role="button"
 		tabindex="0"
 		onclick={(e) => e.target === e.currentTarget && handleClose()}
-		onkeydown={(e) => (e.key === 'Escape' || e.key === 'Enter') && e.target === e.currentTarget && handleClose()}
+		onkeydown={handleOverlayKeydown}
 	>
 		<div class="goo__modal goo__mfa-reset-modal">
 			<header class="goo__modal-header">

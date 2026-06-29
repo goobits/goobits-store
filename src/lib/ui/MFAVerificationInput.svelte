@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { onMount } from 'svelte'
+	import { containKeyboardEvent } from './_keyboard'
 
 	/**
 	 * MFAVerificationInput - 6-digit TOTP code input component
@@ -103,6 +104,7 @@
 	function handleKeyDown(index: number, event: KeyboardEvent): void {
 		// Backspace: clear current or move to previous
 		if (event.key === 'Backspace') {
+			containKeyboardEvent(event)
 			if (!digits[index] && index > 0) {
 				inputRefs[index - 1]?.focus()
 			}
@@ -110,14 +112,19 @@
 		}
 		// Arrow keys
 		else if (event.key === 'ArrowLeft' && index > 0) {
+			containKeyboardEvent(event)
 			inputRefs[index - 1]?.focus()
 		}
 		else if (event.key === 'ArrowRight' && index < 5) {
+			containKeyboardEvent(event)
 			inputRefs[index + 1]?.focus()
 		}
 		// Enter: submit if complete
-		else if (event.key === 'Enter' && isComplete) {
-			handleSubmit()
+		else if (event.key === 'Enter') {
+			containKeyboardEvent(event)
+			if (isComplete) {
+				handleSubmit()
+			}
 		}
 	}
 

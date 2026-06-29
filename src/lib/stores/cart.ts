@@ -12,7 +12,10 @@ export interface CartItem {
 	price: number;
 	quantity: number;
 	variant_id?: string;
+	handle?: string;
 	image?: string;
+	options?: Array<{ title?: string; value?: string }>;
+	variant_title?: string;
 	[key: string]: unknown;
 }
 
