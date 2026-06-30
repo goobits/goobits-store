@@ -1,7 +1,9 @@
 <script lang="ts">
+	import { tick } from 'svelte'
 	import FormErrors from '@goobits/ui/ui/FormErrors.svelte'
 	import Button from '@goobits/ui/ui/modals/Button.svelte'
-	import { handleKeyboardActivationKey, handleKeyboardEscapeKey } from '@goobits/keyboard/dom'
+	import { handleKeyboardEscapeKey } from '@goobits/keyboard/dom'
+	import { getFocusTrapItems, handleFocusTrapKeyboardEvent } from '@goobits/keyboard/focus'
 
 	/**
 	 * MFAAdminResetModal - Super-admin MFA reset confirmation modal
@@ -43,6 +45,9 @@
 	let confirmed: boolean = $state(false)
 	let submitting: boolean = $state(false)
 	let error: string | null = $state(null)
+	let dialogRef: HTMLDivElement | null = $state(null)
+	let previousActiveElement: HTMLElement | null = null
+	let hasCapturedFocus = false
 
 	// Convert error to FormErrors format
 	const formErrors = $derived(error ? { _errors: [error] } : { _errors: [] })
@@ -66,11 +71,9 @@
 		show = false
 	}
 
-	function handleOverlayKeydown(event: KeyboardEvent): void {
-		if (event.target !== event.currentTarget) return
-
+	function handleDialogKeydown(event: KeyboardEvent): void {
 		if (handleKeyboardEscapeKey(event, handleClose)) return
-		handleKeyboardActivationKey(event, handleClose)
+		handleTabKey(event)
 	}
 
 	function resetForm(): void {
@@ -114,20 +117,52 @@
 			submitting = false
 		}
 	}
+
+	$effect(() => {
+		if (!show) {
+			hasCapturedFocus = false
+			if (previousActiveElement?.isConnected) {
+				previousActiveElement.focus({ preventScroll: true })
+			}
+			previousActiveElement = null
+			return
+		}
+
+		if (!dialogRef || hasCapturedFocus) return
+		hasCapturedFocus = true
+		previousActiveElement = document.activeElement instanceof HTMLElement ? document.activeElement : null
+		void tick().then(() => {
+			if (!show || !dialogRef) return
+			(getFocusTrapItems(dialogRef)[0] ?? dialogRef).focus({ preventScroll: true })
+		})
+	})
+
+	function handleTabKey(event: KeyboardEvent): boolean {
+		if (event.key !== 'Tab') return false
+		return handleFocusTrapKeyboardEvent(event, { root: dialogRef })
+	}
 </script>
 
 {#if show}
+	<!-- svelte-ignore a11y_no_static_element_interactions -->
 	<div
 		class="goo__modal-overlay"
-		role="button"
-		tabindex="0"
+		role="presentation"
 		onclick={(e) => e.target === e.currentTarget && handleClose()}
-		onkeydown={handleOverlayKeydown}
 	>
-		<div class="goo__modal goo__mfa-reset-modal">
+		<div
+			bind:this={dialogRef}
+			class="goo__modal goo__mfa-reset-modal"
+			role="dialog"
+			aria-modal="true"
+			aria-labelledby="goo-mfa-reset-modal-title"
+			tabindex="-1"
+			onkeydown={handleDialogKeydown}
+		>
 			<header class="goo__modal-header">
-				<h2>Reset User MFA</h2>
+				<h2 id="goo-mfa-reset-modal-title">Reset User MFA</h2>
 				<button
+					type="button"
 					class="goo__modal-close"
 					onclick={handleClose}
 					disabled={submitting}
