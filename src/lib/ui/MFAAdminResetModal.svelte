@@ -321,11 +321,11 @@
 			border: none;
 			font-size: 1.5rem;
 			cursor: pointer;
-			color: var(--color-text-secondary, #666);
-			padding: 0;
-			width: 32px;
-			height: 32px;
-			display: flex;
+				color: var(--color-text-secondary, #666);
+				padding: 0;
+				width: 44px;
+				height: 44px;
+				display: flex;
 			align-items: center;
 			justify-content: center;
 			border-radius: var(--radius-sm, 4px);
